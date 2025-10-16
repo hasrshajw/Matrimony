@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Matrimony Portal</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background: #f4f7f6; color: #333; }
+        .container { max-width: 1200px; margin: 20px auto; background: #fff; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); padding: 30px; }
+        h1, h2, h3 { color: #2c3e50; margin-top: 0; }
+        button { background-color: #3498db; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; transition: background-color 0.2s ease; }
+        button:hover { background-color: #2980b9; }
+        button:disabled { background-color: #cccccc; cursor: not-allowed; }
+        input[type="text"], input[type="email"], input[type="password"], input[type="number"], input[type="date"], textarea, select {
+            width: calc(100% - 22px); padding: 10px; margin: 8px 0; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; font-size: 16px;
+        }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; color: #555; }
+        .error-message { color: #e74c3c; margin-top: 10px; font-weight: bold; }
+        .success-message { color: #2ecc71; margin-top: 10px; font-weight: bold; }
+        .hidden { display: none !important; }
+
+        #auth-section { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; background: linear-gradient(to right, #4facfe 0%, #00f2fe 100%); }
+        #auth-form { background: #fff; padding: 40px; border-radius: 10px; box-shadow: 0 8px 20px rgba(0,0,0,0.15); width: 100%; max-width: 400px; }
+        #auth-form h2 { text-align: center; margin-bottom: 30px; color: #333; }
+        #auth-form button { width: 100%; margin-top: 20px; }
+
+        #app-header { background: #34495e; color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #3498db; }
+        #app-header h1 { margin: 0; font-size: 24px; }
+        #app-header nav ul { list-style: none; margin: 0; padding: 0; display: flex; }
+        #app-header nav li { margin-left: 20px; }
+        #app-header nav a { color: white; text-decoration: none; font-weight: bold; font-size: 17px; transition: color 0.2s ease; }
+        #app-header nav a:hover, #app-header nav a.active { color: #3498db; }
+        #user-info { display: flex; align-items: center; }
+        #user-info span { margin-right: 15px; font-size: 15px; }
+        #user-info button { background-color: #e74c3c; }
+        #user-info button:hover { background-color: #c0392b; }
+
+        .content-section { padding: 20px 0; border-top: 1px solid #eee; display: none; }
+        .content-section:first-of-type { border-top: none; }
+        .content-section.active { display: block; }
+
+        .profile-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; margin-top: 20px; }
+        .profile-card { background: #f9f9f9; border: 1px solid #e0e0e0; border-radius: 8px; padding: 20px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .profile-card img { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; margin-bottom: 15px; border: 3px solid #3498db; }
+        .profile-card h3 { margin-top: 0; margin-bottom: 10px; color: #3498db; }
+        .profile-card p { margin: 5px 0; font-size: 15px; color: #555; }
+        .profile-card .actions button { margin-top: 15px; margin-right: 10px; }
+        .profile-card .actions button.edit { background-color: #f39c12; }
+        .profile-card .actions button.edit:hover { background-color: #e67e22; }
+        .profile-card .actions button.delete { background-color: #e74c3c; }
+        .profile-card .actions button.delete:hover { background-color: #c0392b; }
+        .no-profiles { text-align: center; color: #777; font-style: italic; margin-top: 30px; }
+
+        #profile-detail-view-content { display: flex; flex-direction: column; align-items: center; padding: 30px; background: #f9f9f9; border: 1px solid #eee; border-radius: 10px; }
+        #profile-detail-view-content img { width: 200px; height: 200px; border-radius: 50%; object-fit: cover; margin-bottom: 25px; border: 5px solid #3498db; }
+        #profile-detail-view-content h2 { color: #3498db; margin-bottom: 15px; }
+        #profile-detail-view-content p { font-size: 17px; line-height: 1.6; color: #444; margin-bottom: 10px; text-align: center; max-width: 600px; }
+        #profile-detail-view-content .share-actions { margin-top: 30px; }
+        #profile-detail-view-content .share-actions button { margin: 0 10px; }
+
+        #admin-panel-section h2 { margin-bottom: 20px; }
+        #admin-panel-section .admin-section-block { background: #fdfdfd; border: 1px solid #eee; border-radius: 8px; padding: 25px; margin-bottom: 20px; }
+        #admin-panel-section .admin-section-block h3 { margin-top: 0; color: #3498db; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 20px; }
+
+        #matrimony-groups-list ul { list-style: none; padding: 0; margin-top: 15px; }
+        #matrimony-groups-list li { background: #ecf0f1; padding: 10px 15px; margin-bottom: 8px; border-radius: 5px; display: flex; justify-content: space-between; align-items: center; }
+        #matrimony-groups-list li span { font-weight: bold; color: #333; }
+        #matrimony-groups-list li button { padding: 5px 10px; font-size: 14px; background-color: #e74c3c; }
+        #matrimony-groups-list li button:hover { background-color: #c0392b; }
+
+        #change-history-list { margin-top: 20px; max-height: 400px; overflow-y: auto; border: 1px solid #eee; border-radius: 5px; padding: 15px; background: #f8f8f8; }
+        #change-history-list div { padding: 10px 0; border-bottom: 1px dashed #eee; font-size: 14px; color: #666; }
+        #change-history-list div:last-child { border-bottom: none; }
+        #change-history-list div strong { color: #333; }
+        #change-history-list div .timestamp { font-size: 12px; color: #999; margin-left: 10px; }
+
+        .grid-form { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .grid-form .full-width { grid-column: 1 / -1; }
+        .grid-form textarea { min-height: 80px; }
+
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            vertical-align: middle;
+            margin-left: 10px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div id="auth-section">
+        <div id="auth-form">
+            <h2>Welcome to Matrimony Portal</h2>
+            <div class="form-group">
+                <label for="login-email">Email:</label>
+                <input type="email" id="login-email" placeholder="Enter your email" required>
+            </div>
+            <div class="form-group">
+                <label for="login-password">Password:</label>
+                <input type="password" id="login-password" placeholder="Enter your password" required>
+            </div>
+            <p id="auth-error" class="error-message hidden"></p>
+            <button id="login-btn">Login</button>
+            <p style="text-align: center; margin-top: 20px; font-size: 14px; color: #777;">
+                For demo: Use 'admin@example.com' (password: 123456) for admin access.<br>
+                Or 'employee@example.com' (password: 123456) for employee access.<br>
+            </p>
+        </div>
+    </div>
+
+    <div id="app-content" class="hidden">
+        <header id="app-header">
+            <h1>Matrimony Portal</h1>
+            <nav>
+                <ul>
+                    <li><a href="#" id="nav-create-profile" class="active">Create Profile</a></li>
+                    <li><a href="#" id="nav-search-profile">Search Profiles</a></li>
+                    <li id="nav-admin-panel-item" class="hidden"><a href="#" id="nav-admin-panel">Admin Panel</a></li>
+                </ul>
+            </nav>
+            <div id="user-info">
+                <span>Welcome, <strong id="current-user-email"></strong> (<span id="current-user-role"></span>)</span>
+                <button id="logout-btn">Logout</button>
+            </div>
+        </header>
+
+        <div class="container">
+            <section id="create-profile-section" class="content-section active">
+                <h2>Create New Profile</h2>
+                <form id="profile-form" class="grid-form">
+                    <input type="hidden" id="profile-id">
+                    <div class="form-group">
+                        <label for="profile-name">Full Name:</label>
+                        <input type="text" id="profile-name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="profile-age">Age:</label>
+                        <input type="number" id="profile-age" min="18" max="99" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="profile-location">Location:</label>
+                        <input type="text" id="profile-location" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="profile-religion">Religion:</label>
+                        <input type="text" id="profile-religion">
+                    </div>
+                    <div class="form-group">
+                        <label for="profile-education">Education:</label>
+                        <input type="text" id="profile-education">
+                    </div>
+                    <div class="form-group">
+                        <label for="profile-profession">Profession:</label>
+                        <input type="text" id="profile-profession">
+                    </div>
+                    <div class="form-group">
+                        <label for="profile-marital-status">Marital Status:</label>
+                        <select id="profile-marital-status">
+                            <option value="Single">Single</option>
+                            <option value="Divorced">Divorced</option>
+                            <option value="Widowed">Widowed</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="profile-matrimony-group">Matrimony Group:</label>
+                        <select id="profile-matrimony-group">
+                        </select>
+                    </div>
+                    <div class="form-group full-width">
+                        <label for="profile-bio">Bio / Description:</label>
+                        <textarea id="profile-bio" rows="4"></textarea>
+                    </div>
+                    <div class="form-group full-width">
+                        <label for="profile-photo">Profile Photo:</label>
+                        <input type="file" id="profile-photo" accept="image/*">
+                        <img id="profile-photo-preview" src="#" alt="Profile Photo Preview" style="max-width: 150px; max-height: 150px; margin-top: 10px; border-radius: 8px; display: none;">
+                    </div>
+                    <div class="form-group full-width">
+                        <label for="auto-generate-paragraph">Auto-generate details from paragraph:</label>
+                        <textarea id="auto-generate-paragraph" placeholder="e.g., John Doe, 28, from New York. Works as a Software Engineer. Looking for a compatible partner." rows="3"></textarea>
+                        <button type="button" id="auto-generate-btn" style="margin-top: 10px;">Auto-generate Fields <span class="loading-spinner hidden" id="auto-generate-spinner"></span></button>
+                    </div>
+                    <div class="form-group full-width">
+                        <p id="profile-form-message" class="success-message hidden"></p>
+                        <button type="submit" id="submit-profile-btn">Create Profile <span class="loading-spinner hidden" id="profile-submit-spinner"></span></button>
+                        <button type="button" id="cancel-edit-btn" class="hidden">Cancel Edit</button>
+                    </div>
+                </form>
+            </section>
+
+            <section id="search-profile-section" class="content-section">
+                <h2>Search Profiles</h2>
+                <div class="grid-form">
+                    <div class="form-group">
+                        <label for="search-age-min">Min Age:</label>
+                        <input type="number" id="search-age-min" min="18" value="18">
+                    </div>
+                    <div class="form-group">
+                        <label for="search-age-max">Max Age:</label>
+                        <input type="number" id="search-age-max" min="18" value="99">
+                    </div>
+                    <div class="form-group">
+                        <label for="search-location">Location:</label>
+                        <input type="text" id="search-location">
+                    </div>
+                    <div class="form-group">
+                        <label for="search-religion">Religion:</label>
+                        <input type="text" id="search-religion">
+                    </div>
+                    <div class="form-group">
+                        <label for="search-education">Education:</label>
+                        <input type="text" id="search-education">
+                    </div>
+                    <div class="form-group">
+                        <label for="search-matrimony-group">Matrimony Group:</label>
+                        <select id="search-matrimony-group">
+                            <option value="">Any</option>
+                        </select>
+                    </div>
+                    <div class="form-group full-width">
+                        <label for="smart-search-paragraph">Smart Paragraph Search:</label>
+                        <textarea id="smart-search-paragraph" placeholder="e.g., Looking for a partner in their late 20s from London, preferably with a Bachelor's degree." rows="3"></textarea>
+                        <button type="button" id="smart-search-btn" style="margin-top: 10px;">Smart Search</button>
+                    </div>
+                    <div class="form-group full-width">
+                        <button type="button" id="apply-filters-btn">Apply Filters</button>
+                        <button type="button" id="reset-filters-btn" style="background-color: #7f8c8d;">Reset Filters</button>
+                    </div>
+                </div>
+                <h3>Matching Profiles</h3>
+                <div id="search-results" class="profile-list">
+                    <p class="no-profiles">No profiles found. Try adjusting your search criteria.</p>
+                </div>
+            </section>
+
+            <section id="admin-panel-section" class="content-section">
+                <h2>Admin Panel</h2>
+
+                <div class="admin-section-block">
+                    <h3>Matrimony Group Management</h3>
+                    <div class="form-group">
+                        <label for="new-matrimony-group-name">New Group Name:</label>
+                        <input type="text" id="new-matrimony-group-name" placeholder="e.g., XYZ Community Matrimony">
+                        <button id="add-matrimony-group-btn" style="margin-top: 10px;">Add New Group</button>
+                    </div>
+                    <p id="group-message" class="success-message hidden"></p>
+                    <div id="matrimony-groups-list">
+                        <h4>Existing Groups:</h4>
+                        <ul>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="admin-section-block">
+                    <h3>All Profiles</h3>
+                    <p id="admin-profile-message" class="success-message hidden"></p>
+                    <div id="all-profiles-list" class="profile-list">
+                        <p class="no-profiles">Loading profiles...</p>
+                    </div>
+                </div>
+
+                <div class="admin-section-block">
+                    <h3>Change History</h3>
+                    <div id="change-history-list">
+                        <p class="no-profiles">No change history to display.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="profile-detail-view" class="content-section">
+                <div id="profile-detail-view-content" class="container">
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js';
+        import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js';
+        import { getFirestore, collection, addDoc, getDoc, getDocs, updateDoc, deleteDoc, doc, query, where, orderBy, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js';
+        import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-storage.js';
+        import { getAI, getGenerativeModel } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-ai.js';
+
+        const firebaseConfig = {
+  apiKey: "AIzaSyAuxA-e71uX_uLDe6oyFU69q-eLfgUzbXA",
+  authDomain: "harsha-jw.firebaseapp.com",
+  projectId: "harsha-jw",
+  storageBucket: "harsha-jw.firebasestorage.app",
+  messagingSenderId: "471408120499",
+  appId: "1:471408120499:web:91e61514ad3703ce3b16c6",
+  measurementId: "G-NBC16X4R1T"
+};
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const storage = getStorage(app);
+        const ai = getAI(app);
+        const model = getGenerativeModel(ai, { model: 'gemini-2.5-flash' });
+
+        let currentUser = null;
+        let currentUserRole = null;
+        let matrimonyGroups = [];
+        let editingProfileId = null;
+
+        const authSection = document.getElementById('auth-section');
+        const authForm = document.getElementById('auth-form');
+        const loginEmailInput = document.getElementById('login-email');
+        const loginPasswordInput = document.getElementById('login-password');
+        const loginBtn = document.getElementById('login-btn');
+        const authError = document.getElementById('auth-error');
+
+        const appContent = document.getElementById('app-content');
+        const appHeader = document.getElementById('app-header');
+        const currentUserEmailSpan = document.getElementById('current-user-email');
+        const currentUserRoleSpan = document.getElementById('current-user-role');
+        const logoutBtn = document.getElementById('logout-btn');
+
+        const navCreateProfile = document.getElementById('nav-create-profile');
+        const navSearchProfile = document.getElementById('nav-search-profile');
+        const navAdminPanelItem = document.getElementById('nav-admin-panel-item');
+        const navAdminPanel = document.getElementById('nav-admin-panel');
+
+        const createProfileSection = document.getElementById('create-profile-section');
+        const searchProfileSection = document.getElementById('search-profile-section');
+        const adminPanelSection = document.getElementById('admin-panel-section');
+        const profileDetailView = document.getElementById('profile-detail-view');
+
+        const profileForm = document.getElementById('profile-form');
+        const profileIdInput = document.getElementById('profile-id');
+        const profileNameInput = document.getElementById('profile-name');
+        const profileAgeInput = document.getElementById('profile-age');
+        const profileLocationInput = document.getElementById('profile-location');
+        const profileReligionInput = document.getElementById('profile-religion');
+        const profileEducationInput = document.getElementById('profile-education');
+        const profileProfessionInput = document.getElementById('profile-profession');
+        const profileMaritalStatusSelect = document.getElementById('profile-marital-status');
+        const profileMatrimonyGroupSelect = document.getElementById('profile-matrimony-group');
+        const profileBioInput = document.getElementById('profile-bio');
+        const profilePhotoInput = document.getElementById('profile-photo');
+        const profilePhotoPreview = document.getElementById('profile-photo-preview');
+        const autoGenerateParagraphInput = document.getElementById('auto-generate-paragraph');
+        const autoGenerateBtn = document.getElementById('auto-generate-btn');
+        const autoGenerateSpinner = document.getElementById('auto-generate-spinner');
+        const submitProfileBtn = document.getElementById('submit-profile-btn');
+        const cancelEditBtn = document.getElementById('cancel-edit-btn');
+        const profileFormMessage = document.getElementById('profile-form-message');
+        const profileSubmitSpinner = document.getElementById('profile-submit-spinner');
+
+        const searchAgeMinInput = document.getElementById('search-age-min');
+        const searchAgeMaxInput = document.getElementById('search-age-max');
+        const searchLocationInput = document.getElementById('search-location');
+        const searchReligionInput = document.getElementById('search-religion');
+        const searchEducationInput = document.getElementById('search-education');
+        const searchMatrimonyGroupSelect = document.getElementById('search-matrimony-group');
+        const smartSearchParagraphInput = document.getElementById('smart-search-paragraph');
+        const smartSearchBtn = document.getElementById('smart-search-btn');
+        const applyFiltersBtn = document.getElementById('apply-filters-btn');
+        const resetFiltersBtn = document.getElementById('reset-filters-btn');
+        const searchResultsDiv = document.getElementById('search-results');
+
+        const newMatrimonyGroupNameInput = document.getElementById('new-matrimony-group-name');
+        const addMatrimonyGroupBtn = document.getElementById('add-matrimony-group-btn');
+        const matrimonyGroupsListUl = document.querySelector('#matrimony-groups-list ul');
+        const groupMessage = document.getElementById('group-message');
+
+        const allProfilesListDiv = document.getElementById('all-profiles-list');
+        const adminProfileMessage = document.getElementById('admin-profile-message');
+        const changeHistoryListDiv = document.getElementById('change-history-list');
+
+        const profileDetailViewContent = document.getElementById('profile-detail-view-content');
+
+        function showMessage(element, message, isSuccess = true) {
+            element.textContent = message;
+            element.classList.remove('hidden');
+            element.classList.toggle('success-message', isSuccess);
+            element.classList.toggle('error-message', !isSuccess);
+            setTimeout(() => element.classList.add('hidden'), 5000);
+        }
+
+        function showSpinner(spinnerElement, buttonElement, show) {
+            if (show) {
+                spinnerElement.classList.remove('hidden');
+                buttonElement.disabled = true;
+            } else {
+                spinnerElement.classList.add('hidden');
+                buttonElement.disabled = false;
+            }
+        }
+
+        function showSection(sectionId) {
+            const sections = document.querySelectorAll('.content-section');
+            sections.forEach(sec => sec.classList.remove('active'));
+            document.getElementById(sectionId).classList.add('active');
+
+            const navLinks = document.querySelectorAll('#app-header nav a');
+            navLinks.forEach(link => link.classList.remove('active'));
+            const targetNavLink = document.querySelector(`#nav-${sectionId.replace('-section', '')}`);
+            if (targetNavLink) {
+                targetNavLink.classList.add('active');
+            }
+            profileDetailView.classList.remove('active');
+        }
+
+        async function logChange(action, entityType, entityId, details = {}) {
+            if (!currentUser) return;
+            try {
+                await addDoc(collection(db, 'changeHistory'), {
+                    action,
+                    entityType,
+                    entityId,
+                    userId: currentUser.uid,
+                    userEmail: currentUser.email,
+                    timestamp: serverTimestamp(),
+                    details: JSON.stringify(details)
+                });
+            } catch (error) {
+                console.error("Error logging change:", error);
+            }
+        }
+
+        async function fetchMatrimonyGroups() {
+            try {
+                const q = query(collection(db, 'matrimonyGroups'), orderBy('name'));
+                const snapshot = await getDocs(q);
+                matrimonyGroups = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                populateMatrimonyGroupSelects();
+                renderMatrimonyGroupsList();
+            } catch (error) {
+                console.error("Error fetching matrimony groups:", error);
+            }
+        }
+
+        function populateMatrimonyGroupSelects() {
+            profileMatrimonyGroupSelect.innerHTML = '<option value="">None (Optional)</option>';
+            searchMatrimonyGroupSelect.innerHTML = '<option value="">Any</option>';
+            matrimonyGroups.forEach(group => {
+                const option1 = document.createElement('option');
+                option1.value = group.id;
+                option1.textContent = group.name;
+                profileMatrimonyGroupSelect.appendChild(option1);
+
+                const option2 = document.createElement('option');
+                option2.value = group.id;
+                option2.textContent = group.name;
+                searchMatrimonyGroupSelect.appendChild(option2);
+            });
+        }
+
+        function getMatrimonyGroupName(groupId) {
+            if (!groupId) {
+                return 'Not Specified';
+            }
+            const group = matrimonyGroups.find(g => g.id === groupId);
+            return group ? group.name : 'Unknown Group';
+        }
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUser = user;
+                try {
+                    const userDoc = await getDoc(doc(db, 'users', user.uid));
+                    currentUserRole = userDoc.exists() ? userDoc.data().role : 'employee';
+                } catch (error) {
+                    console.error("Error fetching user role:", error);
+                    currentUserRole = 'employee';
+                }
+
+                currentUserEmailSpan.textContent = user.email;
+                currentUserRoleSpan.textContent = currentUserRole;
+
+                authSection.classList.add('hidden');
+                appContent.classList.remove('hidden');
+
+                if (currentUserRole === 'admin') {
+                    navAdminPanelItem.classList.remove('hidden');
+                } else {
+                    navAdminPanelItem.classList.add('hidden');
+                }
+
+                await fetchMatrimonyGroups();
+                showSection('create-profile-section');
+                if (currentUserRole === 'admin' || currentUserRole === 'employee') {
+                    fetchAllProfilesForAdmin();
+                    fetchChangeHistory();
+                }
+
+                const urlParams = new URLSearchParams(window.location.search);
+                const profileId = urlParams.get('profileId');
+                if (profileId) {
+                    await displayShareableProfile(profileId);
+                }
+
+            } else {
+                currentUser = null;
+                currentUserRole = null;
+                authSection.classList.remove('hidden');
+                appContent.classList.add('hidden');
+                profileDetailView.classList.remove('active');
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+        });
+
+        loginBtn.addEventListener('click', async () => {
+            const email = loginEmailInput.value;
+            const password = loginPasswordInput.value;
+            authError.classList.add('hidden');
+
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+            } catch (error) {
+                showMessage(authError, `Login failed: ${error.message}`, false);
+            }
+        });
+
+        logoutBtn.addEventListener('click', async () => {
+            try {
+                await signOut(auth);
+            } catch (error) {
+                console.error("Error signing out:", error);
+            }
+        });
+
+        navCreateProfile.addEventListener('click', (e) => { e.preventDefault(); showSection('create-profile-section'); resetProfileForm(); });
+        navSearchProfile.addEventListener('click', (e) => { e.preventDefault(); showSection('search-profile-section'); searchProfiles(); });
+        navAdminPanel.addEventListener('click', (e) => { e.preventDefault(); showSection('admin-panel-section'); fetchMatrimonyGroups(); fetchAllProfilesForAdmin(); fetchChangeHistory(); });
+
+        profilePhotoInput.addEventListener('change', (e) => {
+            if (e.target.files && e.target.files[0]) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    profilePhotoPreview.src = event.target.result;
+                    profilePhotoPreview.style.display = 'block';
+                };
+                reader.readAsDataURL(e.target.files[0]);
+            } else {
+                profilePhotoPreview.src = '#';
+                profilePhotoPreview.style.display = 'none';
+            }
+        });
+
+        autoGenerateBtn.addEventListener('click', async () => {
+            const paragraph = autoGenerateParagraphInput.value;
+            if (!paragraph) {
+                showMessage(profileFormMessage, 'Please enter a paragraph to auto-generate.', false);
+                return;
+            }
+
+            showSpinner(autoGenerateSpinner, autoGenerateBtn, true);
+
+            try {
+                const prompt = `Extract the following details from the paragraph below and return them as a JSON object. If a detail is not found, use an empty string or null for age. The marital status should be one of 'Single', 'Divorced', 'Widowed'. Ensure age is an integer.\n\nParagraph: "${paragraph}"\n\nExpected JSON format: {"name": "", "age": null, "location": "", "religion": "", "education": "", "profession": "", "maritalStatus": ""}`;
+                const result = await model.generateContent(prompt);
+                let responseText = result.response.text();
+
+                const jsonMatch = responseText.match(/```json\n([\s\S]*?)\n```/);
+                if (jsonMatch && jsonMatch[1]) {
+                    responseText = jsonMatch[1];
+                }
+                
+                const data = JSON.parse(responseText);
+
+                profileNameInput.value = data.name || '';
+                profileAgeInput.value = data.age !== null ? parseInt(data.age) : '';
+                profileLocationInput.value = data.location || '';
+                profileReligionInput.value = data.religion || '';
+                profileEducationInput.value = data.education || '';
+                profileProfessionInput.value = data.profession || '';
+                if (['Single', 'Divorced', 'Widowed'].includes(data.maritalStatus)) {
+                    profileMaritalStatusSelect.value = data.maritalStatus;
+                } else {
+                    profileMaritalStatusSelect.value = 'Single';
+                }
+                profileBioInput.value = paragraph;
+
+                showMessage(profileFormMessage, 'Details auto-generated from paragraph using AI!', true);
+            } catch (error) {
+                console.error("Error auto-generating content:", error);
+                showMessage(profileFormMessage, `Error auto-generating: ${error.message}. Please try again or enter manually.`, false);
+            } finally {
+                showSpinner(autoGenerateSpinner, autoGenerateBtn, false);
+            }
+        });
+
+        profileForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            showSpinner(profileSubmitSpinner, submitProfileBtn, true);
+
+            const profileData = {
+                name: profileNameInput.value,
+                age: parseInt(profileAgeInput.value),
+                location: profileLocationInput.value,
+                religion: profileReligionInput.value,
+                education: profileEducationInput.value,
+                profession: profileProfessionInput.value,
+                maritalStatus: profileMaritalStatusSelect.value,
+                matrimonyGroupId: profileMatrimonyGroupSelect.value,
+                bio: profileBioInput.value,
+                photoURL: profilePhotoPreview.src !== '#' ? profilePhotoPreview.src : '',
+                createdAt: editingProfileId ? undefined : serverTimestamp(),
+                updatedAt: serverTimestamp(),
+                createdBy: editingProfileId ? undefined : currentUser.uid,
+                updatedBy: currentUser.uid,
+            };
+
+            const photoFile = profilePhotoInput.files[0];
+
+            try {
+                if (photoFile) {
+                    const storageRef = ref(storage, `profile_photos/${currentUser.uid}/${Date.now()}_${photoFile.name}`);
+                    const uploadTask = await uploadBytes(storageRef, photoFile);
+                    profileData.photoURL = await getDownloadURL(uploadTask.ref);
+                }
+
+                if (editingProfileId) {
+                    const oldProfileDoc = await getDoc(doc(db, 'profiles', editingProfileId));
+                    const oldProfileData = oldProfileDoc.exists() ? oldProfileDoc.data() : {};
+                    await updateDoc(doc(db, 'profiles', editingProfileId), profileData);
+                    await logChange('edit', 'profile', editingProfileId, { oldData: oldProfileData, newData: profileData });
+                    showMessage(profileFormMessage, 'Profile updated successfully!', true);
+                } else {
+                    const docRef = await addDoc(collection(db, 'profiles'), profileData);
+                    await logChange('add', 'profile', docRef.id, { newData: profileData });
+                    showMessage(profileFormMessage, 'Profile created successfully!', true);
+                }
+                resetProfileForm();
+                fetchAllProfilesForAdmin();
+            } catch (error) {
+                console.error("Error saving profile:", error);
+                showMessage(profileFormMessage, `Error saving profile: ${error.message}`, false);
+            } finally {
+                showSpinner(profileSubmitSpinner, submitProfileBtn, false);
+            }
+        });
+
+        function resetProfileForm() {
+            profileForm.reset();
+            profileIdInput.value = '';
+            profilePhotoPreview.src = '#';
+            profilePhotoPreview.style.display = 'none';
+            autoGenerateParagraphInput.value = '';
+            submitProfileBtn.textContent = 'Create Profile';
+            cancelEditBtn.classList.add('hidden');
+            editingProfileId = null;
+            profileMatrimonyGroupSelect.value = '';
+            profileFormMessage.classList.add('hidden');
+        }
+
+        cancelEditBtn.addEventListener('click', resetProfileForm);
+
+        applyFiltersBtn.addEventListener('click', () => searchProfiles(false));
+        smartSearchBtn.addEventListener('click', () => searchProfiles(true));
+        resetFiltersBtn.addEventListener('click', () => {
+            searchAgeMinInput.value = 18;
+            searchAgeMaxInput.value = 99;
+            searchLocationInput.value = '';
+            searchReligionInput.value = '';
+            searchEducationInput.value = '';
+            searchMatrimonyGroupSelect.value = '';
+            smartSearchParagraphInput.value = '';
+            searchProfiles(false);
+        });
+
+        async function searchProfiles(isSmartSearch = false) {
+            searchResultsDiv.innerHTML = '<p class="no-profiles">Searching profiles...</p>';
+            let q = collection(db, 'profiles');
+            const filters = {};
+
+            if (isSmartSearch) {
+                const paragraph = smartSearchParagraphInput.value;
+                if (!paragraph) {
+                    showMessage(profileFormMessage, 'Please enter a paragraph for smart search.', false);
+                    searchResultsDiv.innerHTML = '<p class="no-profiles">Enter a paragraph for smart search.</p>';
+                    return;
+                }
+                const smartPrompt = `Analyze the following paragraph to extract search criteria for a matrimonial profile, focusing on age range (min/max), location, education, and religion. Provide the output as a JSON object. If a criterion is not found, use a null value.\n\nParagraph: "${paragraph}"\n\nExpected JSON format: {"ageMin": null, "ageMax": null, "location": null, "religion": null, "education": null}`;
+                
+                try {
+                    const result = await model.generateContent(smartPrompt);
+                    let responseText = result.response.text();
+                    const jsonMatch = responseText.match(/```json\n([\s\S]*?)\n```/);
+                    if (jsonMatch && jsonMatch[1]) {
+                        responseText = jsonMatch[1];
+                    }
+                    const smartData = JSON.parse(responseText);
+
+                    filters.ageMin = smartData.ageMin !== null ? parseInt(smartData.ageMin) : null;
+                    filters.ageMax = smartData.ageMax !== null ? parseInt(smartData.ageMax) : null;
+                    filters.location = smartData.location || '';
+                    filters.religion = smartData.religion || '';
+                    filters.education = smartData.education || '';
+                    
+                } catch (aiError) {
+                    console.error("AI Smart Search Error:", aiError);
+                    showMessage(profileFormMessage, `AI smart search failed: ${aiError.message}`, false);
+                    searchResultsDiv.innerHTML = '<p class="no-profiles">AI smart search failed. Try manual filters.</p>';
+                    return;
+                }
+
+            } else {
+                filters.ageMin = parseInt(searchAgeMinInput.value);
+                filters.ageMax = parseInt(searchAgeMaxInput.value);
+                filters.location = searchLocationInput.value.trim();
+                filters.religion = searchReligionInput.value.trim();
+                filters.education = searchEducationInput.value.trim();
+                filters.matrimonyGroupId = searchMatrimonyGroupSelect.value;
+            }
+
+            const conditions = [];
+            if (filters.ageMin && !isNaN(filters.ageMin)) conditions.push(where('age', '>=', filters.ageMin));
+            if (filters.ageMax && !isNaN(filters.ageMax)) conditions.push(where('age', '<=', filters.ageMax));
+            if (filters.location) conditions.push(where('location', '==', filters.location));
+            if (filters.religion) conditions.push(where('religion', '==', filters.religion));
+            if (filters.education) conditions.push(where('education', '==', filters.education));
+            if (filters.matrimonyGroupId) conditions.push(where('matrimonyGroupId', '==', filters.matrimonyGroupId));
+
+            const finalQuery = query(collection(db, 'profiles'), ...conditions);
+
+            try {
+                const snapshot = await getDocs(finalQuery);
+                renderProfiles(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })), searchResultsDiv, false);
+            } catch (error) {
+                console.error("Error searching profiles:", error);
+                searchResultsDiv.innerHTML = `<p class="error-message">Error searching profiles: ${error.message}</p>`;
+            }
+        }
+
+        function renderProfiles(profiles, targetDiv, showAdminActions = false) {
+            targetDiv.innerHTML = '';
+            if (profiles.length === 0) {
+                targetDiv.innerHTML = '<p class="no-profiles">No profiles found.</p>';
+                return;
+            }
+            profiles.forEach(profile => {
+                const matrimonyGroupName = getMatrimonyGroupName(profile.matrimonyGroupId);
+                const profileCard = document.createElement('div');
+                profileCard.className = 'profile-card';
+                profileCard.innerHTML = `
+                    <img src="${profile.photoURL || 'https://via.placeholder.com/120'}" alt="${profile.name}">
+                    <h3>${profile.name}</h3>
+                    <p><strong>Age:</strong> ${profile.age}</p>
+                    <p><strong>Location:</strong> ${profile.location}</p>
+                    <p><strong>Group:</strong> ${matrimonyGroupName}</p>
+                    <p>${profile.bio ? profile.bio.substring(0, 70) + '...' : 'No bio provided.'}</p>
+                    <div class="actions">
+                        <button class="view-profile-btn" data-id="${profile.id}">View Details & Share</button>
+                        ${showAdminActions && (currentUserRole === 'admin' || currentUserRole === 'employee') ? `<button class="edit-profile-btn edit" data-id="${profile.id}">Edit</button>` : ''}
+                        ${showAdminActions && currentUserRole === 'admin' ? `<button class="delete-profile-btn delete" data-id="${profile.id}">Delete</button>` : ''}
+                    </div>
+                `;
+                targetDiv.appendChild(profileCard);
+            });
+
+            targetDiv.querySelectorAll('.view-profile-btn').forEach(button => {
+                button.addEventListener('click', (e) => displayShareableProfile(e.target.dataset.id));
+            });
+            if (showAdminActions) {
+                targetDiv.querySelectorAll('.edit-profile-btn').forEach(button => {
+                    button.addEventListener('click', (e) => editProfile(e.target.dataset.id));
+                });
+                targetDiv.querySelectorAll('.delete-profile-btn').forEach(button => {
+                    button.addEventListener('click', (e) => deleteProfile(e.target.dataset.id));
+                });
+            }
+        }
+
+        async function displayShareableProfile(profileId) {
+            try {
+                const profileDoc = await getDoc(doc(db, 'profiles', profileId));
+                if (!profileDoc.exists()) {
+                    showMessage(profileFormMessage, 'Profile not found.', false);
+                    return;
+                }
+                const profile = { id: profileDoc.id, ...profileDoc.data() };
+                const matrimonyGroupName = getMatrimonyGroupName(profile.matrimonyGroupId);
+
+                profileDetailViewContent.innerHTML = `
+                    <img src="${profile.photoURL || 'https://via.placeholder.com/200'}" alt="${profile.name}">
+                    <h2>${profile.name}</h2>
+                    <p><strong>Age:</strong> ${profile.age}</p>
+                    <p><strong>Location:</strong> ${profile.location}</p>
+                    <p><strong>Religion:</strong> ${profile.religion || 'N/A'}</p>
+                    <p><strong>Education:</strong> ${profile.education || 'N/A'}</p>
+                    <p><strong>Profession:</strong> ${profile.profession || 'N/A'}</p>
+                    <p><strong>Marital Status:</strong> ${profile.maritalStatus}</p>
+                    <p><strong>Matrimony Group:</strong> ${matrimonyGroupName}</p>
+                    <p>${profile.bio || 'No bio provided.'}</p>
+                    <div class="share-actions">
+                        <button id="copy-link-btn" data-id="${profile.id}">Copy Share Link</button>
+                        <button id="copy-details-btn" data-id="${profile.id}">Copy Basic Details</button>
+                    </div>
+                `;
+                showSection('profile-detail-view');
+
+                document.getElementById('copy-link-btn').addEventListener('click', () => copyShareLink(profile));
+                document.getElementById('copy-details-btn').addEventListener('click', () => copyBasicDetails(profile));
+
+            } catch (error) {
+                console.error("Error displaying profile:", error);
+                showMessage(profileFormMessage, `Error displaying profile: ${error.message}`, false);
+            }
+        }
+
+        function copyShareLink(profile) {
+            const shareUrl = `${window.location.origin}${window.location.pathname}?profileId=${profile.id}`;
+            navigator.clipboard.writeText(shareUrl).then(() => {
+                showMessage(profileFormMessage, 'Share link copied to clipboard!', true);
+            }).catch(err => {
+                console.error('Failed to copy text: ', err);
+                showMessage(profileFormMessage, 'Failed to copy share link.', false);
+            });
+        }
+
+        function copyBasicDetails(profile) {
+            const matrimonyGroupName = getMatrimonyGroupName(profile.matrimonyGroupId);
+            const basicDetails = `
+Profile of ${profile.name}
+Age: ${profile.age}
+Location: ${profile.location}
+Matrimony Group: ${matrimonyGroupName}
+View full profile: ${window.location.origin}${window.location.pathname}?profileId=${profile.id}
+            `.trim();
+            navigator.clipboard.writeText(basicDetails).then(() => {
+                showMessage(profileFormMessage, 'Basic details copied to clipboard!', true);
+            }).catch(err => {
+                console.error('Failed to copy text: ', err);
+                showMessage(profileFormMessage, 'Failed to copy basic details.', false);
+            });
+        }
+
+        async function renderMatrimonyGroupsList() {
+            matrimonyGroupsListUl.innerHTML = '';
+            if (matrimonyGroups.length === 0) {
+                matrimonyGroupsListUl.innerHTML = '<li>No matrimony groups added yet.</li>';
+                return;
+            }
+            matrimonyGroups.forEach(group => {
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <span>${group.name}</span>
+                    ${currentUserRole === 'admin' ? `<button data-id="${group.id}" class="delete-group-btn">Delete</button>` : ''}
+                `;
+                matrimonyGroupsListUl.appendChild(li);
+            });
+
+            matrimonyGroupsListUl.querySelectorAll('.delete-group-btn').forEach(button => {
+                button.addEventListener('click', (e) => deleteMatrimonyGroup(e.target.dataset.id));
+            });
+        }
+
+        addMatrimonyGroupBtn.addEventListener('click', async () => {
+            const groupName = newMatrimonyGroupNameInput.value.trim();
+            if (!groupName) {
+                showMessage(groupMessage, 'Matrimony group name cannot be empty.', false);
+                return;
+            }
+
+            try {
+                const docRef = await addDoc(collection(db, 'matrimonyGroups'), {
+                    name: groupName,
+                    createdAt: serverTimestamp(),
+                    createdBy: currentUser.uid,
+                });
+                await logChange('add', 'matrimonyGroup', docRef.id, { name: groupName });
+                showMessage(groupMessage, `Group "${groupName}" added successfully!`, true);
+                newMatrimonyGroupNameInput.value = '';
+                fetchMatrimonyGroups();
+            } catch (error) {
+                console.error("Error adding matrimony group:", error);
+                showMessage(groupMessage, `Error adding group: ${error.message}`, false);
+            }
+        });
+
+        async function deleteMatrimonyGroup(groupId) {
+            if (!confirm("Are you sure you want to delete this matrimony group?")) return;
+
+            try {
+                const groupDoc = await getDoc(doc(db, 'matrimonyGroups', groupId));
+                const groupName = groupDoc.exists() ? groupDoc.data().name : 'Unknown Group';
+
+                await deleteDoc(doc(db, 'matrimonyGroups', groupId));
+                await logChange('delete', 'matrimonyGroup', groupId, { name: groupName });
+                showMessage(groupMessage, `Group "${groupName}" deleted successfully!`, true);
+                fetchMatrimonyGroups();
+            } catch (error) {
+                console.error("Error deleting matrimony group:", error);
+                showMessage(groupMessage, `Error deleting group: ${error.message}`, false);
+            }
+        }
+
+        async function fetchAllProfilesForAdmin() {
+            if (currentUserRole !== 'admin' && currentUserRole !== 'employee') {
+                allProfilesListDiv.innerHTML = '<p class="no-profiles">You do not have permission to view all profiles.</p>';
+                return;
+            }
+            allProfilesListDiv.innerHTML = '<p class="no-profiles">Loading all profiles...</p>';
+            try {
+                const q = query(collection(db, 'profiles'), orderBy('name'));
+                const snapshot = await getDocs(q);
+                renderProfiles(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })), allProfilesListDiv, true);
+            } catch (error) {
+                console.error("Error fetching all profiles:", error);
+                allProfilesListDiv.innerHTML = `<p class="error-message">Error loading profiles: ${error.message}</p>`;
+            }
+        }
+
+        async function editProfile(profileId) {
+            try {
+                const profileDoc = await getDoc(doc(db, 'profiles', profileId));
+                if (!profileDoc.exists()) {
+                    showMessage(adminProfileMessage, 'Profile not found for editing.', false);
+                    return;
+                }
+                const profile = { id: profileDoc.id, ...profileDoc.data() };
+                editingProfileId = profileId;
+
+                profileIdInput.value = profile.id;
+                profileNameInput.value = profile.name;
+                profileAgeInput.value = profile.age;
+                profileLocationInput.value = profile.location;
+                profileReligionInput.value = profile.religion;
+                profileEducationInput.value = profile.education;
+                profileProfessionInput.value = profile.profession;
+                profileMaritalStatusSelect.value = profile.maritalStatus;
+                profileMatrimonyGroupSelect.value = profile.matrimonyGroupId;
+                profileBioInput.value = profile.bio;
+                if (profile.photoURL) {
+                    profilePhotoPreview.src = profile.photoURL;
+                    profilePhotoPreview.style.display = 'block';
+                } else {
+                    profilePhotoPreview.src = '#';
+                    profilePhotoPreview.style.display = 'none';
+                }
+
+                submitProfileBtn.textContent = 'Update Profile';
+                cancelEditBtn.classList.remove('hidden');
+                showSection('create-profile-section');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } catch (error) {
+                console.error("Error loading profile for edit:", error);
+                showMessage(adminProfileMessage, `Error loading profile: ${error.message}`, false);
+            }
+        }
+
+        async function deleteProfile(profileId) {
+            if (currentUserRole !== 'admin') {
+                showMessage(adminProfileMessage, 'You do not have permission to delete profiles.', false);
+                return;
+            }
+            if (!confirm("Are you sure you want to delete this profile? This action cannot be undone.")) return;
+
+            try {
+                const profileDoc = await getDoc(doc(db, 'profiles', profileId));
+                const profileData = profileDoc.exists() ? profileDoc.data() : {};
+
+                await deleteDoc(doc(db, 'profiles', profileId));
+                if (profileData.photoURL) {
+                    const photoRef = ref(storage, profileData.photoURL);
+                    await deleteObject(photoRef).catch(err => console.warn("Could not delete old photo from storage:", err));
+                }
+
+                await logChange('delete', 'profile', profileId, { deletedData: profileData });
+                showMessage(adminProfileMessage, 'Profile deleted successfully!', true);
+                fetchAllProfilesForAdmin();
+            } catch (error) {
+                console.error("Error deleting profile:", error);
+                showMessage(adminProfileMessage, `Error deleting profile: ${error.message}`, false);
+            }
+        }
+
+        async function fetchChangeHistory() {
+            if (currentUserRole !== 'admin') {
+                changeHistoryListDiv.innerHTML = '<p class="no-profiles">You do not have permission to view change history.</p>';
+                return;
+            }
+            changeHistoryListDiv.innerHTML = '<p class="no-profiles">Loading change history...</p>';
+            try {
+                const q = query(collection(db, 'changeHistory'), orderBy('timestamp', 'desc'), limit(50));
+                const snapshot = await getDocs(q);
+                if (snapshot.empty) {
+                    changeHistoryListDiv.innerHTML = '<p class="no-profiles">No change history to display.</p>';
+                    return;
+                }
+                changeHistoryListDiv.innerHTML = '';
+                snapshot.docs.forEach(doc => {
+                    const history = doc.data();
+                    const timestamp = history.timestamp ? new Date(history.timestamp.toDate()).toLocaleString() : 'N/A';
+                    const details = history.details ? JSON.parse(history.details) : {};
+                    const entry = document.createElement('div');
+                    entry.innerHTML = `
+                        <strong>${history.action.toUpperCase()}</strong> ${history.entityType} (ID: ${history.entityId}) by ${history.userEmail}
+                        <span class="timestamp">${timestamp}</span>
+                        ${history.action === 'edit' ? `<br><small>Changed from: ${JSON.stringify(details.oldData).substring(0,100)}... to: ${JSON.stringify(details.newData).substring(0,100)}...</small>` : ''}
+                        ${history.action === 'delete' ? `<br><small>Deleted data: ${JSON.stringify(details.deletedData).substring(0,100)}...</small>` : ''}
+                        ${history.action === 'add' ? `<br><small>New data: ${JSON.stringify(details.newData || details).substring(0,100)}...</small>` : ''}
+                    `;
+                    changeHistoryListDiv.appendChild(entry);
+                });
+            } catch (error) {
+                console.error("Error fetching change history:", error);
+                changeHistoryListDiv.innerHTML = `<p class="error-message">Error loading change history: ${error.message}</p>`;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const profileId = urlParams.get('profileId');
+            if (profileId && !currentUser) {
+            } else {
+            }
+        });
+
+    </script>
+</body>
+</html>
