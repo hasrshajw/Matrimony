@@ -4,13 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Matrimony Portal - View Profile</title>
-    <!-- Open Graph Tags - These will be dynamically updated by JavaScript -->
-    <meta property="og:title" content="Matrimony Profile" id="og-title">
-    <meta property="og:description" content="View this matrimony profile." id="og-description">
-    <meta property="og:image" content="https://via.placeholder.com/120" id="og-image">
-    <meta property="og:url" content="" id="og-url">
-    <meta property="og:type" content="profile">
-    <meta property="og:site_name" content="Matrimony Portal">
+
+    <!-- Essential Open Graph Tags (Default/Fallback, will be overwritten by JS) -->
+    <meta property="og:title" content="Matrimony Profile" />
+    <meta property="og:description" content="View a Matrimony profile." />
+    <meta property="og:image" content="https://via.placeholder.com/1200x630.png?text=Matrimony+Portal" />
+    <meta property="og:url" content="" />
+    <meta property="og:type" content="website" />
+
+    <!-- Twitter Card Tags (for better display on Twitter) -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Matrimony Profile" />
+    <meta name="twitter:description" content="View a Matrimony profile." />
+    <meta name="twitter:image" content="https://via.placeholder.com/1200x630.png?text=Matrimony+Portal" />
 
     <!-- Firebase SDKs - CDN (ES module versions) -->
     <script type="module" src="https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js"></script>
@@ -145,11 +151,6 @@
         const profileDetailViewContent = document.getElementById('profile-detail-view-content');
         const profileDetailStatus = document.getElementById('profile-detail-status');
 
-        const ogTitle = document.getElementById('og-title');
-        const ogDescription = document.getElementById('og-description');
-        const ogImage = document.getElementById('og-image');
-        const ogUrl = document.getElementById('og-url');
-
         function showMessage(element, message, isSuccess = true) {
             element.textContent = message;
             element.classList.remove('hidden');
@@ -174,6 +175,16 @@
             }
             const group = matrimonyGroups.find(g => g.id === groupId);
             return group ? group.name : 'Unknown Group';
+        }
+
+        function updateMetaTag(selector, attribute, content) {
+            let element = document.querySelector(selector);
+            if (!element) {
+                element = document.createElement('meta');
+                element.setAttribute('property', selector.includes('og:') ? selector.replace('meta[property="', '').replace('"]', '') : selector.replace('meta[name="', '').replace('"]', ''));
+                document.head.appendChild(element);
+            }
+            element.setAttribute(attribute, content);
         }
 
         onAuthStateChanged(auth, async (user) => {
@@ -238,18 +249,25 @@
                 const profile = { id: profileDoc.id, ...profileDoc.data() };
                 const matrimonyGroupName = getMatrimonyGroupName(profile.matrimonyGroupId);
 
-                const profileDescription = `Age: ${profile.age}, Location: ${profile.location}, Group: ${matrimonyGroupName}. ${profile.bio ? profile.bio.substring(0, 100) + '...' : 'No bio provided.'}`;
-                const profileImageUrl = profile.photoURL || 'https://via.placeholder.com/200';
-                const shareUrl = `${window.location.origin}${window.location.pathname}?profileId=${profile.id}`;
+                const pageTitle = `Profile of ${profile.name} - Matrimony Portal`;
+                const pageDescription = `Age: ${profile.age}, Location: ${profile.location}, Group: ${matrimonyGroupName}. ${profile.bio ? profile.bio.substring(0, 150) + '...' : 'View full profile to know more.'}`;
+                const imageUrl = profile.photoURL || `${window.location.origin}/placeholder.png`; // Fallback image if user has no photo
+                const canonicalUrl = `${window.location.origin}${window.location.pathname}?profileId=${profile.id}`;
 
-                // Update OG Meta Tags
-                ogTitle.setAttribute('content', `${profile.name}'s Matrimony Profile`);
-                ogDescription.setAttribute('content', profileDescription);
-                ogImage.setAttribute('content', profileImageUrl);
-                ogUrl.setAttribute('content', shareUrl);
+                document.title = pageTitle;
+                updateMetaTag('meta[property="og:title"]', 'content', pageTitle);
+                updateMetaTag('meta[property="og:description"]', 'content', pageDescription);
+                updateMetaTag('meta[property="og:image"]', 'content', imageUrl);
+                updateMetaTag('meta[property="og:url"]', 'content', canonicalUrl);
+                updateMetaTag('meta[property="og:type"]', 'content', 'profile');
+
+                updateMetaTag('meta[name="twitter:title"]', 'content', pageTitle);
+                updateMetaTag('meta[name="twitter:description"]', 'content', pageDescription);
+                updateMetaTag('meta[name="twitter:image"]', 'content', imageUrl);
+                updateMetaTag('meta[name="twitter:card"]', 'content', 'summary_large_image');
 
                 profileDetailViewContent.innerHTML = `
-                    <img src="${profileImageUrl}" alt="${profile.name}">
+                    <img src="${profile.photoURL || 'https://via.placeholder.com/200'}" alt="${profile.name}">
                     <h2>${profile.name}</h2>
                     <p><strong>Age:</strong> ${profile.age}</p>
                     <p><strong>Location:</strong> ${profile.location}</p>
@@ -280,16 +298,10 @@
         function copyShareLink(profile) {
             const shareUrl = `${window.location.origin}${window.location.pathname}?profileId=${profile.id}`;
             navigator.clipboard.writeText(shareUrl).then(() => {
-                const statusElement = profileDetailViewContent.querySelector('#profile-detail-status') || document.createElement('p');
-                statusElement.id = 'profile-detail-status';
-                profileDetailViewContent.prepend(statusElement);
-                showMessage(statusElement, 'Share link copied to clipboard!', true);
+                showMessage(profileDetailViewContent.querySelector('#profile-detail-status') || profileDetailStatus, 'Share link copied to clipboard!', true);
             }).catch(err => {
                 console.error('Failed to copy text: ', err);
-                const statusElement = profileDetailViewContent.querySelector('#profile-detail-status') || document.createElement('p');
-                statusElement.id = 'profile-detail-status';
-                profileDetailViewContent.prepend(statusElement);
-                showMessage(statusElement, 'Failed to copy share link.', false);
+                showMessage(profileDetailViewContent.querySelector('#profile-detail-status') || profileDetailStatus, 'Failed to copy share link.', false);
             });
         }
 
@@ -303,16 +315,10 @@ Matrimony Group: ${matrimonyGroupName}
 View full profile: ${window.location.origin}${window.location.pathname}?profileId=${profile.id}
             `.trim();
             navigator.clipboard.writeText(basicDetails).then(() => {
-                const statusElement = profileDetailViewContent.querySelector('#profile-detail-status') || document.createElement('p');
-                statusElement.id = 'profile-detail-status';
-                profileDetailViewContent.prepend(statusElement);
-                showMessage(statusElement, 'Basic details copied to clipboard!', true);
+                showMessage(profileDetailViewContent.querySelector('#profile-detail-status') || profileDetailStatus, 'Basic details copied to clipboard!', true);
             }).catch(err => {
                 console.error('Failed to copy text: ', err);
-                const statusElement = profileDetailViewContent.querySelector('#profile-detail-status') || document.createElement('p');
-                statusElement.id = 'profile-detail-status';
-                profileDetailViewContent.prepend(statusElement);
-                showMessage(statusElement, 'Failed to copy basic details.', false);
+                showMessage(profileDetailViewContent.querySelector('#profile-detail-status') || profileDetailStatus, 'Failed to copy basic details.', false);
             });
         }
     </script>
