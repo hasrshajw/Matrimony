@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Matrimony Portal - Search Profiles</title>
+    <!-- Firebase SDKs - CDN (ES module versions) -->
+    <script type="module" src="https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js"></script>
+    <script type="module" src="https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js"></script>
+    <script type="module" src="https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js"></script>
+    <script type="module" src="https://www.gstatic.com/firebasejs/12.4.0/firebase-ai.js"></script>
+
+    <style>
+        /* General Styles */
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background: #f4f7f6; color: #333; }
+        .container { max-width: 1200px; margin: 20px auto; background: #fff; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); padding: 30px; }
+        h1, h2, h3 { color: #2c3e50; margin-top: 0; }
+        button { background-color: #3498db; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; transition: background-color 0.2s ease; }
+        button:hover { background-color: #2980b9; }
+        button:disabled { background-color: #cccccc; cursor: not-allowed; }
+        input[type="text"], input[type="email"], input[type="password"], input[type="number"], input[type="date"], textarea, select {
+            width: calc(100% - 22px); padding: 10px; margin: 8px 0; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; font-size: 16px;
+        }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; color: #555; }
+        .error-message { color: #e74c3c; margin-top: 10px; font-weight: bold; }
+        .success-message { color: #2ecc71; margin-top: 10px; font-weight: bold; }
+        .hidden { display: none !important; }
+
+        /* Header and Navigation */
+        #app-header { background: #34495e; color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #3498db; }
+        #app-header h1 { margin: 0; font-size: 24px; }
+        #app-header nav ul { list-style: none; margin: 0; padding: 0; display: flex; }
+        #app-header nav li { margin-left: 20px; }
+        #app-header nav a { color: white; text-decoration: none; font-weight: bold; font-size: 17px; transition: color 0.2s ease; }
+        #app-header nav a:hover, #app-header nav a.active { color: #3498db; }
+        #user-info { display: flex; align-items: center; }
+        #user-info span { margin-right: 15px; font-size: 15px; }
+        #user-info button { background-color: #e74c3c; }
+        #user-info button:hover { background-color: #c0392b; }
+
+        /* Profile List (Search Results) */
+        .profile-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; margin-top: 20px; }
+        .profile-card { background: #f9f9f9; border: 1px solid #e0e0e0; border-radius: 8px; padding: 20px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .profile-card img { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; margin-bottom: 15px; border: 3px solid #3498db; }
+        .profile-card h3 { margin-top: 0; margin-bottom: 10px; color: #3498db; }
+        .profile-card p { margin: 5px 0; font-size: 15px; color: #555; }
+        .profile-card .actions button { margin-top: 15px; margin-right: 10px; }
+        .no-profiles { text-align: center; color: #777; font-style: italic; margin-top: 30px; }
+
+        /* Form Layout */
+        .grid-form { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .grid-form .full-width { grid-column: 1 / -1; }
+        .grid-form textarea { min-height: 80px; }
+
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            vertical-align: middle;
+            margin-left: 10px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div id="app-content">
+        <header id="app-header">
+            <h1>Matrimony Portal</h1>
+            <nav>
+                <ul>
+                    <li><a href="create-profile.html" id="nav-create-profile">Create Profile</a></li>
+                    <li><a href="search-profiles.html" id="nav-search-profile" class="active">Search Profiles</a></li>
+                    <li id="nav-admin-panel-item" class="hidden"><a href="admin-panel.html" id="nav-admin-panel">Admin Panel</a></li>
+                </ul>
+            </nav>
+            <div id="user-info">
+                <span>Welcome, <strong id="current-user-email"></strong> (<span id="current-user-role"></span>)</span>
+                <button id="logout-btn">Logout</button>
+            </div>
+        </header>
+
+        <div class="container">
+            <section id="search-profile-section">
+                <h2>Search Profiles</h2>
+                <div class="grid-form">
+                    <div class="form-group">
+                        <label for="search-age-min">Min Age:</label>
+                        <input type="number" id="search-age-min" min="18" value="18">
+                    </div>
+                    <div class="form-group">
+                        <label for="search-age-max">Max Age:</label>
+                        <input type="number" id="search-age-max" min="18" value="99">
+                    </div>
+                    <div class="form-group">
+                        <label for="search-location">Location:</label>
+                        <input type="text" id="search-location">
+                    </div>
+                    <div class="form-group">
+                        <label for="search-religion">Religion:</label>
+                        <input type="text" id="search-religion">
+                    </div>
+                    <div class="form-group">
+                        <label for="search-education">Education:</label>
+                        <input type="text" id="search-education">
+                    </div>
+                    <div class="form-group">
+                        <label for="search-matrimony-group">Matrimony Group:</label>
+                        <select id="search-matrimony-group">
+                            <option value="">Any</option>
+                        </select>
+                    </div>
+                    <div class="form-group full-width">
+                        <label for="smart-search-paragraph">Smart Paragraph Search:</label>
+                        <textarea id="smart-search-paragraph" placeholder="e.g., Looking for a partner in their late 20s from London, preferably with a Bachelor's degree." rows="3"></textarea>
+                        <button type="button" id="smart-search-btn" style="margin-top: 10px;">Smart Search <span class="loading-spinner hidden" id="smart-search-spinner"></span></button>
+                    </div>
+                    <div class="form-group full-width">
+                        <button type="button" id="apply-filters-btn">Apply Filters</button>
+                        <button type="button" id="reset-filters-btn" style="background-color: #7f8c8d;">Reset Filters</button>
+                    </div>
+                </div>
+                <h3>Matching Profiles</h3>
+                <p id="search-message" class="success-message hidden"></p>
+                <div id="search-results" class="profile-list">
+                    <p class="no-profiles">No profiles found. Try adjusting your search criteria.</p>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js';
+        import { getAuth, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js';
+        import { getFirestore, collection, getDocs, doc, getDoc, query, where, orderBy } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js';
+        import { getAI, getGenerativeModel } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-ai.js';
+
+        // Your Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBX5-v6u8C7AqfNLxdSgX9p7QKtDI_oYZ4",
+            authDomain: "matrimony-34bb4.firebaseapp.com",
+            projectId: "matrimony-34bb4",
+            storageBucket: "matrimony-34bb4.firebasestorage.app",
+            messagingSenderId: "725550889075",
+            appId: "1:725550889075:web:6278e7b393d7fd5a859206",
+            measurementId: "G-BCL64HHVPB"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const ai = getAI(app);
+        const model = getGenerativeModel(ai, { model: 'gemini-2.5-flash' });
+
+        // Global State Variables
+        let currentUser = null;
+        let currentUserRole = null;
+        let matrimonyGroups = [];
+
+        // DOM Elements
+        const appHeader = document.getElementById('app-header');
+        const currentUserEmailSpan = document.getElementById('current-user-email');
+        const currentUserRoleSpan = document.getElementById('current-user-role');
+        const logoutBtn = document.getElementById('logout-btn');
+
+        const navAdminPanelItem = document.getElementById('nav-admin-panel-item');
+
+        const searchAgeMinInput = document.getElementById('search-age-min');
+        const searchAgeMaxInput = document.getElementById('search-age-max');
+        const searchLocationInput = document.getElementById('search-location');
+        const searchReligionInput = document.getElementById('search-religion');
+        const searchEducationInput = document.getElementById('search-education');
+        const searchMatrimonyGroupSelect = document.getElementById('search-matrimony-group');
+        const smartSearchParagraphInput = document.getElementById('smart-search-paragraph');
+        const smartSearchBtn = document.getElementById('smart-search-btn');
+        const smartSearchSpinner = document.getElementById('smart-search-spinner');
+        const applyFiltersBtn = document.getElementById('apply-filters-btn');
+        const resetFiltersBtn = document.getElementById('reset-filters-btn');
+        const searchResultsDiv = document.getElementById('search-results');
+        const searchMessage = document.getElementById('search-message');
+
+        // Utility Functions
+        function showMessage(element, message, isSuccess = true) {
+            element.textContent = message;
+            element.classList.remove('hidden');
+            element.classList.toggle('success-message', isSuccess);
+            element.classList.toggle('error-message', !isSuccess);
+            setTimeout(() => element.classList.add('hidden'), 5000);
+        }
+
+        function showSpinner(spinnerElement, buttonElement, show) {
+            if (show) {
+                spinnerElement.classList.remove('hidden');
+                buttonElement.disabled = true;
+            } else {
+                spinnerElement.classList.add('hidden');
+                buttonElement.disabled = false;
+            }
+        }
+
+        async function fetchMatrimonyGroups() {
+            try {
+                const q = query(collection(db, 'matrimonyGroups'), orderBy('name'));
+                const snapshot = await getDocs(q);
+                matrimonyGroups = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                populateMatrimonyGroupSelects();
+            } catch (error) {
+                console.error("Error fetching matrimony groups:", error);
+            }
+        }
+
+        function populateMatrimonyGroupSelects() {
+            searchMatrimonyGroupSelect.innerHTML = '<option value="">Any</option>';
+            matrimonyGroups.forEach(group => {
+                const option2 = document.createElement('option');
+                option2.value = group.id;
+                option2.textContent = group.name;
+                searchMatrimonyGroupSelect.appendChild(option2);
+            });
+        }
+
+        function getMatrimonyGroupName(groupId) {
+            if (!groupId) {
+                return 'Not Specified';
+            }
+            const group = matrimonyGroups.find(g => g.id === groupId);
+            return group ? group.name : 'Unknown Group';
+        }
+
+        // Authentication State Observer
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUser = user;
+                try {
+                    const userDoc = await getDoc(doc(db, 'users', user.uid));
+                    currentUserRole = userDoc.exists() ? userDoc.data().role : 'employee';
+                } catch (error) {
+                    console.error("Error fetching user role:", error);
+                    currentUserRole = 'employee';
+                }
+
+                currentUserEmailSpan.textContent = user.email;
+                currentUserRoleSpan.textContent = currentUserRole;
+
+                // Show/hide Admin panel navigation item based on role
+                if (currentUserRole === 'admin') {
+                    navAdminPanelItem.classList.remove('hidden');
+                } else {
+                    navAdminPanelItem.classList.add('hidden');
+                }
+
+                await fetchMatrimonyGroups();
+                searchProfiles(); // Perform initial search on load
+            } else {
+                // Not logged in, redirect to login page
+                window.location.href = 'index.html';
+            }
+        });
+
+        // Logout
+        logoutBtn.addEventListener('click', async () => {
+            try {
+                await signOut(auth);
+                window.location.href = 'index.html'; // Redirect to login page
+            } catch (error) {
+                console.error("Error signing out:", error);
+            }
+        });
+
+        // Profile Search
+        applyFiltersBtn.addEventListener('click', () => searchProfiles(false));
+        smartSearchBtn.addEventListener('click', () => searchProfiles(true));
+        resetFiltersBtn.addEventListener('click', () => {
+            searchAgeMinInput.value = 18;
+            searchAgeMaxInput.value = 99;
+            searchLocationInput.value = '';
+            searchReligionInput.value = '';
+            searchEducationInput.value = '';
+            searchMatrimonyGroupSelect.value = '';
+            smartSearchParagraphInput.value = '';
+            searchProfiles(false); // Re-run search with cleared filters
+        });
+
+        async function searchProfiles(isSmartSearch = false) {
+            searchResultsDiv.innerHTML = '<p class="no-profiles">Searching profiles...</p>';
+            let conditions = [];
+            
+            if (isSmartSearch) {
+                const paragraph = smartSearchParagraphInput.value;
+                if (!paragraph) {
+                    showMessage(searchMessage, 'Please enter a paragraph for smart search.', false);
+                    searchResultsDiv.innerHTML = '<p class="no-profiles">Enter a paragraph for smart search.</p>';
+                    return;
+                }
+                showSpinner(smartSearchSpinner, smartSearchBtn, true);
+
+                const smartPrompt = `Analyze the following paragraph to extract search criteria for a matrimonial profile. Focus on age range (min/max), location, education, and religion. Provide the output as a JSON object. If a criterion is not found, use a null value. For age range, infer both min and max if only one is given (e.g., 'late 20s' could be ageMin: 27, ageMax: 29; 'around 30' could be ageMin: 28, ageMax: 32). Always ensure age is an integer.\n\nParagraph: "${paragraph}"\n\nExpected JSON format: {"ageMin": null, "ageMax": null, "location": null, "religion": null, "education": null}`;
+                
+                try {
+                    const result = await model.generateContent(smartPrompt);
+                    let responseText = result.response.text();
+                    const jsonMatch = responseText.match(/```json\n([\s\S]*?)\n```/);
+                    if (jsonMatch && jsonMatch[1]) {
+                        responseText = jsonMatch[1];
+                    }
+                    const smartData = JSON.parse(responseText);
+
+                    if (smartData.ageMin !== null) conditions.push(where('age', '>=', parseInt(smartData.ageMin)));
+                    if (smartData.ageMax !== null) conditions.push(where('age', '<=', parseInt(smartData.ageMax)));
+                    if (smartData.location) conditions.push(where('location', '==', smartData.location));
+                    if (smartData.religion) conditions.push(where('religion', '==', smartData.religion));
+                    if (smartData.education) conditions.push(where('education', '==', smartData.education));
+                    
+                    showMessage(searchMessage, 'Smart search applied!', true);
+                } catch (aiError) {
+                    console.error("AI Smart Search Error:", aiError);
+                    showMessage(searchMessage, `AI smart search failed: ${aiError.message}. Try manual filters.`, false);
+                    searchResultsDiv.innerHTML = '<p class="no-profiles">AI smart search failed. Try manual filters.</p>';
+                    return;
+                } finally {
+                    showSpinner(smartSearchSpinner, smartSearchBtn, false);
+                }
+
+            } else {
+                const ageMin = parseInt(searchAgeMinInput.value);
+                const ageMax = parseInt(searchAgeMaxInput.value);
+                const location = searchLocationInput.value.trim();
+                const religion = searchReligionInput.value.trim();
+                const education = searchEducationInput.value.trim();
+                const matrimonyGroupId = searchMatrimonyGroupSelect.value;
+
+                if (!isNaN(ageMin)) conditions.push(where('age', '>=', ageMin));
+                if (!isNaN(ageMax)) conditions.push(where('age', '<=', ageMax));
+                if (location) conditions.push(where('location', '==', location));
+                if (religion) conditions.push(where('religion', '==', religion));
+                if (education) conditions.push(where('education', '==', education));
+                if (matrimonyGroupId) conditions.push(where('matrimonyGroupId', '==', matrimonyGroupId));
+            }
+
+            const finalQuery = query(collection(db, 'profiles'), ...conditions, orderBy('name'));
+
+            try {
+                const snapshot = await getDocs(finalQuery);
+                renderProfiles(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })), searchResultsDiv, false);
+            } catch (error) {
+                console.error("Error searching profiles:", error);
+                showMessage(searchMessage, `Error searching profiles: ${error.message}`, false);
+                searchResultsDiv.innerHTML = `<p class="error-message">Error searching profiles: ${error.message}</p>`;
+            }
+        }
+
+        function renderProfiles(profiles, targetDiv, showAdminActions = false) {
+            targetDiv.innerHTML = '';
+            if (profiles.length === 0) {
+                targetDiv.innerHTML = '<p class="no-profiles">No profiles found.</p>';
+                return;
+            }
+            profiles.forEach(profile => {
+                const matrimonyGroupName = getMatrimonyGroupName(profile.matrimonyGroupId);
+                const profileCard = document.createElement('div');
+                profileCard.className = 'profile-card';
+                profileCard.innerHTML = `
+                    <img src="${profile.photoURL || 'https://via.placeholder.com/120'}" alt="${profile.name}">
+                    <h3>${profile.name}</h3>
+                    <p><strong>Age:</strong> ${profile.age}</p>
+                    <p><strong>Location:</strong> ${profile.location}</p>
+                    <p><strong>Group:</strong> ${matrimonyGroupName}</p>
+                    <p>${profile.bio ? profile.bio.substring(0, 70) + '...' : 'No bio provided.'}</p>
+                    <div class="actions">
+                        <button class="view-profile-btn" data-id="${profile.id}">View Details & Share</button>
+                        ${showAdminActions && (currentUserRole === 'admin' || currentUserRole === 'employee') ? `<button class="edit-profile-btn edit" data-id="${profile.id}">Edit</button>` : ''}
+                        ${showAdminActions && currentUserRole === 'admin' ? `<button class="delete-profile-btn delete" data-id="${profile.id}">Delete</button>` : ''}
+                    </div>
+                `;
+                targetDiv.appendChild(profileCard);
+            });
+
+            targetDiv.querySelectorAll('.view-profile-btn').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    // Redirect to a specific view-profile.html with profileId
+                    window.location.href = `view-profile.html?profileId=${e.target.dataset.id}`;
+                });
+            });
+            // Admin actions are typically not shown on a public search page,
+            // but the argument is kept for consistency if needed later.
+            // If showAdminActions is true, remember to handle redirects for edit/delete actions.
+            // For now, this page is for public search, so edit/delete buttons are not rendered.
+        }
+
+    </script>
+</body>
+</html>
