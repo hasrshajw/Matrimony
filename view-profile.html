@@ -4,13 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Matrimony Portal - View Profile</title>
+    <!-- Open Graph Tags - These will be dynamically updated by JavaScript -->
+    <meta property="og:title" content="Matrimony Profile" id="og-title">
+    <meta property="og:description" content="View this matrimony profile." id="og-description">
+    <meta property="og:image" content="https://via.placeholder.com/120" id="og-image">
+    <meta property="og:url" content="" id="og-url">
+    <meta property="og:type" content="profile">
+    <meta property="og:site_name" content="Matrimony Portal">
+
     <!-- Firebase SDKs - CDN (ES module versions) -->
     <script type="module" src="https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js"></script>
     <script type="module" src="https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js"></script>
     <script type="module" src="https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js"></script>
 
     <style>
-        /* General Styles */
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background: #f4f7f6; color: #333; }
         .container { max-width: 1200px; margin: 20px auto; background: #fff; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); padding: 30px; }
         h1, h2, h3 { color: #2c3e50; margin-top: 0; }
@@ -26,19 +33,17 @@
         .success-message { color: #2ecc71; margin-top: 10px; font-weight: bold; }
         .hidden { display: none !important; }
 
-        /* Header and Navigation */
         #app-header { background: #34495e; color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #3498db; }
         #app-header h1 { margin: 0; font-size: 24px; }
         #app-header nav ul { list-style: none; margin: 0; padding: 0; display: flex; }
         #app-header nav li { margin-left: 20px; }
         #app-header nav a { color: white; text-decoration: none; font-weight: bold; font-size: 17px; transition: color 0.2s ease; }
-        #app-header nav a:hover { color: #3498db; } /* No 'active' for view-profile, it's a detail page */
+        #app-header nav a:hover { color: #3498db; }
         #user-info { display: flex; align-items: center; }
         #user-info span { margin-right: 15px; font-size: 15px; }
         #user-info button { background-color: #e74c3c; }
         #user-info button:hover { background-color: #c0392b; }
 
-        /* Profile Detail View */
         #profile-detail-view-content {
             display: flex;
             flex-direction: column;
@@ -73,7 +78,7 @@
         }
         #profile-detail-view-content .share-actions button {
             margin: 0 10px;
-            width: auto; /* Override general button width */
+            width: auto;
             padding: 10px 20px;
         }
         #profile-detail-status {
@@ -105,7 +110,6 @@
             <section id="profile-detail-view">
                 <div id="profile-detail-view-content">
                     <p id="profile-detail-status">Loading profile details...</p>
-                    <!-- Profile details rendered here by JS -->
                 </div>
             </section>
         </div>
@@ -116,28 +120,24 @@
         import { getAuth, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js';
         import { getFirestore, collection, getDocs, doc, getDoc, query, orderBy } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js';
 
-        // Your Firebase configuration
         const firebaseConfig = {
-  apiKey: "AIzaSyAuxA-e71uX_uLDe6oyFU69q-eLfgUzbXA",
-  authDomain: "harsha-jw.firebaseapp.com",
-  projectId: "harsha-jw",
-  storageBucket: "harsha-jw.firebasestorage.app",
-  messagingSenderId: "471408120499",
-  appId: "1:471408120499:web:91e61514ad3703ce3b16c6",
-  measurementId: "G-NBC16X4R1T"
-};
+            apiKey: "AIzaSyBX5-v6u8C7AqfNLxdSgX9p7QKtDI_oYZ4",
+            authDomain: "matrimony-34bb4.firebaseapp.com",
+            projectId: "matrimony-34bb4",
+            storageBucket: "matrimony-34bb4.firebasestorage.app",
+            messagingSenderId: "725550889075",
+            appId: "1:725550889075:web:6278e7b393d7fd5a859206",
+            measurementId: "G-BCL64HHVPB"
+        };
 
-        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // Global State Variables
         let currentUser = null;
         let currentUserRole = null;
         let matrimonyGroups = [];
 
-        // DOM Elements
         const currentUserEmailSpan = document.getElementById('current-user-email');
         const currentUserRoleSpan = document.getElementById('current-user-role');
         const logoutBtn = document.getElementById('logout-btn');
@@ -145,7 +145,11 @@
         const profileDetailViewContent = document.getElementById('profile-detail-view-content');
         const profileDetailStatus = document.getElementById('profile-detail-status');
 
-        // Utility Functions
+        const ogTitle = document.getElementById('og-title');
+        const ogDescription = document.getElementById('og-description');
+        const ogImage = document.getElementById('og-image');
+        const ogUrl = document.getElementById('og-url');
+
         function showMessage(element, message, isSuccess = true) {
             element.textContent = message;
             element.classList.remove('hidden');
@@ -172,7 +176,6 @@
             return group ? group.name : 'Unknown Group';
         }
 
-        // Authentication State Observer
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 currentUser = user;
@@ -187,7 +190,6 @@
                 currentUserEmailSpan.textContent = user.email;
                 currentUserRoleSpan.textContent = currentUserRole;
 
-                // Show/hide Admin panel navigation item based on role
                 if (currentUserRole === 'admin') {
                     navAdminPanelItem.classList.remove('hidden');
                 } else {
@@ -195,37 +197,34 @@
                 }
 
                 await fetchMatrimonyGroups();
-                // After authentication and groups are loaded, display the profile
                 const urlParams = new URLSearchParams(window.location.search);
                 const profileId = urlParams.get('profileId');
                 if (profileId) {
                     await displayShareableProfile(profileId);
                 } else {
                     profileDetailStatus.textContent = 'Error: No profile ID provided.';
+                    profileDetailStatus.classList.remove('hidden');
                     profileDetailStatus.classList.add('error-message');
-                    profileDetailViewContent.innerHTML = ''; // Clear existing content
+                    profileDetailViewContent.innerHTML = '';
                 }
 
             } else {
-                // Not logged in, redirect to login page
                 window.location.href = 'index.html';
             }
         });
 
-        // Logout
         logoutBtn.addEventListener('click', async () => {
             try {
                 await signOut(auth);
-                window.location.href = 'index.html'; // Redirect to login page
+                window.location.href = 'index.html';
             } catch (error) {
                 console.error("Error signing out:", error);
             }
         });
 
-        // Display Profile Details
         async function displayShareableProfile(profileId) {
-            profileDetailStatus.classList.add('hidden'); // Hide status message initially
-            profileDetailViewContent.innerHTML = '<p id="profile-detail-status">Loading profile details...</p>'; // Reset content
+            profileDetailStatus.classList.add('hidden');
+            profileDetailViewContent.innerHTML = '<p id="profile-detail-status">Loading profile details...</p>';
             const currentStatusElement = profileDetailViewContent.querySelector('#profile-detail-status');
 
             try {
@@ -239,8 +238,18 @@
                 const profile = { id: profileDoc.id, ...profileDoc.data() };
                 const matrimonyGroupName = getMatrimonyGroupName(profile.matrimonyGroupId);
 
+                const profileDescription = `Age: ${profile.age}, Location: ${profile.location}, Group: ${matrimonyGroupName}. ${profile.bio ? profile.bio.substring(0, 100) + '...' : 'No bio provided.'}`;
+                const profileImageUrl = profile.photoURL || 'https://via.placeholder.com/200';
+                const shareUrl = `${window.location.origin}${window.location.pathname}?profileId=${profile.id}`;
+
+                // Update OG Meta Tags
+                ogTitle.setAttribute('content', `${profile.name}'s Matrimony Profile`);
+                ogDescription.setAttribute('content', profileDescription);
+                ogImage.setAttribute('content', profileImageUrl);
+                ogUrl.setAttribute('content', shareUrl);
+
                 profileDetailViewContent.innerHTML = `
-                    <img src="${profile.photoURL || 'https://via.placeholder.com/200'}" alt="${profile.name}">
+                    <img src="${profileImageUrl}" alt="${profile.name}">
                     <h2>${profile.name}</h2>
                     <p><strong>Age:</strong> ${profile.age}</p>
                     <p><strong>Location:</strong> ${profile.location}</p>
@@ -264,17 +273,23 @@
                 currentStatusElement.textContent = `Error displaying profile: ${error.message}`;
                 currentStatusElement.classList.remove('hidden');
                 currentStatusElement.classList.add('error-message');
-                profileDetailViewContent.innerHTML = ''; // Clear other content if error
+                profileDetailViewContent.innerHTML = '';
             }
         }
 
         function copyShareLink(profile) {
             const shareUrl = `${window.location.origin}${window.location.pathname}?profileId=${profile.id}`;
             navigator.clipboard.writeText(shareUrl).then(() => {
-                showMessage(profileDetailViewContent.querySelector('#profile-detail-status'), 'Share link copied to clipboard!', true);
+                const statusElement = profileDetailViewContent.querySelector('#profile-detail-status') || document.createElement('p');
+                statusElement.id = 'profile-detail-status';
+                profileDetailViewContent.prepend(statusElement);
+                showMessage(statusElement, 'Share link copied to clipboard!', true);
             }).catch(err => {
                 console.error('Failed to copy text: ', err);
-                showMessage(profileDetailViewContent.querySelector('#profile-detail-status'), 'Failed to copy share link.', false);
+                const statusElement = profileDetailViewContent.querySelector('#profile-detail-status') || document.createElement('p');
+                statusElement.id = 'profile-detail-status';
+                profileDetailViewContent.prepend(statusElement);
+                showMessage(statusElement, 'Failed to copy share link.', false);
             });
         }
 
@@ -288,12 +303,18 @@ Matrimony Group: ${matrimonyGroupName}
 View full profile: ${window.location.origin}${window.location.pathname}?profileId=${profile.id}
             `.trim();
             navigator.clipboard.writeText(basicDetails).then(() => {
-                showMessage(profileDetailViewContent.querySelector('#profile-detail-status'), 'Basic details copied to clipboard!', true);
+                const statusElement = profileDetailViewContent.querySelector('#profile-detail-status') || document.createElement('p');
+                statusElement.id = 'profile-detail-status';
+                profileDetailViewContent.prepend(statusElement);
+                showMessage(statusElement, 'Basic details copied to clipboard!', true);
             }).catch(err => {
                 console.error('Failed to copy text: ', err);
-                showMessage(profileDetailViewContent.querySelector('#profile-detail-status'), 'Failed to copy basic details.', false);
+                const statusElement = profileDetailViewContent.querySelector('#profile-detail-status') || document.createElement('p');
+                statusElement.id = 'profile-detail-status';
+                profileDetailViewContent.prepend(statusElement);
+                showMessage(statusElement, 'Failed to copy basic details.', false);
             });
         }
     </script>
 </body>
-</html>```
+</html>
