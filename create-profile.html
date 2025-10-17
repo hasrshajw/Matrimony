@@ -144,19 +144,19 @@
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js';
         import { getAuth, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js';
-        import { getFirestore, collection, addDoc, getDoc, getDocs, updateDoc, doc, query, orderBy, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js';
+        import { getFirestore, collection, addDoc, getDoc, getDocs, updateDoc, doc, query, orderBy, serverTimestamp, onSnapshot } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js';
         import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-storage.js';
         import { getAI, getGenerativeModel } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-ai.js';
 
         const firebaseConfig = {
-  apiKey: "AIzaSyAuxA-e71uX_uLDe6oyFU69q-eLfgUzbXA",
-  authDomain: "harsha-jw.firebaseapp.com",
-  projectId: "harsha-jw",
-  storageBucket: "harsha-jw.firebasestorage.app",
-  messagingSenderId: "471408120499",
-  appId: "1:471408120499:web:91e61514ad3703ce3b16c6",
-  measurementId: "G-NBC16X4R1T"
-};
+            apiKey: "AIzaSyBX5-v6u8C7AqfNLxdSgX9p7QKtDI_oYZ4",
+            authDomain: "matrimony-34bb4.firebaseapp.com",
+            projectId: "matrimony-34bb4",
+            storageBucket: "matrimony-34bb4.firebasestorage.app",
+            messagingSenderId: "725550889075",
+            appId: "1:725550889075:web:6278e7b393d7fd5a859206",
+            measurementId: "G-BCL64HHVPB"
+        };
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
@@ -375,11 +375,14 @@
                 matrimonyGroupId: profileMatrimonyGroupSelect.value,
                 bio: profileBioInput.value,
                 photoURL: profilePhotoPreview.src !== '#' ? profilePhotoPreview.src : '',
-                createdAt: editingProfileId ? undefined : serverTimestamp(),
                 updatedAt: serverTimestamp(),
-                createdBy: editingProfileId ? undefined : currentUser.uid,
                 updatedBy: currentUser.uid,
             };
+
+            if (!editingProfileId) {
+                profileData.createdAt = serverTimestamp();
+                profileData.createdBy = currentUser.uid;
+            }
 
             const photoFile = profilePhotoInput.files[0];
 
@@ -441,15 +444,13 @@
                     profilePhotoPreview.style.display = 'none';
                 }
                 
-                // Set matrimony group after it's loaded and populated
                 if (matrimonyGroups.length > 0) {
                    profileMatrimonyGroupSelect.value = profile.matrimonyGroupId || '';
                 } else {
-                   // If groups not yet loaded, wait and then set
                    const unsubscribe = onSnapshot(collection(db, 'matrimonyGroups'), () => {
                        if (matrimonyGroups.length > 0) {
                            profileMatrimonyGroupSelect.value = profile.matrimonyGroupId || '';
-                           unsubscribe(); // Stop listening once set
+                           unsubscribe();
                        }
                    });
                 }
