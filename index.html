@@ -3,14 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Matrimony Portal - Login</title>
+    <title>Matrimony Portal - Login/Signup</title>
     <!-- Firebase SDKs - CDN (ES module versions) -->
     <script type="module" src="https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js"></script>
     <script type="module" src="https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js"></script>
     <script type="module" src="https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js"></script>
 
     <style>
-        /* General Styles for Auth Page */
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
@@ -32,6 +31,7 @@
             box-shadow: 0 8px 20px rgba(0,0,0,0.15);
             width: 100%;
             max-width: 400px;
+            text-align: center;
         }
 
         h2 {
@@ -42,6 +42,7 @@
 
         .form-group {
             margin-bottom: 15px;
+            text-align: left;
         }
 
         .form-group label {
@@ -72,7 +73,7 @@
             font-size: 16px;
             transition: background-color 0.2s ease;
             width: 100%;
-            margin-top: 20px;
+            margin-top: 10px;
         }
 
         button:hover {
@@ -80,8 +81,26 @@
         }
 
         button:disabled {
-            background-color: #cccccc;
+            background-color: #a0c4ff;
             cursor: not-allowed;
+        }
+        
+        #google-login-btn {
+            background-color: #db4437; /* Google red */
+            margin-top: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        #google-login-btn:hover {
+            background-color: #c0392b;
+        }
+
+        #google-login-btn img {
+            width: 20px;
+            height: 20px;
         }
 
         .error-message {
@@ -94,98 +113,253 @@
         .hidden {
             display: none !important;
         }
+
+        .toggle-auth {
+            margin-top: 20px;
+            font-size: 14px;
+            color: #555;
+        }
+        .toggle-auth a {
+            color: #3498db;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .toggle-auth a:hover {
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
     <div class="auth-container">
-        <h2>Matrimony Portal Login</h2>
-        <div class="form-group">
-            <label for="login-email">Email:</label>
-            <input type="email" id="login-email" placeholder="Enter your email" required>
+        <h2 id="auth-title">Matrimony Portal Login</h2>
+
+        <div id="login-form-area">
+            <div class="form-group">
+                <label for="login-email">Email:</label>
+                <input type="email" id="login-email" placeholder="Enter your email" required>
+            </div>
+            <div class="form-group">
+                <label for="login-password">Password:</label>
+                <input type="password" id="login-password" placeholder="Enter your password" required>
+            </div>
+            <p id="auth-error" class="error-message hidden"></p>
+            <button id="login-btn">Login</button>
+            <button id="google-login-btn">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google icon">
+                Sign in with Google
+            </button>
+            <p class="toggle-auth">Don't have an account? <a href="#" id="show-signup">Sign up</a></p>
         </div>
-        <div class="form-group">
-            <label for="login-password">Password:</label>
-            <input type="password" id="login-password" placeholder="Enter your password" required>
+
+        <div id="signup-form-area" class="hidden">
+            <div class="form-group">
+                <label for="signup-email">Email:</label>
+                <input type="email" id="signup-email" placeholder="Enter your email" required>
+            </div>
+            <div class="form-group">
+                <label for="signup-password">Password:</label>
+                <input type="password" id="signup-password" placeholder="Create a password" required>
+            </div>
+            <p id="signup-error" class="error-message hidden"></p>
+            <button id="signup-btn">Sign Up</button>
+            <p class="toggle-auth">Already have an account? <a href="#" id="show-login">Login</a></p>
         </div>
-        <p id="auth-error" class="error-message hidden"></p>
-        <button id="login-btn">Login</button>
+
         <p style="text-align: center; margin-top: 20px; font-size: 14px; color: #777;">
             For demo: Use 'admin@example.com' (password: 123456) for admin access.<br>
             Or 'employee@example.com' (password: 123456) for employee access.<br>
-            (Ensure these users exist in Firebase Auth and have roles in Firestore 'users' collection as per previous instructions).
+            (Ensure these users exist in Firebase Auth and have roles/status in Firestore 'users' collection).
         </p>
     </div>
 
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js';
-        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js';
-        import { getFirestore, doc, getDoc } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js';
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js';
+        import { getFirestore, doc, getDoc, setDoc } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js';
 
-        // Your Firebase configuration
         const firebaseConfig = {
-  apiKey: "AIzaSyAuxA-e71uX_uLDe6oyFU69q-eLfgUzbXA",
-  authDomain: "harsha-jw.firebaseapp.com",
-  projectId: "harsha-jw",
-  storageBucket: "harsha-jw.firebasestorage.app",
-  messagingSenderId: "471408120499",
-  appId: "1:471408120499:web:91e61514ad3703ce3b16c6",
-  measurementId: "G-NBC16X4R1T"
-};
+            apiKey: "AIzaSyBX5-v6u8C7AqfNLxdSgX9p7QKtDI_oYZ4",
+            authDomain: "matrimony-34bb4.firebaseapp.com",
+            projectId: "matrimony-34bb4",
+            storageBucket: "matrimony-34bb4.firebasestorage.app",
+            messagingSenderId: "725550889075",
+            appId: "1:725550889075:web:6278e7b393d7fd5a859206",
+            measurementId: "G-BCL64HHVPB"
+        };
 
-        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
+        const googleProvider = new GoogleAuthProvider();
 
-        // DOM Elements
+        const authTitle = document.getElementById('auth-title');
+        const loginFormArea = document.getElementById('login-form-area');
+        const signupFormArea = document.getElementById('signup-form-area');
+
         const loginEmailInput = document.getElementById('login-email');
         const loginPasswordInput = document.getElementById('login-password');
         const loginBtn = document.getElementById('login-btn');
+        const googleLoginBtn = document.getElementById('google-login-btn');
         const authError = document.getElementById('auth-error');
 
-        // Function to show error message
-        function showErrorMessage(message) {
-            authError.textContent = message;
-            authError.classList.remove('hidden');
-            setTimeout(() => authError.classList.add('hidden'), 5000);
+        const signupEmailInput = document.getElementById('signup-email');
+        const signupPasswordInput = document.getElementById('signup-password');
+        const signupBtn = document.getElementById('signup-btn');
+        const signupError = document.getElementById('signup-error');
+
+        const showSignupLink = document.getElementById('show-signup');
+        const showLoginLink = document.getElementById('show-login');
+
+        function showAuthMessage(element, message) {
+            element.textContent = message;
+            element.classList.remove('hidden');
+            setTimeout(() => element.classList.add('hidden'), 5000);
         }
 
-        // Handle Login
+        function toggleAuthMode(showLogin) {
+            if (showLogin) {
+                authTitle.textContent = 'Matrimony Portal Login';
+                loginFormArea.classList.remove('hidden');
+                signupFormArea.classList.add('hidden');
+                authError.classList.add('hidden');
+                signupError.classList.add('hidden');
+            } else {
+                authTitle.textContent = 'Matrimony Portal Sign Up';
+                loginFormArea.classList.add('hidden');
+                signupFormArea.classList.remove('hidden');
+                authError.classList.add('hidden');
+                signupError.classList.add('hidden');
+            }
+        }
+
+        showSignupLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            toggleAuthMode(false);
+        });
+
+        showLoginLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            toggleAuthMode(true);
+        });
+
         loginBtn.addEventListener('click', async () => {
             const email = loginEmailInput.value;
             const password = loginPasswordInput.value;
-            authError.classList.add('hidden'); // Hide previous errors
+            authError.classList.add('hidden');
 
             if (!email || !password) {
-                showErrorMessage('Please enter both email and password.');
+                showAuthMessage(authError, 'Please enter both email and password.');
                 return;
             }
 
             try {
-                // Sign in the user
-                const userCredential = await signInWithEmailAndPassword(auth, email, password);
-                const user = userCredential.user;
-
-                // Fetch user role from Firestore to determine redirection path (optional here, but good practice)
-                const userDoc = await getDoc(doc(db, 'users', user.uid));
-                const userRole = userDoc.exists() ? userDoc.data().role : 'employee'; // Default to employee
-
-                console.log(`User ${user.email} logged in with role: ${userRole}`);
-                
-                // Redirect to the main application page
-                window.location.href = 'app.html'; // We will create app.html next
+                await signInWithEmailAndPassword(auth, email, password);
             } catch (error) {
                 console.error("Login failed:", error);
-                showErrorMessage(`Login failed: ${error.message}`);
+                showAuthMessage(authError, `Login failed: ${error.message}`);
             }
         });
 
-        // Check auth state on page load (for persistent login)
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                // If already logged in, redirect to the app page
-                window.location.href = 'app.html'; // We will create app.html next
+        googleLoginBtn.addEventListener('click', async () => {
+            authError.classList.add('hidden');
+            try {
+                const result = await signInWithPopup(auth, googleProvider);
+                const user = result.user;
+
+                const userDocRef = doc(db, 'users', user.uid);
+                const userDocSnap = await getDoc(userDocRef);
+
+                if (!userDocSnap.exists()) {
+                    // New Google user, set initial status to pending
+                    await setDoc(userDocRef, {
+                        email: user.email,
+                        role: 'pending', // Special role for pending users
+                        status: 'pending',
+                        createdAt: serverTimestamp(),
+                    });
+                }
+                // onAuthStateChanged will handle redirection
+            } catch (error) {
+                console.error("Google login failed:", error);
+                showAuthMessage(authError, `Google login failed: ${error.message}`);
             }
+        });
+
+        signupBtn.addEventListener('click', async () => {
+            const email = signupEmailInput.value;
+            const password = signupPasswordInput.value;
+            signupError.classList.add('hidden');
+
+            if (!email || !password) {
+                showAuthMessage(signupError, 'Please enter both email and password.');
+                return;
+            }
+            if (password.length < 6) {
+                showAuthMessage(signupError, 'Password must be at least 6 characters long.');
+                return;
+            }
+
+            try {
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
+
+                // For new signups, set role and status to 'pending'
+                await setDoc(doc(db, 'users', user.uid), {
+                    email: user.email,
+                    role: 'pending', // Use 'pending' role until approved
+                    status: 'pending',
+                    createdAt: serverTimestamp(),
+                });
+                // onAuthStateChanged will handle redirection
+            } catch (error) {
+                console.error("Signup failed:", error);
+                showAuthMessage(signupError, `Signup failed: ${error.message}`);
+            }
+        });
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                try {
+                    const userDoc = await getDoc(doc(db, 'users', user.uid));
+                    if (!userDoc.exists()) {
+                        // This case should ideally not happen if a user is authenticated
+                        // but sometimes occurs if the user doc creation failed or is delayed.
+                        // Force logout for safety or redirect to a generic error.
+                        console.warn("Authenticated user has no Firestore user document. Logging out.");
+                        await signOut(auth);
+                        showAuthMessage(authError, "Authentication error. Please try again.");
+                        return;
+                    }
+
+                    const userData = userDoc.data();
+                    const userStatus = userData.status;
+                    const userRole = userData.role;
+
+                    if (userStatus === 'pending') {
+                        window.location.href = 'pending.html';
+                    } else if (userStatus === 'denied') {
+                        window.location.href = 'denied.html';
+                    } else if (userRole === 'admin') {
+                        window.location.href = 'admin-dashboard.html'; // New admin dashboard
+                    } else if (userRole === 'employee') {
+                        window.location.href = 'employee-dashboard.html'; // New employee dashboard
+                    } else {
+                        // Fallback for any other approved but uncategorized user
+                        window.location.href = 'employee-dashboard.html';
+                    }
+                } catch (error) {
+                    console.error("Error checking user status/role:", error);
+                    // If unable to fetch role/status, assume temporary issue and redirect to pending
+                    // or to a generic error page, or even logout. For now, logout.
+                    await signOut(auth);
+                    showAuthMessage(authError, "Account status error. Please try again.");
+                }
+            }
+        });
+
+        // Ensure we start on the login form
+        document.addEventListener('DOMContentLoaded', () => {
+            toggleAuthMode(true);
         });
     </script>
 </body>
