@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Matrimony Portal - Employee Dashboard</title>
+    <!-- Firebase SDKs - CDN (ES module versions) -->
+    <script type="module" src="https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js"></script>
+    <script type="module" src="https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js"></script>
+    <script type="module" src="https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js"></script>
+    <script type="module" src="https://www.gstatic.com/firebasejs/12.4.0/firebase-storage.js"></script>
+
+    <style>
+        /* General Styles */
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background: #f4f7f6; color: #333; }
+        .container { max-width: 1200px; margin: 20px auto; background: #fff; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); padding: 30px; }
+        h1, h2, h3 { color: #2c3e50; margin-top: 0; }
+        button { background-color: #3498db; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; transition: background-color 0.2s ease; }
+        button:hover { background-color: #2980b9; }
+        button:disabled { background-color: #cccccc; cursor: not-allowed; }
+        input[type="text"], input[type="email"], input[type="password"], input[type="number"], input[type="date"], textarea, select {
+            width: calc(100% - 22px); padding: 10px; margin: 8px 0; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; font-size: 16px;
+        }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; color: #555; }
+        .error-message { color: #e74c3c; margin-top: 10px; font-weight: bold; }
+        .success-message { color: #2ecc71; margin-top: 10px; font-weight: bold; }
+        .hidden { display: none !important; }
+
+        /* Header and Navigation */
+        #app-header { background: #34495e; color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #3498db; }
+        #app-header h1 { margin: 0; font-size: 24px; }
+        #app-header nav ul { list-style: none; margin: 0; padding: 0; display: flex; }
+        #app-header nav li { margin-left: 20px; }
+        #app-header nav a { color: white; text-decoration: none; font-weight: bold; font-size: 17px; transition: color 0.2s ease; }
+        #app-header nav a:hover, #app-header nav a.active { color: #3498db; }
+        #user-info { display: flex; align-items: center; }
+        #user-info span { margin-right: 15px; font-size: 15px; }
+        #user-info button { background-color: #e74c3c; }
+        #user-info button:hover { background-color: #c0392b; }
+
+        /* Employee Dashboard specific styles */
+        #employee-dashboard-section h2 { margin-bottom: 20px; }
+        #employee-dashboard-section .dashboard-section-block { background: #fdfdfd; border: 1px solid #eee; border-radius: 8px; padding: 25px; margin-bottom: 20px; }
+        #employee-dashboard-section .dashboard-section-block h3 { margin-top: 0; color: #3498db; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 20px; }
+
+        /* Profile Card & List for Employee View */
+        .profile-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; margin-top: 20px; }
+        .profile-card { background: #f9f9f9; border: 1px solid #e0e0e0; border-radius: 8px; padding: 20px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .profile-card img { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; margin-bottom: 15px; border: 3px solid #3498db; }
+        .profile-card h3 { margin-top: 0; margin-bottom: 10px; color: #3498db; }
+        .profile-card p { margin: 5px 0; font-size: 15px; color: #555; }
+        .profile-card .actions button { margin-top: 15px; margin-right: 10px; }
+        .profile-card .actions button.edit { background-color: #f39c12; }
+        .profile-card .actions button.edit:hover { background-color: #e67e22; }
+        .no-profiles { text-align: center; color: #777; font-style: italic; margin-top: 30px; }
+    </style>
+</head>
+<body>
+    <div id="app-content">
+        <header id="app-header">
+            <h1>Matrimony Portal</h1>
+            <nav>
+                <ul>
+                    <li><a href="create-profile.html" id="nav-create-profile">Create Profile</a></li>
+                    <li><a href="search-profiles.html" id="nav-search-profile">Search Profiles</a></li>
+                    <li id="nav-admin-panel-item" class="hidden"><a href="admin-dashboard.html" id="nav-admin-panel">Admin Dashboard</a></li>
+                </ul>
+            </nav>
+            <div id="user-info">
+                <span>Welcome, <strong id="current-user-email"></strong> (<span id="current-user-role"></span>)</span>
+                <button id="logout-btn">Logout</button>
+            </div>
+        </header>
+
+        <div class="container">
+            <section id="employee-dashboard-section">
+                <h2>Employee Dashboard</h2>
+
+                <div class="dashboard-section-block">
+                    <h3>All Profiles</h3>
+                    <p id="employee-profile-message" class="success-message hidden"></p>
+                    <div id="all-profiles-list" class="profile-list">
+                        <p class="no-profiles">Loading profiles...</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js';
+        import { getAuth, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js';
+        import { getFirestore, collection, getDocs, doc, getDoc, query, orderBy, where } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js';
+        import { getStorage } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-storage.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBX5-v6u8C7AqfNLxdSgX9p7QKtDI_oYZ4",
+            authDomain: "matrimony-34bb4.firebaseapp.com",
+            projectId: "matrimony-34bb4",
+            storageBucket: "matrimony-34bb4.firebasestorage.app",
+            messagingSenderId: "725550889075",
+            appId: "1:725550889075:web:6278e7b393d7fd5a859206",
+            measurementId: "G-BCL64HHVPB"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const storage = getStorage(app); // Keep storage initialized for potential future use or consistency
+
+        let currentUser = null;
+        let currentUserRole = null;
+        const hardcodedMatrimonyGroups = [
+            { id: 'US', name: 'US' },
+            { id: 'BY_OTHERS', name: 'BY OTHERS' }
+        ];
+
+        const currentUserEmailSpan = document.getElementById('current-user-email');
+        const currentUserRoleSpan = document.getElementById('current-user-role');
+        const logoutBtn = document.getElementById('logout-btn');
+
+        const navAdminPanelItem = document.getElementById('nav-admin-panel-item');
+
+        const allProfilesListDiv = document.getElementById('all-profiles-list');
+        const employeeProfileMessage = document.getElementById('employee-profile-message');
+
+        function showMessage(element, message, isSuccess = true) {
+            element.textContent = message;
+            element.classList.remove('hidden');
+            element.classList.toggle('success-message', isSuccess);
+            element.classList.toggle('error-message', !isSuccess);
+            setTimeout(() => element.classList.add('hidden'), 5000);
+        }
+        
+        function getMatrimonyGroupName(groupId) {
+            if (!groupId) {
+                return 'Not Specified';
+            }
+            const group = hardcodedMatrimonyGroups.find(g => g.id === groupId);
+            return group ? group.name : 'Unknown Group';
+        }
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUser = user;
+                try {
+                    const userDoc = await getDoc(doc(db, 'users', user.uid));
+                    const userData = userDoc.exists() ? userDoc.data() : {};
+                    currentUserRole = userData.role;
+                    const userStatus = userData.status;
+
+                    if (userStatus === 'pending') {
+                        window.location.href = 'pending.html';
+                        return;
+                    } else if (userStatus === 'denied') {
+                        window.location.href = 'denied.html';
+                        return;
+                    } else if (currentUserRole !== 'employee' && currentUserRole !== 'admin') { // Admin can technically view this page but will redirect to their own dashboard
+                         alert('You do not have sufficient permissions to access the Employee Dashboard. Redirecting to login.');
+                         await signOut(auth);
+                         window.location.href = 'index.html';
+                         return;
+                    }
+                } catch (error) {
+                    console.error("Error fetching user role/status:", error);
+                    alert('Error verifying user role. Redirecting to login.');
+                    await signOut(auth);
+                    window.location.href = 'index.html';
+                    return;
+                }
+
+                currentUserEmailSpan.textContent = user.email;
+                currentUserRoleSpan.textContent = currentUserRole;
+
+                if (currentUserRole === 'admin') {
+                    navAdminPanelItem.classList.remove('hidden');
+                    // Admins will be redirected to admin-dashboard.html from index.html.
+                    // If they somehow land here, they might want to go to admin-dashboard.
+                    // No explicit redirect from here to admin-dashboard, as navigation is explicit.
+                } else {
+                    navAdminPanelItem.classList.add('hidden');
+                }
+
+                fetchAllProfilesForEmployee(); // Fetch and display profiles for employees
+
+            } else {
+                window.location.href = 'index.html';
+            }
+        });
+
+        logoutBtn.addEventListener('click', async () => {
+            try {
+                await signOut(auth);
+                window.location.href = 'index.html';
+            } catch (error) {
+                console.error("Error signing out:", error);
+            }
+        });
+
+        // --- All Profiles Management for Employees ---
+        async function fetchAllProfilesForEmployee() {
+            allProfilesListDiv.innerHTML = '<p class="no-profiles">Loading all profiles...</p>';
+            try {
+                const q = query(collection(db, 'profiles'), orderBy('name'));
+                const snapshot = await getDocs(q);
+                // Employees can only edit, not delete. `showAdminActions` controls this.
+                renderProfiles(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })), allProfilesListDiv, true);
+            } catch (error) {
+                console.error("Error fetching all profiles:", error);
+                employeeProfileMessage.innerHTML = `<p class="error-message">Error loading profiles: ${error.message}</p>`;
+            }
+        }
+
+        function renderProfiles(profiles, targetDiv, showEmployeeActions = false) {
+            targetDiv.innerHTML = '';
+            if (profiles.length === 0) {
+                targetDiv.innerHTML = '<p class="no-profiles">No profiles found.</p>';
+                return;
+            }
+            profiles.forEach(profile => {
+                const matrimonyGroupName = getMatrimonyGroupName(profile.matrimonyGroupId);
+                const profileCard = document.createElement('div');
+                profileCard.className = 'profile-card';
+                profileCard.innerHTML = `
+                    <img src="${profile.photoURL || 'https://via.placeholder.com/120'}" alt="${profile.name}">
+                    <h3>${profile.name}</h3>
+                    <p><strong>Age:</strong> ${profile.age}</p>
+                    <p><strong>Location:</strong> ${profile.location}</p>
+                    <p><strong>Group:</strong> ${matrimonyGroupName}</p>
+                    <p>${profile.bio ? profile.bio.substring(0, 70) + '...' : 'No bio provided.'}</p>
+                    <div class="actions">
+                        <button class="view-profile-btn" data-id="${profile.id}">View Details</button>
+                        ${showEmployeeActions && (currentUserRole === 'admin' || currentUserRole === 'employee') ? `<button class="edit-profile-btn edit" data-id="${profile.id}">Edit</button>` : ''}
+                        <!-- Delete button is explicitly omitted for employees -->
+                    </div>
+                `;
+                targetDiv.appendChild(profileCard);
+            });
+
+            targetDiv.querySelectorAll('.view-profile-btn').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    window.location.href = `view-profile.html?profileId=${e.target.dataset.id}`;
+                });
+            });
+            targetDiv.querySelectorAll('.edit-profile-btn').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    window.location.href = `create-profile.html?profileId=${e.target.dataset.id}`; // Redirect to create-profile for editing
+                });
+            });
+            // No delete functionality for employees on this page.
+        }
+    </script>
+</body>
+</html>
