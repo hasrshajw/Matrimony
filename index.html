@@ -176,14 +176,14 @@
         import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js';
 
         const firebaseConfig = {
-  apiKey: "AIzaSyAuxA-e71uX_uLDe6oyFU69q-eLfgUzbXA",
-  authDomain: "harsha-jw.firebaseapp.com",
-  projectId: "harsha-jw",
-  storageBucket: "harsha-jw.firebasestorage.app",
-  messagingSenderId: "471408120499",
-  appId: "1:471408120499:web:91e61514ad3703ce3b16c6",
-  measurementId: "G-NBC16X4R1T"
-};
+            apiKey: "AIzaSyAuxA-e71uX_uLDe6oyFU69q-eLfgUzbXA",
+            authDomain: "harsha-jw.firebaseapp.com",
+            projectId: "harsha-jw",
+            storageBucket: "harsha-jw.firebasestorage.app",
+            messagingSenderId: "471408120499",
+            appId: "1:471408120499:web:91e61514ad3703ce3b16c6",
+            measurementId: "G-NBC16X4R1T"
+        };
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
@@ -252,7 +252,6 @@
 
             try {
                 await signInWithEmailAndPassword(auth, email, password);
-                // onAuthStateChanged will handle redirection
             } catch (error) {
                 console.error("Login failed:", error);
                 showAuthMessage(authError, `Login failed: ${error.message}`);
@@ -276,7 +275,6 @@
                         createdAt: serverTimestamp(),
                     });
                 }
-                // onAuthStateChanged will handle redirection
             } catch (error) {
                 console.error("Google login failed:", error);
                 showAuthMessage(authError, `Google login failed: ${error.message}`);
@@ -307,7 +305,6 @@
                     status: 'pending',
                     createdAt: serverTimestamp(),
                 });
-                // onAuthStateChanged will handle redirection
             } catch (error) {
                 console.error("Signup failed:", error);
                 showAuthMessage(signupError, `Signup failed: ${error.message}`);
@@ -320,24 +317,19 @@
                     const userDocRef = doc(db, 'users', user.uid);
                     let userDoc = await getDoc(userDocRef);
 
-                    // If user document doesn't exist *yet* (e.g., race condition after signup)
-                    // or if it's a very fresh Google sign-in where setDoc might be in flight
                     if (!userDoc.exists()) {
-                        // Give it a tiny moment and try again, or create if still missing
-                        // This is a common pattern for race conditions in SPAs
                         console.warn("User document not found immediately after auth. Attempting to create/retry.");
-                        await new Promise(resolve => setTimeout(resolve, 500)); // Wait 0.5 sec
-                        userDoc = await getDoc(userDocRef); // Retry fetch
+                        await new Promise(resolve => setTimeout(resolve, 500));
+                        userDoc = await getDoc(userDocRef);
 
                         if (!userDoc.exists()) {
-                            // If still doesn't exist after retry, create it as pending
                             await setDoc(userDocRef, {
                                 email: user.email,
                                 role: 'pending',
                                 status: 'pending',
                                 createdAt: serverTimestamp(),
                             });
-                            userDoc = await getDoc(userDocRef); // Fetch again to get updated data
+                            userDoc = await getDoc(userDocRef);
                             console.log("Created missing user document as pending.");
                         }
                     }
@@ -348,14 +340,13 @@
 
                     if (userStatus === 'pending') {
                         window.location.href = 'pending.html';
-                    } else if (userStatus === 'denied') {
-                        window.location.href = 'denied.html';
+                    } else if (userStatus === 'denied' || userStatus === 'suspended') { // Handle suspended here
+                        window.location.href = 'denied.html'; // Or a dedicated suspended.html
                     } else if (userRole === 'admin') {
                         window.location.href = 'admin-dashboard.html';
                     } else if (userRole === 'employee') {
                         window.location.href = 'employee-dashboard.html';
                     } else {
-                        // Fallback for any other approved but uncategorized user
                         window.location.href = 'employee-dashboard.html';
                     }
                 } catch (error) {
