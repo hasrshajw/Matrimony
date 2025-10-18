@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Matrimony Portal - Login/Signup</title>
-    <!-- Firebase SDKs - CDN (ES module versions) -->
     <script type="module" src="https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js"></script>
     <script type="module" src="https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js"></script>
     <script type="module" src="https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js"></script>
@@ -86,7 +85,7 @@
         }
         
         #google-login-btn {
-            background-color: #db4437; /* Google red */
+            background-color: #db4437;
             margin-top: 20px;
             display: flex;
             align-items: center;
@@ -168,14 +167,13 @@
         <p style="text-align: center; margin-top: 20px; font-size: 14px; color: #777;">
             For demo: Use 'admin@example.com' (password: 123456) for admin access.<br>
             Or 'employee@example.com' (password: 123456) for employee access.<br>
-            (Ensure these users exist in Firebase Auth and have roles/status in Firestore 'users' collection).
         </p>
     </div>
 
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js';
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js';
-        import { getFirestore, doc, getDoc, setDoc } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js';
+        import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js';
 
         const firebaseConfig = {
   apiKey: "AIzaSyAuxA-e71uX_uLDe6oyFU69q-eLfgUzbXA",
@@ -254,6 +252,7 @@
 
             try {
                 await signInWithEmailAndPassword(auth, email, password);
+                // onAuthStateChanged will handle redirection
             } catch (error) {
                 console.error("Login failed:", error);
                 showAuthMessage(authError, `Login failed: ${error.message}`);
@@ -270,10 +269,9 @@
                 const userDocSnap = await getDoc(userDocRef);
 
                 if (!userDocSnap.exists()) {
-                    // New Google user, set initial status to pending
                     await setDoc(userDocRef, {
                         email: user.email,
-                        role: 'pending', // Special role for pending users
+                        role: 'pending',
                         status: 'pending',
                         createdAt: serverTimestamp(),
                     });
@@ -303,10 +301,9 @@
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                 const user = userCredential.user;
 
-                // For new signups, set role and status to 'pending'
                 await setDoc(doc(db, 'users', user.uid), {
                     email: user.email,
-                    role: 'pending', // Use 'pending' role until approved
+                    role: 'pending',
                     status: 'pending',
                     createdAt: serverTimestamp(),
                 });
@@ -320,15 +317,29 @@
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 try {
-                    const userDoc = await getDoc(doc(db, 'users', user.uid));
+                    const userDocRef = doc(db, 'users', user.uid);
+                    let userDoc = await getDoc(userDocRef);
+
+                    // If user document doesn't exist *yet* (e.g., race condition after signup)
+                    // or if it's a very fresh Google sign-in where setDoc might be in flight
                     if (!userDoc.exists()) {
-                        // This case should ideally not happen if a user is authenticated
-                        // but sometimes occurs if the user doc creation failed or is delayed.
-                        // Force logout for safety or redirect to a generic error.
-                        console.warn("Authenticated user has no Firestore user document. Logging out.");
-                        await signOut(auth);
-                        showAuthMessage(authError, "Authentication error. Please try again.");
-                        return;
+                        // Give it a tiny moment and try again, or create if still missing
+                        // This is a common pattern for race conditions in SPAs
+                        console.warn("User document not found immediately after auth. Attempting to create/retry.");
+                        await new Promise(resolve => setTimeout(resolve, 500)); // Wait 0.5 sec
+                        userDoc = await getDoc(userDocRef); // Retry fetch
+
+                        if (!userDoc.exists()) {
+                            // If still doesn't exist after retry, create it as pending
+                            await setDoc(userDocRef, {
+                                email: user.email,
+                                role: 'pending',
+                                status: 'pending',
+                                createdAt: serverTimestamp(),
+                            });
+                            userDoc = await getDoc(userDocRef); // Fetch again to get updated data
+                            console.log("Created missing user document as pending.");
+                        }
                     }
 
                     const userData = userDoc.data();
@@ -340,24 +351,22 @@
                     } else if (userStatus === 'denied') {
                         window.location.href = 'denied.html';
                     } else if (userRole === 'admin') {
-                        window.location.href = 'admin-dashboard.html'; // New admin dashboard
+                        window.location.href = 'admin-dashboard.html';
                     } else if (userRole === 'employee') {
-                        window.location.href = 'employee-dashboard.html'; // New employee dashboard
+                        window.location.href = 'employee-dashboard.html';
                     } else {
                         // Fallback for any other approved but uncategorized user
                         window.location.href = 'employee-dashboard.html';
                     }
                 } catch (error) {
                     console.error("Error checking user status/role:", error);
-                    // If unable to fetch role/status, assume temporary issue and redirect to pending
-                    // or to a generic error page, or even logout. For now, logout.
+                    alert("Account status verification error. Please try again. Logging out.");
                     await signOut(auth);
-                    showAuthMessage(authError, "Account status error. Please try again.");
+                    window.location.href = 'index.html';
                 }
             }
         });
 
-        // Ensure we start on the login form
         document.addEventListener('DOMContentLoaded', () => {
             toggleAuthMode(true);
         });
