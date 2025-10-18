@@ -30,7 +30,7 @@
             box-shadow: 0 8px 20px rgba(0,0,0,0.15);
             max-width: 600px;
             width: 90%;
-            position: relative; /* For logout button positioning */
+            position: relative;
         }
         h2 {
             color: #3498db;
@@ -80,14 +80,14 @@
         import { getFirestore, doc, getDoc } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js';
 
         const firebaseConfig = {
-  apiKey: "AIzaSyAuxA-e71uX_uLDe6oyFU69q-eLfgUzbXA",
-  authDomain: "harsha-jw.firebaseapp.com",
-  projectId: "harsha-jw",
-  storageBucket: "harsha-jw.firebasestorage.app",
-  messagingSenderId: "471408120499",
-  appId: "1:471408120499:web:91e61514ad3703ce3b16c6",
-  measurementId: "G-NBC16X4R1T"
-};
+            apiKey: "AIzaSyAuxA-e71uX_uLDe6oyFU69q-eLfgUzbXA",
+            authDomain: "harsha-jw.firebaseapp.com",
+            projectId: "harsha-jw",
+            storageBucket: "harsha-jw.firebasestorage.app",
+            messagingSenderId: "471408120499",
+            appId: "1:471408120499:web:91e61514ad3703ce3b16c6",
+            measurementId: "G-NBC16X4R1T"
+        };
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
@@ -121,17 +121,13 @@
                             // Fallback if role is approved but not explicitly admin/employee
                             window.location.href = 'employee-dashboard.html';
                         }
-                    } else if (userStatus === 'denied') {
-                        window.location.href = 'denied.html'; // If for some reason denied while on pending
+                    } else if (userStatus === 'denied' || userStatus === 'suspended') {
+                        window.location.href = 'denied.html';
                     }
-                    // If still 'pending', stay on this page
                 } catch (error) {
                     console.error("Error checking user status/role:", error);
-                    // If unable to fetch, assume a temporary issue, allow staying on page
-                    // or redirect to index after a severe error. For now, allow staying.
                 }
             } else {
-                // If user logs out or session expires, redirect to login
                 window.location.href = 'index.html';
             }
         });
