@@ -37,9 +37,11 @@
         #user-info button { background-color: #e74c3c; }
         #user-info button:hover { background-color: #c0392b; }
 
-        .grid-form { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .grid-form .full-width { grid-column: 1 / -1; }
-        .grid-form textarea { min-height: 80px; }
+        .form-layout-grid { display: grid; grid-template-columns: 1fr 2fr; gap: 20px; }
+        .profile-fields-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .full-width { grid-column: 1 / -1; }
+        .form-group textarea { min-height: 80px; }
+        #auto-generate-paragraph { min-height: 250px; } /* Increased height for better AI input */
 
         .loading-spinner {
             border: 4px solid #f3f3f3;
@@ -78,60 +80,68 @@
         <div class="container">
             <section id="create-profile-section">
                 <h2 id="profile-form-title">Create New Profile</h2>
-                <form id="profile-form" class="grid-form">
+                <form id="profile-form">
                     <input type="hidden" id="profile-id">
-                    <div class="form-group">
-                        <label for="profile-name">Full Name:</label>
-                        <input type="text" id="profile-name" required>
+                    <div class="form-layout-grid">
+                        <div class="auto-generate-column">
+                            <div class="form-group">
+                                <label for="auto-generate-paragraph">Auto-generate details from paragraph:</label>
+                                <textarea id="auto-generate-paragraph" placeholder="e.g., John Doe, 28, from New York. Works as a Software Engineer. Looking for a compatible partner." rows="12"></textarea>
+                                <button type="button" id="auto-generate-btn" style="margin-top: 10px;">Auto-generate Fields <span class="loading-spinner hidden" id="auto-generate-spinner"></span></button>
+                            </div>
+                        </div>
+                        <div class="profile-fields-column">
+                            <div class="profile-fields-grid">
+                                <div class="form-group">
+                                    <label for="profile-name">Full Name:</label>
+                                    <input type="text" id="profile-name" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="profile-age">Age:</label>
+                                    <input type="number" id="profile-age" min="18" max="99" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="profile-location">Location:</label>
+                                    <input type="text" id="profile-location" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="profile-religion">Religion:</label>
+                                    <input type="text" id="profile-religion">
+                                </div>
+                                <div class="form-group">
+                                    <label for="profile-education">Education:</label>
+                                    <input type="text" id="profile-education">
+                                </div>
+                                <div class="form-group">
+                                    <label for="profile-profession">Profession:</label>
+                                    <input type="text" id="profile-profession">
+                                </div>
+                                <div class="form-group">
+                                    <label for="profile-marital-status">Marital Status:</label>
+                                    <select id="profile-marital-status">
+                                        <option value="Single">Single</option>
+                                        <option value="Divorced">Divorced</option>
+                                        <option value="Widowed">Widowed</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="profile-matrimony-group">Matrimony Group:</label>
+                                    <select id="profile-matrimony-group">
+                                    </select>
+                                </div>
+                                <div class="form-group full-width">
+                                    <label for="profile-bio">Bio / Description:</label>
+                                    <textarea id="profile-bio" rows="4"></textarea>
+                                </div>
+                                <div class="form-group full-width">
+                                    <label for="profile-photo">Profile Photo:</label>
+                                    <input type="file" id="profile-photo" accept="image/*">
+                                    <img id="profile-photo-preview" src="#" alt="Profile Photo Preview" style="max-width: 150px; max-height: 150px; margin-top: 10px; border-radius: 8px; display: none;">
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label for="profile-age">Age:</label>
-                        <input type="number" id="profile-age" min="18" max="99" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="profile-location">Location:</label>
-                        <input type="text" id="profile-location" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="profile-religion">Religion:</label>
-                        <input type="text" id="profile-religion">
-                    </div>
-                    <div class="form-group">
-                        <label for="profile-education">Education:</label>
-                        <input type="text" id="profile-education">
-                    </div>
-                    <div class="form-group">
-                        <label for="profile-profession">Profession:</label>
-                        <input type="text" id="profile-profession">
-                    </div>
-                    <div class="form-group">
-                        <label for="profile-marital-status">Marital Status:</label>
-                        <select id="profile-marital-status">
-                            <option value="Single">Single</option>
-                            <option value="Divorced">Divorced</option>
-                            <option value="Widowed">Widowed</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="profile-matrimony-group">Matrimony Group:</label>
-                        <select id="profile-matrimony-group">
-                        </select>
-                    </div>
-                    <div class="form-group full-width">
-                        <label for="profile-bio">Bio / Description:</label>
-                        <textarea id="profile-bio" rows="4"></textarea>
-                    </div>
-                    <div class="form-group full-width">
-                        <label for="profile-photo">Profile Photo:</label>
-                        <input type="file" id="profile-photo" accept="image/*">
-                        <img id="profile-photo-preview" src="#" alt="Profile Photo Preview" style="max-width: 150px; max-height: 150px; margin-top: 10px; border-radius: 8px; display: none;">
-                    </div>
-                    <div class="form-group full-width">
-                        <label for="auto-generate-paragraph">Auto-generate details from paragraph:</label>
-                        <textarea id="auto-generate-paragraph" placeholder="e.g., John Doe, 28, from New York. Works as a Software Engineer. Looking for a compatible partner." rows="3"></textarea>
-                        <button type="button" id="auto-generate-btn" style="margin-top: 10px;">Auto-generate Fields <span class="loading-spinner hidden" id="auto-generate-spinner"></span></button>
-                    </div>
-                    <div class="form-group full-width">
+                    <div class="form-group full-width" style="margin-top: 20px;">
                         <p id="profile-form-message" class="success-message hidden"></p>
                         <button type="submit" id="submit-profile-btn">Create Profile <span class="loading-spinner hidden" id="profile-submit-spinner"></span></button>
                         <button type="button" id="cancel-edit-btn" class="hidden">Cancel Edit</button>
@@ -167,7 +177,11 @@
 
         let currentUser = null;
         let currentUserRole = null;
-        let matrimonyGroups = [];
+        // Hardcode matrimony groups
+        const matrimonyGroups = [
+            { id: 'US', name: 'US' },
+            { id: 'BY_OTHERS', name: 'BY OTHERS' }
+        ];
         let editingProfileId = null;
 
         const currentUserEmailSpan = document.getElementById('current-user-email');
@@ -233,17 +247,7 @@
             }
         }
 
-        async function fetchMatrimonyGroups() {
-            try {
-                const q = query(collection(db, 'matrimonyGroups'), orderBy('name'));
-                const snapshot = await getDocs(q);
-                matrimonyGroups = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                populateMatrimonyGroupSelects();
-            } catch (error) {
-                console.error("Error fetching matrimony groups:", error);
-            }
-        }
-
+        // Matrimony Groups are now hardcoded, no fetch needed
         function populateMatrimonyGroupSelects() {
             const currentSelectedGroup = profileMatrimonyGroupSelect.value;
             profileMatrimonyGroupSelect.innerHTML = '<option value="">None (Optional)</option>';
@@ -258,6 +262,7 @@
             }
         }
 
+        // Authentication State Observer
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 currentUser = user;
@@ -278,7 +283,7 @@
                     navAdminPanelItem.classList.add('hidden');
                 }
 
-                await fetchMatrimonyGroups();
+                populateMatrimonyGroupSelects(); // Populate hardcoded groups
 
                 const urlParams = new URLSearchParams(window.location.search);
                 const profileId = urlParams.get('profileId');
@@ -294,6 +299,7 @@
             }
         });
 
+        // Logout
         logoutBtn.addEventListener('click', async () => {
             try {
                 await signOut(auth);
@@ -303,6 +309,7 @@
             }
         });
 
+        // Profile Photo Preview
         profilePhotoInput.addEventListener('change', (e) => {
             if (e.target.files && e.target.files[0]) {
                 const reader = new FileReader();
@@ -317,6 +324,7 @@
             }
         });
 
+        // AI Auto-generate Details
         autoGenerateBtn.addEventListener('click', async () => {
             const paragraph = autoGenerateParagraphInput.value;
             if (!paragraph) {
@@ -349,7 +357,7 @@
                 } else {
                     profileMaritalStatusSelect.value = 'Single';
                 }
-                profileBioInput.value = paragraph;
+                // Removed: profileBioInput.value = paragraph; // Do not copy AI input to Bio
 
                 showMessage(profileFormMessage, 'Details auto-generated from paragraph using AI!', true);
             } catch (error) {
@@ -360,6 +368,7 @@
             }
         });
 
+        // Profile Form Submission (Create/Update)
         profileForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             showSpinner(profileSubmitSpinner, submitProfileBtn, true);
@@ -379,6 +388,7 @@
                 updatedBy: currentUser.uid,
             };
 
+            // Only set createdAt and createdBy for new profiles
             if (!editingProfileId) {
                 profileData.createdAt = serverTimestamp();
                 profileData.createdBy = currentUser.uid;
@@ -404,7 +414,7 @@
                     await logChange('add', 'profile', docRef.id, { newData: profileData });
                     showMessage(profileFormMessage, 'Profile created successfully!', true);
                 }
-                resetProfileForm();
+                resetProfileForm(); // Clear form after success
             } catch (error) {
                 console.error("Error saving profile:", error);
                 showMessage(profileFormMessage, `Error saving profile: ${error.message}`, false);
@@ -413,6 +423,7 @@
             }
         });
 
+        // Load profile data for editing
         async function loadProfileForEdit(profileId) {
             profileFormTitle.textContent = 'Edit Profile';
             submitProfileBtn.textContent = 'Update Profile';
@@ -435,6 +446,7 @@
                 profileEducationInput.value = profile.education;
                 profileProfessionInput.value = profile.profession;
                 profileMaritalStatusSelect.value = profile.maritalStatus;
+                profileMatrimonyGroupSelect.value = profile.matrimonyGroupId || ''; // Set value for hardcoded groups
                 profileBioInput.value = profile.bio;
                 if (profile.photoURL) {
                     profilePhotoPreview.src = profile.photoURL;
@@ -444,17 +456,6 @@
                     profilePhotoPreview.style.display = 'none';
                 }
                 
-                if (matrimonyGroups.length > 0) {
-                   profileMatrimonyGroupSelect.value = profile.matrimonyGroupId || '';
-                } else {
-                   const unsubscribe = onSnapshot(collection(db, 'matrimonyGroups'), () => {
-                       if (matrimonyGroups.length > 0) {
-                           profileMatrimonyGroupSelect.value = profile.matrimonyGroupId || '';
-                           unsubscribe();
-                       }
-                   });
-                }
-
                 showMessage(profileFormMessage, `Loading profile for edit: ${profile.name}`, true);
             } catch (error) {
                 console.error("Error loading profile for edit:", error);
@@ -462,6 +463,7 @@
             }
         }
 
+        // Reset Form
         function resetProfileForm() {
             profileForm.reset();
             profileIdInput.value = '';
@@ -472,7 +474,7 @@
             submitProfileBtn.textContent = 'Create Profile';
             cancelEditBtn.classList.add('hidden');
             editingProfileId = null;
-            profileMatrimonyGroupSelect.value = '';
+            profileMatrimonyGroupSelect.value = ''; // Ensure dropdown resets
             profileFormMessage.classList.add('hidden');
             window.history.replaceState({}, document.title, window.location.pathname);
         }
