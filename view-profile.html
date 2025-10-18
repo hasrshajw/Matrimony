@@ -149,6 +149,7 @@
     <div id="app-content">
         <header id="app-header">
             <h1>Matrimony Portal</h1>
+            <!-- Nav and User Info are always present, but user info will be empty if not logged in -->
             <nav>
                 <ul>
                     <li><a href="create-profile.html" id="nav-create-profile">Create Profile</a></li>
@@ -157,8 +158,8 @@
                 </ul>
             </nav>
             <div id="user-info">
-                <span>Welcome, <strong id="current-user-email"></strong> (<span id="current-user-role"></span>)</span>
-                <button id="logout-btn">Logout</button>
+                <span id="welcome-message"></span>
+                <button id="logout-btn" class="hidden">Logout</button>
             </div>
         </header>
 
@@ -197,14 +198,15 @@
             { id: 'BY_OTHERS', name: 'BY OTHERS' }
         ];
 
-        const currentUserEmailSpan = document.getElementById('current-user-email');
-        const currentUserRoleSpan = document.getElementById('current-user-role');
+        const welcomeMessageSpan = document.getElementById('welcome-message');
         const logoutBtn = document.getElementById('logout-btn');
+        const navCreateProfile = document.getElementById('nav-create-profile');
+        const navSearchProfile = document.getElementById('nav-search-profile');
         const navAdminPanelItem = document.getElementById('nav-admin-panel-item');
         const profileDetailViewContent = document.getElementById('profile-detail-view-content');
-        const profileDetailStatus = document.getElementById('profile-detail-status');
+        const profileDetailStatus = document.getElementById('profile-detail-status'); // For initial loading status
 
-        function showMessage(element, message, isSuccess = true) {
+        function showMessage(message, isSuccess = true) {
             let msgElement = profileDetailViewContent.querySelector('#profile-detail-message');
             if (!msgElement) {
                 msgElement = document.createElement('p');
@@ -260,7 +262,7 @@
         }
 
         async function logChange(action, entityType, entityId, details = {}) {
-            if (!currentUser) return;
+            if (!currentUser) return; // Only log if an authenticated user performs the action
             try {
                 await addDoc(collection(db, 'changeHistory'), {
                     action,
@@ -277,7 +279,7 @@
         }
 
         async function logProfileFieldChange(profileId, fieldName, oldValue, newValue) {
-            if (!currentUser || oldValue === newValue) return;
+            if (!currentUser || oldValue === newValue) return; // Only log if authenticated and value changed
 
             try {
                 await addDoc(collection(db, 'profiles', profileId, 'history'), {
@@ -293,6 +295,7 @@
             }
         }
 
+        // --- Authentication & Redirection Logic ---
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 currentUser = user;
@@ -309,11 +312,23 @@
                         window.location.href = 'denied.html';
                         return;
                     } else if (currentUserRole !== 'admin' && currentUserRole !== 'employee') {
+                         // This is a safety check; ideally, user should be approved or redirected earlier.
                          alert('Your account is not approved or has an invalid role. Redirecting to login.');
                          await signOut(auth);
                          window.location.href = 'index.html';
                          return;
                     }
+
+                    // Display user info if logged in and approved
+                    welcomeMessageSpan.innerHTML = `Welcome, <strong id="current-user-email">${user.email}</strong> (<span id="current-user-role">${currentUserRole}</span>)`;
+                    logoutBtn.classList.remove('hidden');
+
+                    if (currentUserRole === 'admin') {
+                        navAdminPanelItem.classList.remove('hidden');
+                    } else {
+                        navAdminPanelItem.classList.add('hidden');
+                    }
+
                 } catch (error) {
                     console.error("Error fetching user role/status:", error);
                     alert('Error verifying user role. Redirecting to login.');
@@ -321,29 +336,26 @@
                     window.location.href = 'index.html';
                     return;
                 }
-
-                currentUserEmailSpan.textContent = user.email;
-                currentUserRoleSpan.textContent = currentUserRole;
-
-                if (currentUserRole === 'admin') {
-                    navAdminPanelItem.classList.remove('hidden');
-                } else {
-                    navAdminPanelItem.classList.add('hidden');
-                }
-
-                const urlParams = new URLSearchParams(window.location.search);
-                const profileId = urlParams.get('profileId');
-                if (profileId) {
-                    await displayShareableProfile(profileId);
-                } else {
-                    profileDetailStatus.textContent = 'Error: No profile ID provided.';
-                    profileDetailStatus.classList.remove('hidden');
-                    profileDetailStatus.classList.add('error-message');
-                    profileDetailViewContent.innerHTML = '';
-                }
-
             } else {
-                window.location.href = 'index.html';
+                // User is NOT logged in. Set currentUser to null explicitly for conditional rendering.
+                currentUser = null;
+                currentUserRole = null;
+                welcomeMessageSpan.innerHTML = '';
+                logoutBtn.classList.add('hidden');
+                navAdminPanelItem.classList.add('hidden'); // Hide admin link if not logged in
+                // Navigation links should remain visible as they don't require login to click (but pages will redirect)
+            }
+
+            // Always attempt to display the profile, regardless of login status
+            const urlParams = new URLSearchParams(window.location.search);
+            const profileId = urlParams.get('profileId');
+            if (profileId) {
+                await displayShareableProfile(profileId);
+            } else {
+                profileDetailStatus.textContent = 'Error: No profile ID provided.';
+                profileDetailStatus.classList.remove('hidden');
+                profileDetailStatus.classList.add('error-message');
+                profileDetailViewContent.innerHTML = ''; // Clear existing content
             }
         });
 
@@ -360,7 +372,7 @@
             profileDetailStatus.classList.add('hidden');
             profileDetailViewContent.innerHTML = '<p id="profile-detail-status">Loading profile details...</p>';
             let currentStatusElement = profileDetailViewContent.querySelector('#profile-detail-status');
-            if (!currentStatusElement) { // Re-check if it was removed by innerHTML reset
+            if (!currentStatusElement) {
                 currentStatusElement = document.createElement('p');
                 currentStatusElement.id = 'profile-detail-status';
                 profileDetailViewContent.appendChild(currentStatusElement);
@@ -378,9 +390,12 @@
                 const matrimonyGroupName = getMatrimonyGroupName(profile.matrimonyGroupId);
                 const currentAge = calculateAge(profile.dateOfBirth);
 
-                // Fetch field change history for this profile
-                const historySnapshot = await getDocs(query(collection(db, 'profiles', profileId, 'history'), orderBy('timestamp', 'desc')));
-                const fieldHistory = historySnapshot.docs.map(doc => doc.data());
+                // Fetch field change history ONLY IF LOGGED IN
+                let fieldHistory = [];
+                if (currentUser) {
+                    const historySnapshot = await getDocs(query(collection(db, 'profiles', profileId, 'history'), orderBy('timestamp', 'desc')));
+                    fieldHistory = historySnapshot.docs.map(doc => doc.data());
+                }
 
                 const pageTitle = `Profile of ${profile.name} - Matrimony Portal`;
                 const pageDescription = `Age: ${currentAge}, Status: ${profile.profileStatus || 'N/A'}, Location: ${profile.location}, Group: ${matrimonyGroupName}. ${profile.bio ? profile.bio.substring(0, 150) + '...' : 'View full profile to know more.'}`;
@@ -395,35 +410,48 @@
                 updateMetaTag('og:type', 'profile');
                 updateMetaTag('twitter:card', 'summary_large_image');
 
-                let statusActionsHtml = '';
-                if (currentUserRole === 'admin' || currentUserRole === 'employee') {
-                    statusActionsHtml = `
+                let staffActionsHtml = '';
+                let historyHtml = '';
+                let shareButtonsHtml = '';
+
+                if (currentUser && (currentUserRole === 'admin' || currentUserRole === 'employee')) {
+                    // Staff actions are only visible if logged in as Admin or Employee
+                    staffActionsHtml = `
                         <div id="profile-status-actions">
                             ${profile.profileStatus !== 'married' ? `<button id="mark-married-btn" class="married" data-id="${profile.id}" data-status="married">Mark as Married</button>` : ''}
                             ${profile.profileStatus !== 'inactive' ? `<button id="deactivate-btn" class="deactivate" data-id="${profile.id}" data-status="inactive">Deactivate Profile</button>` : ''}
                             ${profile.profileStatus !== 'active' ? `<button id="reactivate-btn" class="reactivate" data-id="${profile.id}" data-status="active">Reactivate Profile</button>` : ''}
                         </div>
                     `;
-                }
 
-                let historyHtml = '';
-                if (fieldHistory.length > 0) {
-                    historyHtml = `
-                        <div id="field-change-history">
-                            <h3>Field Change History</h3>
-                            <ul>
-                                ${fieldHistory.map(entry => `
-                                    <li>
-                                        <strong>${entry.changedByEmail}</strong> changed <strong>${entry.fieldName}</strong> from
-                                        <span class="change-detail">${entry.oldValue || '""'}</span> to
-                                        <span class="change-detail">${entry.newValue || '""'}</span>
-                                        <span class="timestamp">${entry.timestamp ? new Date(entry.timestamp.toDate()).toLocaleString() : 'N/A'}</span>
-                                    </li>
-                                `).join('')}
-                            </ul>
+                    // History is only visible if logged in as Admin or Employee
+                    if (fieldHistory.length > 0) {
+                        historyHtml = `
+                            <div id="field-change-history">
+                                <h3>Field Change History</h3>
+                                <ul>
+                                    ${fieldHistory.map(entry => `
+                                        <li>
+                                            <strong>${entry.changedByEmail}</strong> changed <strong>${entry.fieldName}</strong> from
+                                            <span class="change-detail">${entry.oldValue || '""'}</span> to
+                                            <span class="change-detail">${entry.newValue || '""'}</span>
+                                            <span class="timestamp">${entry.timestamp ? new Date(entry.timestamp.toDate()).toLocaleString() : 'N/A'}</span>
+                                        </li>
+                                    `).join('')}
+                                </ul>
+                            </div>
+                        `;
+                    }
+
+                    // Share buttons also for logged-in staff
+                    shareButtonsHtml = `
+                        <div class="share-actions">
+                            <button id="copy-link-btn">Copy Share Link</button>
+                            <button id="copy-details-btn">Copy Basic Details</button>
                         </div>
                     `;
                 }
+
 
                 profileDetailViewContent.innerHTML = `
                     <p id="profile-detail-message" class="hidden"></p>
@@ -438,18 +466,19 @@
                     <p><strong>Matrimony Group:</strong> ${matrimonyGroupName}</p>
                     <p><strong>Profile Status:</strong> <span style="font-weight: bold; color: ${profile.profileStatus === 'active' ? '#2ecc71' : profile.profileStatus === 'married' ? '#e67e22' : '#f39c12'};">${profile.profileStatus || 'N/A'}</span></p>
                     <p>${profile.bio || 'No bio provided.'}</p>
-                    <div class="share-actions">
-                        <button id="copy-link-btn">Copy Share Link</button>
-                        <button id="copy-details-btn">Copy Basic Details</button>
-                    </div>
-                    ${statusActionsHtml}
+                    ${shareButtonsHtml}
+                    ${staffActionsHtml}
                     ${historyHtml}
                 `;
 
-                document.getElementById('copy-link-btn').addEventListener('click', () => copyShareLink(profile));
-                document.getElementById('copy-details-btn').addEventListener('click', () => copyBasicDetails(profile));
+                if (currentUser) { // Only attach listeners if user is logged in
+                    if (profileDetailViewContent.querySelector('#copy-link-btn')) {
+                        profileDetailViewContent.querySelector('#copy-link-btn').addEventListener('click', () => copyShareLink(profile));
+                    }
+                    if (profileDetailViewContent.querySelector('#copy-details-btn')) {
+                        profileDetailViewContent.querySelector('#copy-details-btn').addEventListener('click', () => copyBasicDetails(profile));
+                    }
 
-                if (currentUserRole === 'admin' || currentUserRole === 'employee') {
                     if (document.getElementById('mark-married-btn')) {
                         document.getElementById('mark-married-btn').addEventListener('click', (e) => updateProfileStatus(e.target.dataset.id, e.target.dataset.status));
                     }
@@ -471,11 +500,11 @@
         }
 
         async function updateProfileStatus(profileId, newStatus) {
-            if (!currentUser || (!['admin', 'employee'].includes(currentUserRole) && newStatus !== 'active')) {
+            if (!currentUser || (!['admin', 'employee'].includes(currentUserRole))) {
                 showMessage('You do not have permission to change profile status.', false);
                 return;
             }
-            if (currentUserRole !== 'admin' && newStatus === 'active') { // Only admin can reactivate
+            if (currentUserRole !== 'admin' && newStatus === 'active') {
                 showMessage('Only an admin can reactivate a profile.', false);
                 return;
             }
@@ -493,12 +522,11 @@
                     updatedAt: serverTimestamp(),
                     updatedBy: currentUser.uid,
                 });
-                await logChange('update', 'profile_status', profileId, { oldStatus: oldStatus, newStatus: newStatus });
+                await logChange('update_profile_status', 'profile', profileId, { oldStatus: oldStatus, newStatus: newStatus });
                 await logProfileFieldChange(profileId, 'profileStatus', oldStatus, newStatus);
 
                 showMessage(`Profile status updated to '${newStatus}' successfully!`, true);
-                // Refresh the display to reflect the new status and button visibility
-                await displayShareableProfile(profileId);
+                await displayShareableProfile(profileId); // Refresh the display
             } catch (error) {
                 console.error("Error updating profile status:", error);
                 showMessage(`Error updating profile status: ${error.message}`, false);
