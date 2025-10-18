@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Account Pending Approval</title>
+    <script type="module" src="https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js"></script>
+    <script type="module" src="https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js"></script>
+    <script type="module" src="https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js"></script>
+
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -26,6 +30,7 @@
             box-shadow: 0 8px 20px rgba(0,0,0,0.15);
             max-width: 600px;
             width: 90%;
+            position: relative; /* For logout button positioning */
         }
         h2 {
             color: #3498db;
@@ -41,19 +46,19 @@
             font-size: 0.9em;
             color: #777;
         }
-        button {
-            background-color: #3498db;
+        .logout-btn {
+            background-color: #e74c3c;
             color: white;
-            padding: 10px 20px;
+            padding: 8px 15px;
             border: none;
             border-radius: 5px;
             cursor: pointer;
-            font-size: 16px;
+            font-size: 0.9em;
             margin-top: 20px;
             transition: background-color 0.2s ease;
         }
-        button:hover {
-            background-color: #2980b9;
+        .logout-btn:hover {
+            background-color: #c0392b;
         }
     </style>
 </head>
@@ -66,7 +71,70 @@
         <div class="contact-info">
             <p>If you have any questions, please contact support.</p>
         </div>
-        <button onclick="window.location.href='index.html'">Go to Login</button>
+        <button class="logout-btn" id="logout-btn">Logout</button>
     </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js';
+        import { getAuth, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js';
+        import { getFirestore, doc, getDoc } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js';
+
+        const firebaseConfig = {
+  apiKey: "AIzaSyAuxA-e71uX_uLDe6oyFU69q-eLfgUzbXA",
+  authDomain: "harsha-jw.firebaseapp.com",
+  projectId: "harsha-jw",
+  storageBucket: "harsha-jw.firebasestorage.app",
+  messagingSenderId: "471408120499",
+  appId: "1:471408120499:web:91e61514ad3703ce3b16c6",
+  measurementId: "G-NBC16X4R1T"
+};
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        const logoutBtn = document.getElementById('logout-btn');
+
+        logoutBtn.addEventListener('click', async () => {
+            try {
+                await signOut(auth);
+                window.location.href = 'index.html';
+            } catch (error) {
+                console.error("Error signing out:", error);
+            }
+        });
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                try {
+                    const userDoc = await getDoc(doc(db, 'users', user.uid));
+                    const userData = userDoc.exists() ? userDoc.data() : {};
+                    const userStatus = userData.status;
+                    const userRole = userData.role;
+
+                    if (userStatus === 'approved') {
+                        if (userRole === 'admin') {
+                            window.location.href = 'admin-dashboard.html';
+                        } else if (userRole === 'employee') {
+                            window.location.href = 'employee-dashboard.html';
+                        } else {
+                            // Fallback if role is approved but not explicitly admin/employee
+                            window.location.href = 'employee-dashboard.html';
+                        }
+                    } else if (userStatus === 'denied') {
+                        window.location.href = 'denied.html'; // If for some reason denied while on pending
+                    }
+                    // If still 'pending', stay on this page
+                } catch (error) {
+                    console.error("Error checking user status/role:", error);
+                    // If unable to fetch, assume a temporary issue, allow staying on page
+                    // or redirect to index after a severe error. For now, allow staying.
+                }
+            } else {
+                // If user logs out or session expires, redirect to login
+                window.location.href = 'index.html';
+            }
+        });
+    </script>
 </body>
 </html>
