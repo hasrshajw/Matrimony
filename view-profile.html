@@ -6,12 +6,10 @@
     <title>Matrimony Portal - View Profile</title>
 
     <!-- DEFAULT Open Graph Tags - These are crucial for crawlers that don't run JS -->
-    <!-- These will be overwritten by JS if a profile is successfully loaded. -->
-    <!-- For best results with crawlers, consider server-side rendering for these. -->
     <meta property="og:title" content="Matrimony Profile" />
     <meta property="og:description" content="View a Matrimony profile on Matrimony Portal." />
     <meta property="og:image" content="https://via.placeholder.com/1200x630.png?text=Matrimony+Portal" />
-    <meta property="og:url" content="" /> <!-- Will be updated by JS -->
+    <meta property="og:url" content="" />
     <meta property="og:type" content="profile" />
 
     <!-- DEFAULT Twitter Card Tags - Will be overwritten by JS -->
@@ -104,7 +102,7 @@
                 <ul>
                     <li><a href="create-profile.html" id="nav-create-profile">Create Profile</a></li>
                     <li><a href="search-profiles.html" id="nav-search-profile">Search Profiles</a></li>
-                    <li id="nav-admin-panel-item" class="hidden"><a href="admin-panel.html" id="nav-admin-panel">Admin Panel</a></li>
+                    <li id="nav-admin-panel-item" class="hidden"><a href="admin-dashboard.html" id="nav-admin-panel">Admin Dashboard</a></li>
                 </ul>
             </nav>
             <div id="user-info">
@@ -125,17 +123,17 @@
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js';
         import { getAuth, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js';
-        import { getFirestore, collection, getDocs, doc, getDoc, query, orderBy } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js';
+        import { getFirestore, doc, getDoc } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js';
 
         const firebaseConfig = {
-  apiKey: "AIzaSyAuxA-e71uX_uLDe6oyFU69q-eLfgUzbXA",
-  authDomain: "harsha-jw.firebaseapp.com",
-  projectId: "harsha-jw",
-  storageBucket: "harsha-jw.firebasestorage.app",
-  messagingSenderId: "471408120499",
-  appId: "1:471408120499:web:91e61514ad3703ce3b16c6",
-  measurementId: "G-NBC16X4R1T"
-};
+            apiKey: "AIzaSyBX5-v6u8C7AqfNLxdSgX9p7QKtDI_oYZ4",
+            authDomain: "matrimony-34bb4.firebaseapp.com",
+            projectId: "matrimony-34bb4",
+            storageBucket: "matrimony-34bb4.firebasestorage.app",
+            messagingSenderId: "725550889075",
+            appId: "1:725550889075:web:6278e7b393d7fd5a859206",
+            measurementId: "G-BCL64HHVPB"
+        };
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
@@ -143,7 +141,11 @@
 
         let currentUser = null;
         let currentUserRole = null;
-        let matrimonyGroups = [];
+        // Hardcode matrimony groups directly here for consistency
+        const hardcodedMatrimonyGroups = [
+            { id: 'US', name: 'US' },
+            { id: 'BY_OTHERS', name: 'BY OTHERS' }
+        ];
 
         const currentUserEmailSpan = document.getElementById('current-user-email');
         const currentUserRoleSpan = document.getElementById('current-user-role');
@@ -160,44 +162,13 @@
             setTimeout(() => element.classList.add('hidden'), 5000);
         }
 
-        async function fetchMatrimonyGroups() {
-            try {
-                const q = query(collection(db, 'matrimonyGroups'), orderBy('name'));
-                const snapshot = await getDocs(q);
-                matrimonyGroups = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            } catch (error) {
-                console.error("Error fetching matrimony groups:", error);
-            }
-        }
-
+        // Matrimony Groups are hardcoded, no fetch needed
         function getMatrimonyGroupName(groupId) {
             if (!groupId) {
                 return 'Not Specified';
             }
-            const group = matrimonyGroups.find(g => g.id === groupId);
+            const group = hardcodedMatrimonyGroups.find(g => g.id === groupId);
             return group ? group.name : 'Unknown Group';
-        }
-
-        function updateMetaTag(property, content) {
-            let element = document.querySelector(`meta[property="${property}"]`);
-            if (!element) {
-                element = document.createElement('meta');
-                element.setAttribute('property', property);
-                document.head.appendChild(element);
-            }
-            element.setAttribute('content', content);
-
-            // Also update Twitter meta tags if they exist and are related
-            if (property.startsWith('og:')) {
-                const twitterProperty = `twitter:${property.substring(3)}`;
-                let twitterElement = document.querySelector(`meta[name="${twitterProperty}"]`);
-                if (!twitterElement) {
-                    twitterElement = document.createElement('meta');
-                    twitterElement.setAttribute('name', twitterProperty);
-                    document.head.appendChild(twitterElement);
-                }
-                twitterElement.setAttribute('content', content);
-            }
         }
 
         onAuthStateChanged(auth, async (user) => {
@@ -205,10 +176,28 @@
                 currentUser = user;
                 try {
                     const userDoc = await getDoc(doc(db, 'users', user.uid));
-                    currentUserRole = userDoc.exists() ? userDoc.data().role : 'employee';
+                    const userData = userDoc.exists() ? userDoc.data() : {};
+                    currentUserRole = userData.role;
+                    const userStatus = userData.status;
+
+                    if (userStatus === 'pending') {
+                        window.location.href = 'pending.html';
+                        return;
+                    } else if (userStatus === 'denied') {
+                        window.location.href = 'denied.html';
+                        return;
+                    } else if (currentUserRole !== 'admin' && currentUserRole !== 'employee') {
+                         alert('Your account is not approved or has an invalid role. Redirecting to login.');
+                         await signOut(auth);
+                         window.location.href = 'index.html';
+                         return;
+                    }
                 } catch (error) {
-                    console.error("Error fetching user role:", error);
-                    currentUserRole = 'employee';
+                    console.error("Error fetching user role/status:", error);
+                    alert('Error verifying user role. Redirecting to login.');
+                    await signOut(auth);
+                    window.location.href = 'index.html';
+                    return;
                 }
 
                 currentUserEmailSpan.textContent = user.email;
@@ -220,7 +209,6 @@
                     navAdminPanelItem.classList.add('hidden');
                 }
 
-                await fetchMatrimonyGroups();
                 const urlParams = new URLSearchParams(window.location.search);
                 const profileId = urlParams.get('profileId');
                 if (profileId) {
@@ -264,7 +252,7 @@
 
                 const pageTitle = `Profile of ${profile.name} - Matrimony Portal`;
                 const pageDescription = `Age: ${profile.age}, Location: ${profile.location}, Group: ${matrimonyGroupName}. ${profile.bio ? profile.bio.substring(0, 150) + '...' : 'View full profile to know more.'}`;
-                const imageUrl = profile.photoURL || `https://via.placeholder.com/1200x630.png?text=No+Profile+Image`; // Robust fallback image
+                const imageUrl = profile.photoURL || `https://via.placeholder.com/1200x630.png?text=No+Profile+Image`;
                 const canonicalUrl = `${window.location.origin}${window.location.pathname}?profileId=${profile.id}`;
 
                 document.title = pageTitle;
@@ -274,7 +262,6 @@
                 updateMetaTag('og:url', canonicalUrl);
                 updateMetaTag('og:type', 'profile');
 
-                // Explicitly update Twitter card type if needed, though og:type usually covers it
                 updateMetaTag('twitter:card', 'summary_large_image');
 
 
@@ -304,6 +291,27 @@
                 currentStatusElement.classList.remove('hidden');
                 currentStatusElement.classList.add('error-message');
                 profileDetailViewContent.innerHTML = '';
+            }
+        }
+
+        function updateMetaTag(property, content) {
+            let element = document.querySelector(`meta[property="${property}"]`);
+            if (!element) {
+                element = document.createElement('meta');
+                element.setAttribute('property', property);
+                document.head.appendChild(element);
+            }
+            element.setAttribute('content', content);
+
+            if (property.startsWith('og:')) {
+                const twitterProperty = `twitter:${property.substring(3)}`;
+                let twitterElement = document.querySelector(`meta[name="${twitterProperty}"]`);
+                if (!twitterElement) {
+                    twitterElement = document.createElement('meta');
+                    twitterElement.setAttribute('name', twitterProperty);
+                    document.head.appendChild(twitterElement);
+                }
+                twitterElement.setAttribute('content', content);
             }
         }
 
