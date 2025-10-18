@@ -44,10 +44,9 @@
         .profile-card .actions button { margin-top: 15px; margin-right: 10px; }
         .no-profiles { text-align: center; color: #777; font-style: italic; margin-top: 30px; }
 
-        /* New Search Layout Styles */
         .search-filters-container {
             display: grid;
-            grid-template-columns: 2fr 1fr; /* Two columns: standard filters wider, smart search narrower */
+            grid-template-columns: 2fr 1fr;
             gap: 30px;
             margin-bottom: 30px;
             padding: 25px;
@@ -83,9 +82,9 @@
         }
         
         .action-buttons {
-            grid-column: 1 / -1; /* Span across both columns */
+            grid-column: 1 / -1;
             display: flex;
-            justify-content: flex-end; /* Align buttons to the right */
+            justify-content: flex-end;
             gap: 15px;
             padding-top: 20px;
             border-top: 1px solid #eee;
@@ -96,18 +95,17 @@
             padding: 10px 25px;
         }
 
-        /* Responsive adjustments */
         @media (max-width: 900px) {
             .search-filters-container {
-                grid-template-columns: 1fr; /* Stack columns on smaller screens */
+                grid-template-columns: 1fr;
             }
             .action-buttons {
-                justify-content: center; /* Center buttons on small screens */
+                justify-content: center;
                 flex-wrap: wrap;
             }
             .action-buttons button {
                 width: 100%;
-                max-width: 250px; /* Limit button width for better stacking */
+                max-width: 250px;
             }
         }
 
@@ -177,7 +175,6 @@
                             <div class="form-group">
                                 <label for="search-matrimony-group">Matrimony Group:</label>
                                 <select id="search-matrimony-group">
-                                    <!-- Options populated by JS below -->
                                 </select>
                             </div>
                         </div>
@@ -186,7 +183,7 @@
                     <div class="filter-block smart-search-block">
                         <h3>Smart Paragraph Search</h3>
                         <div class="form-group full-width">
-                            <textarea id="smart-search-paragraph" placeholder="e.g., Looking for a partner in their late 20s from London, preferably with a Bachelor's degree." rows="4"></textarea>
+                            <textarea id="smart-search-paragraph" placeholder="e.g., Looking for a partner born between 1990 and 1995 from London, preferably with a Bachelor's degree." rows="4"></textarea>
                             <button type="button" id="smart-search-btn" style="margin-top: 10px;">Smart Search <span class="loading-spinner hidden" id="smart-search-spinner"></span></button>
                         </div>
                     </div>
@@ -212,14 +209,14 @@
         import { getAI, getGenerativeModel } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-ai.js';
 
         const firebaseConfig = {
-  apiKey: "AIzaSyAuxA-e71uX_uLDe6oyFU69q-eLfgUzbXA",
-  authDomain: "harsha-jw.firebaseapp.com",
-  projectId: "harsha-jw",
-  storageBucket: "harsha-jw.firebasestorage.app",
-  messagingSenderId: "471408120499",
-  appId: "1:471408120499:web:91e61514ad3703ce3b16c6",
-  measurementId: "G-NBC16X4R1T"
-};
+            apiKey: "AIzaSyAuxA-e71uX_uLDe6oyFU69q-eLfgUzbXA",
+            authDomain: "harsha-jw.firebaseapp.com",
+            projectId: "harsha-jw",
+            storageBucket: "harsha-jw.firebasestorage.app",
+            messagingSenderId: "471408120499",
+            appId: "1:471408120499:web:91e61514ad3703ce3b16c6",
+            measurementId: "G-NBC16X4R1T"
+        };
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
@@ -291,6 +288,37 @@
             return group ? group.name : 'Unknown Group';
         }
 
+        // Helper to calculate age from DOB string (YYYY-MM-DD)
+        function calculateAge(dateOfBirthString) {
+            if (!dateOfBirthString) return 'N/A';
+            const dob = new Date(dateOfBirthString);
+            const today = new Date();
+            let age = today.getFullYear() - dob.getFullYear();
+            const monthDiff = today.getMonth() - dob.getMonth();
+            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
+                age--;
+            }
+            return age;
+        }
+
+        // Helper to convert age to YYYY-MM-DD for Firestore date queries
+        function getDobFromAge(age, isMinAge = true) {
+            if (isNaN(age)) return null;
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = (today.getMonth() + 1).toString().padStart(2, '0');
+            const day = today.getDate().toString().padStart(2, '0');
+
+            if (isMinAge) { // Min age X means DOB should be <= (CurrentDate - X years)
+                const dobYear = year - age;
+                return `${dobYear}-${month}-${day}`;
+            } else { // Max age X means DOB should be >= (CurrentDate - (X+1) years)
+                const dobYear = year - (age + 1); // Add 1 year to correctly bound the birth year for max age
+                return `${dobYear}-${month}-${day}`;
+            }
+        }
+
+
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 currentUser = user;
@@ -303,7 +331,7 @@
                     if (userStatus === 'pending') {
                         window.location.href = 'pending.html';
                         return;
-                    } else if (userStatus === 'denied') {
+                    } else if (userStatus === 'denied' || userStatus === 'suspended') {
                         window.location.href = 'denied.html';
                         return;
                     } else if (currentUserRole !== 'admin' && currentUserRole !== 'employee') {
@@ -362,6 +390,9 @@
             searchResultsDiv.innerHTML = '<p class="no-profiles">Searching profiles...</p>';
             let conditions = [];
             
+            // Always filter for active profiles
+            conditions.push(where('profileStatus', '==', 'active'));
+
             if (isSmartSearch) {
                 const paragraph = smartSearchParagraphInput.value;
                 if (!paragraph) {
@@ -371,7 +402,7 @@
                 }
                 showSpinner(smartSearchSpinner, smartSearchBtn, true);
 
-                const smartPrompt = `Analyze the following paragraph to extract search criteria for a matrimonial profile. Focus on age range (min/max), location, education, and religion. Provide the output as a JSON object. If a criterion is not found, use a null value. For age range, infer both min and max if only one is given (e.g., 'late 20s' could be ageMin: 27, ageMax: 29; 'around 30' could be ageMin: 28, ageMax: 32). Always ensure age is an integer.\n\nParagraph: "${paragraph}"\n\nExpected JSON format: {"ageMin": null, "ageMax": null, "location": null, "religion": null, "education": null}`;
+                const smartPrompt = `Analyze the following paragraph to extract search criteria for a matrimonial profile. Focus on age range (min/max), location, education, and religion. Provide the output as a JSON object. If a criterion is not found, use a null value. For age range, convert to YYYY-MM-DD date range format (e.g., 'late 20s' could be minDOB: YYYY-MM-DD, maxDOB: YYYY-MM-DD). Date format should be strict YYYY-MM-DD. \n\nParagraph: "${paragraph}"\n\nExpected JSON format: {"minDOB": null, "maxDOB": null, "location": null, "religion": null, "education": null}`;
                 
                 try {
                     const result = await model.generateContent(smartPrompt);
@@ -382,8 +413,8 @@
                     }
                     const smartData = JSON.parse(responseText);
 
-                    if (smartData.ageMin !== null) conditions.push(where('age', '>=', parseInt(smartData.ageMin)));
-                    if (smartData.ageMax !== null) conditions.push(where('age', '<=', parseInt(smartData.ageMax)));
+                    if (smartData.minDOB) conditions.push(where('dateOfBirth', '<=', smartData.minDOB)); // DOB <= oldest person in range
+                    if (smartData.maxDOB) conditions.push(where('dateOfBirth', '>=', smartData.maxDOB)); // DOB >= youngest person in range
                     if (smartData.location) conditions.push(where('location', '==', smartData.location));
                     if (smartData.religion) conditions.push(where('religion', '==', smartData.religion));
                     if (smartData.education) conditions.push(where('education', '==', smartData.education));
@@ -399,22 +430,28 @@
                 }
 
             } else {
-                const ageMin = parseInt(searchAgeMinInput.value);
-                const ageMax = parseInt(searchAgeMaxInput.value);
+                const minAge = parseInt(searchAgeMinInput.value);
+                const maxAge = parseInt(searchAgeMaxInput.value);
                 const location = searchLocationInput.value.trim();
                 const religion = searchReligionInput.value.trim();
                 const education = searchEducationInput.value.trim();
                 const matrimonyGroupId = searchMatrimonyGroupSelect.value;
 
-                if (!isNaN(ageMin)) conditions.push(where('age', '>=', ageMin));
-                if (!isNaN(ageMax)) conditions.push(where('age', '<=', ageMax));
+                // Convert age range to DOB date strings for Firestore query
+                if (!isNaN(minAge)) {
+                    conditions.push(where('dateOfBirth', '<=', getDobFromAge(minAge, true)));
+                }
+                if (!isNaN(maxAge)) {
+                    conditions.push(where('dateOfBirth', '>=', getDobFromAge(maxAge, false)));
+                }
+
                 if (location) conditions.push(where('location', '==', location));
                 if (religion) conditions.push(where('religion', '==', religion));
                 if (education) conditions.push(where('education', '==', education));
                 if (matrimonyGroupId) conditions.push(where('matrimonyGroupId', '==', matrimonyGroupId));
             }
 
-            const finalQuery = query(collection(db, 'profiles'), ...conditions, orderBy('name'));
+            const finalQuery = query(collection(db, 'profiles'), ...conditions, orderBy('dateOfBirth', 'desc')); // Order by DOB for consistency
 
             try {
                 const snapshot = await getDocs(finalQuery);
@@ -434,12 +471,13 @@
             }
             profiles.forEach(profile => {
                 const matrimonyGroupName = getMatrimonyGroupName(profile.matrimonyGroupId);
+                const age = calculateAge(profile.dateOfBirth); // Calculate age dynamically
                 const profileCard = document.createElement('div');
                 profileCard.className = 'profile-card';
                 profileCard.innerHTML = `
                     <img src="${profile.photoURL || 'https://via.placeholder.com/120'}" alt="${profile.name}">
                     <h3>${profile.name}</h3>
-                    <p><strong>Age:</strong> ${profile.age}</p>
+                    <p><strong>Age:</strong> ${age}</p>
                     <p><strong>Location:</strong> ${profile.location}</p>
                     <p><strong>Group:</strong> ${matrimonyGroupName}</p>
                     <p>${profile.bio ? profile.bio.substring(0, 70) + '...' : 'No bio provided.'}</p>
