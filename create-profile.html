@@ -41,7 +41,7 @@
         .profile-fields-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
         .full-width { grid-column: 1 / -1; }
         .form-group textarea { min-height: 80px; }
-        #auto-generate-paragraph { min-height: 250px; } /* Increased height for better AI input */
+        #auto-generate-paragraph { min-height: 250px; }
 
         .loading-spinner {
             border: 4px solid #f3f3f3;
@@ -68,7 +68,7 @@
                 <ul>
                     <li><a href="create-profile.html" id="nav-create-profile" class="active">Create Profile</a></li>
                     <li><a href="search-profiles.html" id="nav-search-profile">Search Profiles</a></li>
-                    <li id="nav-admin-panel-item" class="hidden"><a href="admin-panel.html" id="nav-admin-panel">Admin Panel</a></li>
+                    <li id="nav-admin-panel-item" class="hidden"><a href="admin-dashboard.html" id="nav-admin-panel">Admin Dashboard</a></li>
                 </ul>
             </nav>
             <div id="user-info">
@@ -159,14 +159,14 @@
         import { getAI, getGenerativeModel } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-ai.js';
 
         const firebaseConfig = {
-  apiKey: "AIzaSyAuxA-e71uX_uLDe6oyFU69q-eLfgUzbXA",
-  authDomain: "harsha-jw.firebaseapp.com",
-  projectId: "harsha-jw",
-  storageBucket: "harsha-jw.firebasestorage.app",
-  messagingSenderId: "471408120499",
-  appId: "1:471408120499:web:91e61514ad3703ce3b16c6",
-  measurementId: "G-NBC16X4R1T"
-};
+            apiKey: "AIzaSyBX5-v6u8C7AqfNLxdSgX9p7QKtDI_oYZ4",
+            authDomain: "matrimony-34bb4.firebaseapp.com",
+            projectId: "matrimony-34bb4",
+            storageBucket: "matrimony-34bb4.firebasestorage.app",
+            messagingSenderId: "725550889075",
+            appId: "1:725550889075:web:6278e7b393d7fd5a859206",
+            measurementId: "G-BCL64HHVPB"
+        };
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
@@ -177,8 +177,8 @@
 
         let currentUser = null;
         let currentUserRole = null;
-        // Hardcode matrimony groups
-        const matrimonyGroups = [
+        // Hardcode matrimony groups directly here for consistency
+        const hardcodedMatrimonyGroups = [
             { id: 'US', name: 'US' },
             { id: 'BY_OTHERS', name: 'BY OTHERS' }
         ];
@@ -247,11 +247,11 @@
             }
         }
 
-        // Matrimony Groups are now hardcoded, no fetch needed
+        // Matrimony Groups are hardcoded, no fetch needed
         function populateMatrimonyGroupSelects() {
             const currentSelectedGroup = profileMatrimonyGroupSelect.value;
             profileMatrimonyGroupSelect.innerHTML = '<option value="">None (Optional)</option>';
-            matrimonyGroups.forEach(group => {
+            hardcodedMatrimonyGroups.forEach(group => {
                 const option1 = document.createElement('option');
                 option1.value = group.id;
                 option1.textContent = group.name;
@@ -262,16 +262,35 @@
             }
         }
 
-        // Authentication State Observer
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 currentUser = user;
                 try {
                     const userDoc = await getDoc(doc(db, 'users', user.uid));
-                    currentUserRole = userDoc.exists() ? userDoc.data().role : 'employee';
+                    const userData = userDoc.exists() ? userDoc.data() : {};
+                    currentUserRole = userData.role;
+                    const userStatus = userData.status;
+
+                    if (userStatus === 'pending') {
+                        window.location.href = 'pending.html';
+                        return;
+                    } else if (userStatus === 'denied') {
+                        window.location.href = 'denied.html';
+                        return;
+                    } else if (currentUserRole !== 'admin' && currentUserRole !== 'employee') {
+                        // Should not happen if previous redirects are correct, but as a safety
+                        alert('Your account is not approved. Redirecting to login.');
+                        await signOut(auth);
+                        window.location.href = 'index.html';
+                        return;
+                    }
+
                 } catch (error) {
-                    console.error("Error fetching user role:", error);
-                    currentUserRole = 'employee';
+                    console.error("Error fetching user role/status:", error);
+                    alert('Error verifying user role. Redirecting to login.');
+                    await signOut(auth);
+                    window.location.href = 'index.html';
+                    return;
                 }
 
                 currentUserEmailSpan.textContent = user.email;
@@ -283,7 +302,7 @@
                     navAdminPanelItem.classList.add('hidden');
                 }
 
-                populateMatrimonyGroupSelects(); // Populate hardcoded groups
+                populateMatrimonyGroupSelects();
 
                 const urlParams = new URLSearchParams(window.location.search);
                 const profileId = urlParams.get('profileId');
@@ -299,7 +318,6 @@
             }
         });
 
-        // Logout
         logoutBtn.addEventListener('click', async () => {
             try {
                 await signOut(auth);
@@ -309,7 +327,6 @@
             }
         });
 
-        // Profile Photo Preview
         profilePhotoInput.addEventListener('change', (e) => {
             if (e.target.files && e.target.files[0]) {
                 const reader = new FileReader();
@@ -324,7 +341,6 @@
             }
         });
 
-        // AI Auto-generate Details
         autoGenerateBtn.addEventListener('click', async () => {
             const paragraph = autoGenerateParagraphInput.value;
             if (!paragraph) {
@@ -357,7 +373,7 @@
                 } else {
                     profileMaritalStatusSelect.value = 'Single';
                 }
-                // Removed: profileBioInput.value = paragraph; // Do not copy AI input to Bio
+                // profileBioInput.value = paragraph; // Removed: Not copying AI input to Bio
 
                 showMessage(profileFormMessage, 'Details auto-generated from paragraph using AI!', true);
             } catch (error) {
@@ -368,7 +384,6 @@
             }
         });
 
-        // Profile Form Submission (Create/Update)
         profileForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             showSpinner(profileSubmitSpinner, submitProfileBtn, true);
@@ -388,7 +403,6 @@
                 updatedBy: currentUser.uid,
             };
 
-            // Only set createdAt and createdBy for new profiles
             if (!editingProfileId) {
                 profileData.createdAt = serverTimestamp();
                 profileData.createdBy = currentUser.uid;
@@ -414,7 +428,7 @@
                     await logChange('add', 'profile', docRef.id, { newData: profileData });
                     showMessage(profileFormMessage, 'Profile created successfully!', true);
                 }
-                resetProfileForm(); // Clear form after success
+                resetProfileForm();
             } catch (error) {
                 console.error("Error saving profile:", error);
                 showMessage(profileFormMessage, `Error saving profile: ${error.message}`, false);
@@ -423,7 +437,6 @@
             }
         });
 
-        // Load profile data for editing
         async function loadProfileForEdit(profileId) {
             profileFormTitle.textContent = 'Edit Profile';
             submitProfileBtn.textContent = 'Update Profile';
@@ -446,7 +459,7 @@
                 profileEducationInput.value = profile.education;
                 profileProfessionInput.value = profile.profession;
                 profileMaritalStatusSelect.value = profile.maritalStatus;
-                profileMatrimonyGroupSelect.value = profile.matrimonyGroupId || ''; // Set value for hardcoded groups
+                profileMatrimonyGroupSelect.value = profile.matrimonyGroupId || '';
                 profileBioInput.value = profile.bio;
                 if (profile.photoURL) {
                     profilePhotoPreview.src = profile.photoURL;
@@ -463,7 +476,6 @@
             }
         }
 
-        // Reset Form
         function resetProfileForm() {
             profileForm.reset();
             profileIdInput.value = '';
@@ -474,7 +486,7 @@
             submitProfileBtn.textContent = 'Create Profile';
             cancelEditBtn.classList.add('hidden');
             editingProfileId = null;
-            profileMatrimonyGroupSelect.value = ''; // Ensure dropdown resets
+            profileMatrimonyGroupSelect.value = '';
             profileFormMessage.classList.add('hidden');
             window.history.replaceState({}, document.title, window.location.pathname);
         }
