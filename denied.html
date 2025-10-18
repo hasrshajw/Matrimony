@@ -30,7 +30,7 @@
             box-shadow: 0 8px 20px rgba(0,0,0,0.15);
             max-width: 600px;
             width: 90%;
-            position: relative; /* For logout button positioning */
+            position: relative;
         }
         h2 {
             color: #e74c3c;
@@ -47,7 +47,7 @@
             color: #777;
         }
         .logout-btn {
-            background-color: #3498db; /* Changed to blue for Denied page, as this is their only option */
+            background-color: #3498db;
             color: white;
             padding: 8px 15px;
             border: none;
@@ -64,8 +64,8 @@
 </head>
 <body>
     <div class="message-container">
-        <h2>Account Denied</h2>
-        <p>We regret to inform you that your account application for the Matrimony Portal has been denied.</p>
+        <h2 id="denied-title">Account Denied</h2>
+        <p id="denied-message">We regret to inform you that your account application for the Matrimony Portal has been denied.</p>
         <p>This decision is final.</p>
         <div class="contact-info">
             <p>If you believe this is an error, please contact support.</p>
@@ -79,20 +79,22 @@
         import { getFirestore, doc, getDoc } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js';
 
         const firebaseConfig = {
-  apiKey: "AIzaSyAuxA-e71uX_uLDe6oyFU69q-eLfgUzbXA",
-  authDomain: "harsha-jw.firebaseapp.com",
-  projectId: "harsha-jw",
-  storageBucket: "harsha-jw.firebasestorage.app",
-  messagingSenderId: "471408120499",
-  appId: "1:471408120499:web:91e61514ad3703ce3b16c6",
-  measurementId: "G-NBC16X4R1T"
-};
+            apiKey: "AIzaSyAuxA-e71uX_uLDe6oyFU69q-eLfgUzbXA",
+            authDomain: "harsha-jw.firebaseapp.com",
+            projectId: "harsha-jw",
+            storageBucket: "harsha-jw.firebasestorage.app",
+            messagingSenderId: "471408120499",
+            appId: "1:471408120499:web:91e61514ad3703ce3b16c6",
+            measurementId: "G-NBC16X4R1T"
+        };
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
         const logoutBtn = document.getElementById('logout-btn');
+        const deniedTitle = document.getElementById('denied-title');
+        const deniedMessage = document.getElementById('denied-message');
 
         logoutBtn.addEventListener('click', async () => {
             try {
@@ -111,19 +113,25 @@
                     const userStatus = userData.status;
                     const userRole = userData.role;
 
-                    // If status changes from denied (e.g., admin manually overrides)
-                    if (userStatus === 'approved') {
-                        if (userRole === 'admin') {
-                            window.location.href = 'admin-dashboard.html';
-                        } else if (userRole === 'employee') {
-                            window.location.href = 'employee-dashboard.html';
-                        } else {
-                            window.location.href = 'employee-dashboard.html';
+                    // Dynamically update message based on status
+                    if (userStatus === 'suspended') {
+                        deniedTitle.textContent = 'Account Suspended';
+                        deniedTitle.style.color = '#f39c12'; /* A warning color */
+                        deniedMessage.textContent = 'Your account has been temporarily suspended. Please contact support for more information.';
+                    } else if (userStatus !== 'denied') { // If status is not denied (i.e., approved or pending)
+                        if (userStatus === 'approved') {
+                            if (userRole === 'admin') {
+                                window.location.href = 'admin-dashboard.html';
+                            } else if (userRole === 'employee') {
+                                window.location.href = 'employee-dashboard.html';
+                            } else {
+                                window.location.href = 'employee-dashboard.html';
+                            }
+                        } else if (userStatus === 'pending') {
+                            window.location.href = 'pending.html';
                         }
-                    } else if (userStatus === 'pending') {
-                        window.location.href = 'pending.html'; // If for some reason pending while on denied
                     }
-                    // If still 'denied', stay on this page
+                    // If still 'denied' or 'suspended', stay on this page
                 } catch (error) {
                     console.error("Error checking user status/role:", error);
                 }
