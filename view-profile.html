@@ -78,19 +78,70 @@
             text-align: center;
             max-width: 600px;
         }
-        #profile-detail-view-content .share-actions {
+        #profile-detail-view-content .share-actions,
+        #profile-status-actions {
             margin-top: 30px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
         }
-        #profile-detail-view-content .share-actions button {
-            margin: 0 10px;
+        #profile-detail-view-content .share-actions button,
+        #profile-status-actions button {
             width: auto;
             padding: 10px 20px;
+            min-width: 150px;
         }
+        #profile-status-actions button.married { background-color: #e67e22; }
+        #profile-status-actions button.married:hover { background-color: #d35400; }
+        #profile-status-actions button.deactivate { background-color: #f39c12; }
+        #profile-status-actions button.deactivate:hover { background-color: #e67e22; }
+        #profile-status-actions button.reactivate { background-color: #2ecc71; }
+        #profile-status-actions button.reactivate:hover { background-color: #27ae60; }
+
+
         #profile-detail-status {
             text-align: center;
             margin-top: 20px;
             font-size: 18px;
             font-weight: bold;
+        }
+
+        #field-change-history {
+            margin-top: 40px;
+            width: 100%;
+            max-width: 800px;
+            text-align: left;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+        }
+        #field-change-history h3 {
+            color: #34495e;
+            margin-bottom: 15px;
+        }
+        #field-change-history ul {
+            list-style: none;
+            padding: 0;
+        }
+        #field-change-history li {
+            background: #fdfdfd;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 10px;
+            font-size: 0.95em;
+        }
+        #field-change-history li strong {
+            color: #3498db;
+            margin-right: 5px;
+        }
+        #field-change-history li .change-detail {
+            color: #555;
+        }
+        #field-change-history li .timestamp {
+            font-size: 0.8em;
+            color: #999;
+            margin-left: 10px;
         }
     </style>
 </head>
@@ -123,17 +174,17 @@
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js';
         import { getAuth, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js';
-        import { getFirestore, doc, getDoc } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js';
+        import { getFirestore, collection, getDocs, doc, getDoc, query, orderBy, updateDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js';
 
         const firebaseConfig = {
-  apiKey: "AIzaSyAuxA-e71uX_uLDe6oyFU69q-eLfgUzbXA",
-  authDomain: "harsha-jw.firebaseapp.com",
-  projectId: "harsha-jw",
-  storageBucket: "harsha-jw.firebasestorage.app",
-  messagingSenderId: "471408120499",
-  appId: "1:471408120499:web:91e61514ad3703ce3b16c6",
-  measurementId: "G-NBC16X4R1T"
-};
+            apiKey: "AIzaSyAuxA-e71uX_uLDe6oyFU69q-eLfgUzbXA",
+            authDomain: "harsha-jw.firebaseapp.com",
+            projectId: "harsha-jw",
+            storageBucket: "harsha-jw.firebasestorage.app",
+            messagingSenderId: "471408120499",
+            appId: "1:471408120499:web:91e61514ad3703ce3b16c6",
+            measurementId: "G-NBC16X4R1T"
+        };
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
@@ -141,7 +192,6 @@
 
         let currentUser = null;
         let currentUserRole = null;
-        // Hardcode matrimony groups directly here for consistency
         const hardcodedMatrimonyGroups = [
             { id: 'US', name: 'US' },
             { id: 'BY_OTHERS', name: 'BY OTHERS' }
@@ -155,20 +205,92 @@
         const profileDetailStatus = document.getElementById('profile-detail-status');
 
         function showMessage(element, message, isSuccess = true) {
-            element.textContent = message;
-            element.classList.remove('hidden');
-            element.classList.toggle('success-message', isSuccess);
-            element.classList.toggle('error-message', !isSuccess);
-            setTimeout(() => element.classList.add('hidden'), 5000);
+            let msgElement = profileDetailViewContent.querySelector('#profile-detail-message');
+            if (!msgElement) {
+                msgElement = document.createElement('p');
+                msgElement.id = 'profile-detail-message';
+                profileDetailViewContent.insertBefore(msgElement, profileDetailViewContent.firstChild);
+            }
+            msgElement.textContent = message;
+            msgElement.classList.remove('hidden', 'success-message', 'error-message');
+            msgElement.classList.toggle('success-message', isSuccess);
+            msgElement.classList.toggle('error-message', !isSuccess);
+            setTimeout(() => msgElement.classList.add('hidden'), 5000);
         }
 
-        // Matrimony Groups are hardcoded, no fetch needed
         function getMatrimonyGroupName(groupId) {
             if (!groupId) {
                 return 'Not Specified';
             }
             const group = hardcodedMatrimonyGroups.find(g => g.id === groupId);
             return group ? group.name : 'Unknown Group';
+        }
+
+        function calculateAge(dateOfBirthString) {
+            if (!dateOfBirthString) return 'N/A';
+            const dob = new Date(dateOfBirthString);
+            const today = new Date();
+            let age = today.getFullYear() - dob.getFullYear();
+            const monthDiff = today.getMonth() - dob.getMonth();
+            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
+                age--;
+            }
+            return age;
+        }
+
+        function updateMetaTag(property, content) {
+            let element = document.querySelector(`meta[property="${property}"]`);
+            if (!element) {
+                element = document.createElement('meta');
+                element.setAttribute('property', property);
+                document.head.appendChild(element);
+            }
+            element.setAttribute('content', content);
+
+            if (property.startsWith('og:')) {
+                const twitterProperty = `twitter:${property.substring(3)}`;
+                let twitterElement = document.querySelector(`meta[name="${twitterProperty}"]`);
+                if (!twitterElement) {
+                    twitterElement = document.createElement('meta');
+                    twitterElement.setAttribute('name', twitterProperty);
+                    document.head.appendChild(twitterElement);
+                }
+                twitterElement.setAttribute('content', content);
+            }
+        }
+
+        async function logChange(action, entityType, entityId, details = {}) {
+            if (!currentUser) return;
+            try {
+                await addDoc(collection(db, 'changeHistory'), {
+                    action,
+                    entityType,
+                    entityId,
+                    userId: currentUser.uid,
+                    userEmail: currentUser.email,
+                    timestamp: serverTimestamp(),
+                    details: JSON.stringify(details)
+                });
+            } catch (error) {
+                console.error("Error logging global change:", error);
+            }
+        }
+
+        async function logProfileFieldChange(profileId, fieldName, oldValue, newValue) {
+            if (!currentUser || oldValue === newValue) return;
+
+            try {
+                await addDoc(collection(db, 'profiles', profileId, 'history'), {
+                    fieldName,
+                    oldValue,
+                    newValue,
+                    changedByUid: currentUser.uid,
+                    changedByEmail: currentUser.email,
+                    timestamp: serverTimestamp(),
+                });
+            } catch (error) {
+                console.error(`Error logging field change for ${fieldName}:`, error);
+            }
         }
 
         onAuthStateChanged(auth, async (user) => {
@@ -183,7 +305,7 @@
                     if (userStatus === 'pending') {
                         window.location.href = 'pending.html';
                         return;
-                    } else if (userStatus === 'denied') {
+                    } else if (userStatus === 'denied' || userStatus === 'suspended') {
                         window.location.href = 'denied.html';
                         return;
                     } else if (currentUserRole !== 'admin' && currentUserRole !== 'employee') {
@@ -237,7 +359,12 @@
         async function displayShareableProfile(profileId) {
             profileDetailStatus.classList.add('hidden');
             profileDetailViewContent.innerHTML = '<p id="profile-detail-status">Loading profile details...</p>';
-            const currentStatusElement = profileDetailViewContent.querySelector('#profile-detail-status');
+            let currentStatusElement = profileDetailViewContent.querySelector('#profile-detail-status');
+            if (!currentStatusElement) { // Re-check if it was removed by innerHTML reset
+                currentStatusElement = document.createElement('p');
+                currentStatusElement.id = 'profile-detail-status';
+                profileDetailViewContent.appendChild(currentStatusElement);
+            }
 
             try {
                 const profileDoc = await getDoc(doc(db, 'profiles', profileId));
@@ -249,9 +376,14 @@
                 }
                 const profile = { id: profileDoc.id, ...profileDoc.data() };
                 const matrimonyGroupName = getMatrimonyGroupName(profile.matrimonyGroupId);
+                const currentAge = calculateAge(profile.dateOfBirth);
+
+                // Fetch field change history for this profile
+                const historySnapshot = await getDocs(query(collection(db, 'profiles', profileId, 'history'), orderBy('timestamp', 'desc')));
+                const fieldHistory = historySnapshot.docs.map(doc => doc.data());
 
                 const pageTitle = `Profile of ${profile.name} - Matrimony Portal`;
-                const pageDescription = `Age: ${profile.age}, Location: ${profile.location}, Group: ${matrimonyGroupName}. ${profile.bio ? profile.bio.substring(0, 150) + '...' : 'View full profile to know more.'}`;
+                const pageDescription = `Age: ${currentAge}, Status: ${profile.profileStatus || 'N/A'}, Location: ${profile.location}, Group: ${matrimonyGroupName}. ${profile.bio ? profile.bio.substring(0, 150) + '...' : 'View full profile to know more.'}`;
                 const imageUrl = profile.photoURL || `https://via.placeholder.com/1200x630.png?text=No+Profile+Image`;
                 const canonicalUrl = `${window.location.origin}${window.location.pathname}?profileId=${profile.id}`;
 
@@ -261,29 +393,73 @@
                 updateMetaTag('og:image', imageUrl);
                 updateMetaTag('og:url', canonicalUrl);
                 updateMetaTag('og:type', 'profile');
-
                 updateMetaTag('twitter:card', 'summary_large_image');
 
+                let statusActionsHtml = '';
+                if (currentUserRole === 'admin' || currentUserRole === 'employee') {
+                    statusActionsHtml = `
+                        <div id="profile-status-actions">
+                            ${profile.profileStatus !== 'married' ? `<button id="mark-married-btn" class="married" data-id="${profile.id}" data-status="married">Mark as Married</button>` : ''}
+                            ${profile.profileStatus !== 'inactive' ? `<button id="deactivate-btn" class="deactivate" data-id="${profile.id}" data-status="inactive">Deactivate Profile</button>` : ''}
+                            ${profile.profileStatus !== 'active' ? `<button id="reactivate-btn" class="reactivate" data-id="${profile.id}" data-status="active">Reactivate Profile</button>` : ''}
+                        </div>
+                    `;
+                }
+
+                let historyHtml = '';
+                if (fieldHistory.length > 0) {
+                    historyHtml = `
+                        <div id="field-change-history">
+                            <h3>Field Change History</h3>
+                            <ul>
+                                ${fieldHistory.map(entry => `
+                                    <li>
+                                        <strong>${entry.changedByEmail}</strong> changed <strong>${entry.fieldName}</strong> from
+                                        <span class="change-detail">${entry.oldValue || '""'}</span> to
+                                        <span class="change-detail">${entry.newValue || '""'}</span>
+                                        <span class="timestamp">${entry.timestamp ? new Date(entry.timestamp.toDate()).toLocaleString() : 'N/A'}</span>
+                                    </li>
+                                `).join('')}
+                            </ul>
+                        </div>
+                    `;
+                }
 
                 profileDetailViewContent.innerHTML = `
+                    <p id="profile-detail-message" class="hidden"></p>
                     <img src="${profile.photoURL || 'https://via.placeholder.com/200'}" alt="${profile.name}">
                     <h2>${profile.name}</h2>
-                    <p><strong>Age:</strong> ${profile.age}</p>
+                    <p><strong>Age:</strong> ${currentAge}</p>
                     <p><strong>Location:</strong> ${profile.location}</p>
                     <p><strong>Religion:</strong> ${profile.religion || 'N/A'}</p>
                     <p><strong>Education:</strong> ${profile.education || 'N/A'}</p>
                     <p><strong>Profession:</strong> ${profile.profession || 'N/A'}</p>
                     <p><strong>Marital Status:</strong> ${profile.maritalStatus}</p>
                     <p><strong>Matrimony Group:</strong> ${matrimonyGroupName}</p>
+                    <p><strong>Profile Status:</strong> <span style="font-weight: bold; color: ${profile.profileStatus === 'active' ? '#2ecc71' : profile.profileStatus === 'married' ? '#e67e22' : '#f39c12'};">${profile.profileStatus || 'N/A'}</span></p>
                     <p>${profile.bio || 'No bio provided.'}</p>
                     <div class="share-actions">
                         <button id="copy-link-btn">Copy Share Link</button>
                         <button id="copy-details-btn">Copy Basic Details</button>
                     </div>
+                    ${statusActionsHtml}
+                    ${historyHtml}
                 `;
 
                 document.getElementById('copy-link-btn').addEventListener('click', () => copyShareLink(profile));
                 document.getElementById('copy-details-btn').addEventListener('click', () => copyBasicDetails(profile));
+
+                if (currentUserRole === 'admin' || currentUserRole === 'employee') {
+                    if (document.getElementById('mark-married-btn')) {
+                        document.getElementById('mark-married-btn').addEventListener('click', (e) => updateProfileStatus(e.target.dataset.id, e.target.dataset.status));
+                    }
+                    if (document.getElementById('deactivate-btn')) {
+                        document.getElementById('deactivate-btn').addEventListener('click', (e) => updateProfileStatus(e.target.dataset.id, e.target.dataset.status));
+                    }
+                    if (document.getElementById('reactivate-btn')) {
+                        document.getElementById('reactivate-btn').addEventListener('click', (e) => updateProfileStatus(e.target.dataset.id, e.target.dataset.status));
+                    }
+                }
 
             } catch (error) {
                 console.error("Error displaying profile:", error);
@@ -294,51 +470,67 @@
             }
         }
 
-        function updateMetaTag(property, content) {
-            let element = document.querySelector(`meta[property="${property}"]`);
-            if (!element) {
-                element = document.createElement('meta');
-                element.setAttribute('property', property);
-                document.head.appendChild(element);
+        async function updateProfileStatus(profileId, newStatus) {
+            if (!currentUser || (!['admin', 'employee'].includes(currentUserRole) && newStatus !== 'active')) {
+                showMessage('You do not have permission to change profile status.', false);
+                return;
             }
-            element.setAttribute('content', content);
+            if (currentUserRole !== 'admin' && newStatus === 'active') { // Only admin can reactivate
+                showMessage('Only an admin can reactivate a profile.', false);
+                return;
+            }
 
-            if (property.startsWith('og:')) {
-                const twitterProperty = `twitter:${property.substring(3)}`;
-                let twitterElement = document.querySelector(`meta[name="${twitterProperty}"]`);
-                if (!twitterElement) {
-                    twitterElement = document.createElement('meta');
-                    twitterElement.setAttribute('name', twitterProperty);
-                    document.head.appendChild(twitterElement);
-                }
-                twitterElement.setAttribute('content', content);
+            const confirmationMessage = `Are you sure you want to change this profile's status to '${newStatus.toUpperCase()}'?`;
+            if (!confirm(confirmationMessage)) return;
+
+            try {
+                const profileRef = doc(db, 'profiles', profileId);
+                const oldProfileDoc = await getDoc(profileRef);
+                const oldStatus = oldProfileDoc.exists() ? oldProfileDoc.data().profileStatus : 'unknown';
+
+                await updateDoc(profileRef, {
+                    profileStatus: newStatus,
+                    updatedAt: serverTimestamp(),
+                    updatedBy: currentUser.uid,
+                });
+                await logChange('update', 'profile_status', profileId, { oldStatus: oldStatus, newStatus: newStatus });
+                await logProfileFieldChange(profileId, 'profileStatus', oldStatus, newStatus);
+
+                showMessage(`Profile status updated to '${newStatus}' successfully!`, true);
+                // Refresh the display to reflect the new status and button visibility
+                await displayShareableProfile(profileId);
+            } catch (error) {
+                console.error("Error updating profile status:", error);
+                showMessage(`Error updating profile status: ${error.message}`, false);
             }
         }
 
         function copyShareLink(profile) {
             const shareUrl = `${window.location.origin}${window.location.pathname}?profileId=${profile.id}`;
             navigator.clipboard.writeText(shareUrl).then(() => {
-                showMessage(profileDetailViewContent.querySelector('#profile-detail-status') || profileDetailStatus, 'Share link copied to clipboard!', true);
+                showMessage('Share link copied to clipboard!', true);
             }).catch(err => {
                 console.error('Failed to copy text: ', err);
-                showMessage(profileDetailViewContent.querySelector('#profile-detail-status') || profileDetailStatus, 'Failed to copy share link.', false);
+                showMessage('Failed to copy share link.', false);
             });
         }
 
         function copyBasicDetails(profile) {
             const matrimonyGroupName = getMatrimonyGroupName(profile.matrimonyGroupId);
+            const currentAge = calculateAge(profile.dateOfBirth);
             const basicDetails = `
 Profile of ${profile.name}
-Age: ${profile.age}
+Age: ${currentAge}
 Location: ${profile.location}
 Matrimony Group: ${matrimonyGroupName}
+Profile Status: ${profile.profileStatus || 'N/A'}
 View full profile: ${window.location.origin}${window.location.pathname}?profileId=${profile.id}
             `.trim();
             navigator.clipboard.writeText(basicDetails).then(() => {
-                showMessage(profileDetailViewContent.querySelector('#profile-detail-status') || profileDetailStatus, 'Basic details copied to clipboard!', true);
+                showMessage('Basic details copied to clipboard!', true);
             }).catch(err => {
                 console.error('Failed to copy text: ', err);
-                showMessage(profileDetailViewContent.querySelector('#profile-detail-status') || profileDetailStatus, 'Failed to copy basic details.', false);
+                showMessage('Failed to copy basic details.', false);
             });
         }
     </script>
