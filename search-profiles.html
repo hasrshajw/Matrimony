@@ -11,7 +11,6 @@
     <script type="module" src="https://www.gstatic.com/firebasejs/12.4.0/firebase-ai.js"></script>
 
     <style>
-        /* General Styles */
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background: #f4f7f6; color: #333; }
         .container { max-width: 1200px; margin: 20px auto; background: #fff; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); padding: 30px; }
         h1, h2, h3 { color: #2c3e50; margin-top: 0; }
@@ -27,7 +26,6 @@
         .success-message { color: #2ecc71; margin-top: 10px; font-weight: bold; }
         .hidden { display: none !important; }
 
-        /* Header and Navigation */
         #app-header { background: #34495e; color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #3498db; }
         #app-header h1 { margin: 0; font-size: 24px; }
         #app-header nav ul { list-style: none; margin: 0; padding: 0; display: flex; }
@@ -39,7 +37,6 @@
         #user-info button { background-color: #e74c3c; }
         #user-info button:hover { background-color: #c0392b; }
 
-        /* Profile List (Search Results) */
         .profile-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; margin-top: 20px; }
         .profile-card { background: #f9f9f9; border: 1px solid #e0e0e0; border-radius: 8px; padding: 20px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .profile-card img { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; margin-bottom: 15px; border: 3px solid #3498db; }
@@ -48,7 +45,6 @@
         .profile-card .actions button { margin-top: 15px; margin-right: 10px; }
         .no-profiles { text-align: center; color: #777; font-style: italic; margin-top: 30px; }
 
-        /* Form Layout */
         .grid-form { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
         .grid-form .full-width { grid-column: 1 / -1; }
         .grid-form textarea { min-height: 80px; }
@@ -78,7 +74,7 @@
                 <ul>
                     <li><a href="create-profile.html" id="nav-create-profile">Create Profile</a></li>
                     <li><a href="search-profiles.html" id="nav-search-profile" class="active">Search Profiles</a></li>
-                    <li id="nav-admin-panel-item" class="hidden"><a href="admin-panel.html" id="nav-admin-panel">Admin Panel</a></li>
+                    <li id="nav-admin-panel-item" class="hidden"><a href="admin-dashboard.html" id="nav-admin-panel">Admin Dashboard</a></li>
                 </ul>
             </nav>
             <div id="user-info">
@@ -114,7 +110,7 @@
                     <div class="form-group">
                         <label for="search-matrimony-group">Matrimony Group:</label>
                         <select id="search-matrimony-group">
-                            <option value="">Any</option>
+                            <!-- Options populated by JS below -->
                         </select>
                     </div>
                     <div class="form-group full-width">
@@ -142,31 +138,30 @@
         import { getFirestore, collection, getDocs, doc, getDoc, query, where, orderBy } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js';
         import { getAI, getGenerativeModel } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-ai.js';
 
-        // Your Firebase configuration
         const firebaseConfig = {
-  apiKey: "AIzaSyAuxA-e71uX_uLDe6oyFU69q-eLfgUzbXA",
-  authDomain: "harsha-jw.firebaseapp.com",
-  projectId: "harsha-jw",
-  storageBucket: "harsha-jw.firebasestorage.app",
-  messagingSenderId: "471408120499",
-  appId: "1:471408120499:web:91e61514ad3703ce3b16c6",
-  measurementId: "G-NBC16X4R1T"
-};
+            apiKey: "AIzaSyBX5-v6u8C7AqfNLxdSgX9p7QKtDI_oYZ4",
+            authDomain: "matrimony-34bb4.firebaseapp.com",
+            projectId: "matrimony-34bb4",
+            storageBucket: "matrimony-34bb4.firebasestorage.app",
+            messagingSenderId: "725550889075",
+            appId: "1:725550889075:web:6278e7b393d7fd5a859206",
+            measurementId: "G-BCL64HHVPB"
+        };
 
-        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
         const ai = getAI(app);
         const model = getGenerativeModel(ai, { model: 'gemini-2.5-flash' });
 
-        // Global State Variables
         let currentUser = null;
         let currentUserRole = null;
-        let matrimonyGroups = [];
+        const hardcodedMatrimonyGroups = [
+            { id: '', name: 'Any' }, // Default "Any" option
+            { id: 'US', name: 'US' },
+            { id: 'BY_OTHERS', name: 'BY OTHERS' }
+        ];
 
-        // DOM Elements
-        const appHeader = document.getElementById('app-header');
         const currentUserEmailSpan = document.getElementById('current-user-email');
         const currentUserRoleSpan = document.getElementById('current-user-role');
         const logoutBtn = document.getElementById('logout-btn');
@@ -187,7 +182,6 @@
         const searchResultsDiv = document.getElementById('search-results');
         const searchMessage = document.getElementById('search-message');
 
-        // Utility Functions
         function showMessage(element, message, isSuccess = true) {
             element.textContent = message;
             element.classList.remove('hidden');
@@ -205,21 +199,11 @@
                 buttonElement.disabled = false;
             }
         }
-
-        async function fetchMatrimonyGroups() {
-            try {
-                const q = query(collection(db, 'matrimonyGroups'), orderBy('name'));
-                const snapshot = await getDocs(q);
-                matrimonyGroups = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                populateMatrimonyGroupSelects();
-            } catch (error) {
-                console.error("Error fetching matrimony groups:", error);
-            }
-        }
-
+        
+        // Matrimony Groups are hardcoded, no fetch needed
         function populateMatrimonyGroupSelects() {
-            searchMatrimonyGroupSelect.innerHTML = '<option value="">Any</option>';
-            matrimonyGroups.forEach(group => {
+            searchMatrimonyGroupSelect.innerHTML = '';
+            hardcodedMatrimonyGroups.forEach(group => {
                 const option2 = document.createElement('option');
                 option2.value = group.id;
                 option2.textContent = group.name;
@@ -231,51 +215,64 @@
             if (!groupId) {
                 return 'Not Specified';
             }
-            const group = matrimonyGroups.find(g => g.id === groupId);
+            const group = hardcodedMatrimonyGroups.find(g => g.id === groupId);
             return group ? group.name : 'Unknown Group';
         }
 
-        // Authentication State Observer
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 currentUser = user;
                 try {
                     const userDoc = await getDoc(doc(db, 'users', user.uid));
-                    currentUserRole = userDoc.exists() ? userDoc.data().role : 'employee';
+                    const userData = userDoc.exists() ? userDoc.data() : {};
+                    currentUserRole = userData.role;
+                    const userStatus = userData.status;
+
+                    if (userStatus === 'pending') {
+                        window.location.href = 'pending.html';
+                        return;
+                    } else if (userStatus === 'denied') {
+                        window.location.href = 'denied.html';
+                        return;
+                    } else if (currentUserRole !== 'admin' && currentUserRole !== 'employee') {
+                         alert('Your account is not approved or has an invalid role. Redirecting to login.');
+                         await signOut(auth);
+                         window.location.href = 'index.html';
+                         return;
+                    }
                 } catch (error) {
-                    console.error("Error fetching user role:", error);
-                    currentUserRole = 'employee';
+                    console.error("Error fetching user role/status:", error);
+                    alert('Error verifying user role. Redirecting to login.');
+                    await signOut(auth);
+                    window.location.href = 'index.html';
+                    return;
                 }
 
                 currentUserEmailSpan.textContent = user.email;
                 currentUserRoleSpan.textContent = currentUserRole;
 
-                // Show/hide Admin panel navigation item based on role
                 if (currentUserRole === 'admin') {
                     navAdminPanelItem.classList.remove('hidden');
                 } else {
                     navAdminPanelItem.classList.add('hidden');
                 }
 
-                await fetchMatrimonyGroups();
+                populateMatrimonyGroupSelects(); // Populate hardcoded groups
                 searchProfiles(); // Perform initial search on load
             } else {
-                // Not logged in, redirect to login page
                 window.location.href = 'index.html';
             }
         });
 
-        // Logout
         logoutBtn.addEventListener('click', async () => {
             try {
                 await signOut(auth);
-                window.location.href = 'index.html'; // Redirect to login page
+                window.location.href = 'index.html';
             } catch (error) {
                 console.error("Error signing out:", error);
             }
         });
 
-        // Profile Search
         applyFiltersBtn.addEventListener('click', () => searchProfiles(false));
         smartSearchBtn.addEventListener('click', () => searchProfiles(true));
         resetFiltersBtn.addEventListener('click', () => {
@@ -286,7 +283,7 @@
             searchEducationInput.value = '';
             searchMatrimonyGroupSelect.value = '';
             smartSearchParagraphInput.value = '';
-            searchProfiles(false); // Re-run search with cleared filters
+            searchProfiles(false);
         });
 
         async function searchProfiles(isSmartSearch = false) {
@@ -376,8 +373,6 @@
                     <p>${profile.bio ? profile.bio.substring(0, 70) + '...' : 'No bio provided.'}</p>
                     <div class="actions">
                         <button class="view-profile-btn" data-id="${profile.id}">View Details & Share</button>
-                        ${showAdminActions && (currentUserRole === 'admin' || currentUserRole === 'employee') ? `<button class="edit-profile-btn edit" data-id="${profile.id}">Edit</button>` : ''}
-                        ${showAdminActions && currentUserRole === 'admin' ? `<button class="delete-profile-btn delete" data-id="${profile.id}">Delete</button>` : ''}
                     </div>
                 `;
                 targetDiv.appendChild(profileCard);
@@ -385,16 +380,10 @@
 
             targetDiv.querySelectorAll('.view-profile-btn').forEach(button => {
                 button.addEventListener('click', (e) => {
-                    // Redirect to a specific view-profile.html with profileId
                     window.location.href = `view-profile.html?profileId=${e.target.dataset.id}`;
                 });
             });
-            // Admin actions are typically not shown on a public search page,
-            // but the argument is kept for consistency if needed later.
-            // If showAdminActions is true, remember to handle redirects for edit/delete actions.
-            // For now, this page is for public search, so edit/delete buttons are not rendered.
         }
-
     </script>
 </body>
 </html>
