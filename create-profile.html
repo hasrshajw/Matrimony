@@ -86,7 +86,7 @@
                         <div class="auto-generate-column">
                             <div class="form-group">
                                 <label for="auto-generate-paragraph">Auto-generate details from paragraph:</label>
-                                <textarea id="auto-generate-paragraph" placeholder="e.g., John Doe, 28, from New York. Works as a Software Engineer. Looking for a compatible partner." rows="12"></textarea>
+                                <textarea id="auto-generate-paragraph" placeholder="e.g., John Doe, born 1995-05-15, from New York. Works as a Software Engineer. Looking for a compatible partner." rows="12"></textarea>
                                 <button type="button" id="auto-generate-btn" style="margin-top: 10px;">Auto-generate Fields <span class="loading-spinner hidden" id="auto-generate-spinner"></span></button>
                             </div>
                         </div>
@@ -97,8 +97,8 @@
                                     <input type="text" id="profile-name" required>
                                 </div>
                                 <div class="form-group">
-                                    <label for="profile-age">Age:</label>
-                                    <input type="number" id="profile-age" min="18" max="99" required>
+                                    <label for="profile-dob">Date of Birth:</label>
+                                    <input type="date" id="profile-dob" required>
                                 </div>
                                 <div class="form-group">
                                     <label for="profile-location">Location:</label>
@@ -159,14 +159,14 @@
         import { getAI, getGenerativeModel } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-ai.js';
 
         const firebaseConfig = {
-  apiKey: "AIzaSyAuxA-e71uX_uLDe6oyFU69q-eLfgUzbXA",
-  authDomain: "harsha-jw.firebaseapp.com",
-  projectId: "harsha-jw",
-  storageBucket: "harsha-jw.firebasestorage.app",
-  messagingSenderId: "471408120499",
-  appId: "1:471408120499:web:91e61514ad3703ce3b16c6",
-  measurementId: "G-NBC16X4R1T"
-};
+            apiKey: "AIzaSyAuxA-e71uX_uLDe6oyFU69q-eLfgUzbXA",
+            authDomain: "harsha-jw.firebaseapp.com",
+            projectId: "harsha-jw",
+            storageBucket: "harsha-jw.firebasestorage.app",
+            messagingSenderId: "471408120499",
+            appId: "1:471408120499:web:91e61514ad3703ce3b16c6",
+            measurementId: "G-NBC16X4R1T"
+        };
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
@@ -177,7 +177,6 @@
 
         let currentUser = null;
         let currentUserRole = null;
-        // Hardcode matrimony groups directly here for consistency
         const hardcodedMatrimonyGroups = [
             { id: 'US', name: 'US' },
             { id: 'BY_OTHERS', name: 'BY OTHERS' }
@@ -194,7 +193,7 @@
         const profileForm = document.getElementById('profile-form');
         const profileIdInput = document.getElementById('profile-id');
         const profileNameInput = document.getElementById('profile-name');
-        const profileAgeInput = document.getElementById('profile-age');
+        const profileDobInput = document.getElementById('profile-dob'); // Changed from profileAgeInput
         const profileLocationInput = document.getElementById('profile-location');
         const profileReligionInput = document.getElementById('profile-religion');
         const profileEducationInput = document.getElementById('profile-education');
@@ -247,7 +246,24 @@
             }
         }
 
-        // Matrimony Groups are hardcoded, no fetch needed
+        // Function for field-level audit trail
+        async function logProfileFieldChange(profileId, fieldName, oldValue, newValue) {
+            if (!currentUser || oldValue === newValue) return;
+
+            try {
+                await addDoc(collection(db, 'profiles', profileId, 'history'), {
+                    fieldName,
+                    oldValue,
+                    newValue,
+                    changedByUid: currentUser.uid,
+                    changedByEmail: currentUser.email,
+                    timestamp: serverTimestamp(),
+                });
+            } catch (error) {
+                console.error(`Error logging field change for ${fieldName}:`, error);
+            }
+        }
+
         function populateMatrimonyGroupSelects() {
             const currentSelectedGroup = profileMatrimonyGroupSelect.value;
             profileMatrimonyGroupSelect.innerHTML = '<option value="">None (Optional)</option>';
@@ -274,11 +290,10 @@
                     if (userStatus === 'pending') {
                         window.location.href = 'pending.html';
                         return;
-                    } else if (userStatus === 'denied') {
+                    } else if (userStatus === 'denied' || userStatus === 'suspended') {
                         window.location.href = 'denied.html';
                         return;
                     } else if (currentUserRole !== 'admin' && currentUserRole !== 'employee') {
-                        // Should not happen if previous redirects are correct, but as a safety
                         alert('Your account is not approved. Redirecting to login.');
                         await signOut(auth);
                         window.location.href = 'index.html';
@@ -351,7 +366,7 @@
             showSpinner(autoGenerateSpinner, autoGenerateBtn, true);
 
             try {
-                const prompt = `Extract the following details from the paragraph below and return them as a JSON object. If a detail is not found, use an empty string for strings or null for age. The marital status should be one of 'Single', 'Divorced', 'Widowed'. Ensure age is an integer.\n\nParagraph: "${paragraph}"\n\nExpected JSON format: {"name": "", "age": null, "location": "", "religion": "", "education": "", "profession": "", "maritalStatus": ""}`;
+                const prompt = `Extract the following details from the paragraph below and return them as a JSON object. If a detail is not found, use an empty string for strings or null for Date of Birth. The marital status should be one of 'Single', 'Divorced', 'Widowed'. Date of Birth should be in YYYY-MM-DD format.\n\nParagraph: "${paragraph}"\n\nExpected JSON format: {"name": "", "dateOfBirth": null, "location": "", "religion": "", "education": "", "profession": "", "maritalStatus": ""}`;
                 const result = await model.generateContent(prompt);
                 let responseText = result.response.text();
 
@@ -363,7 +378,7 @@
                 const data = JSON.parse(responseText);
 
                 profileNameInput.value = data.name || '';
-                profileAgeInput.value = data.age !== null ? parseInt(data.age) : '';
+                profileDobInput.value = data.dateOfBirth || ''; // Assign to DOB input
                 profileLocationInput.value = data.location || '';
                 profileReligionInput.value = data.religion || '';
                 profileEducationInput.value = data.education || '';
@@ -373,7 +388,7 @@
                 } else {
                     profileMaritalStatusSelect.value = 'Single';
                 }
-                // profileBioInput.value = paragraph; // Removed: Not copying AI input to Bio
+                // profileBioInput.value is intentionally not set from the paragraph
 
                 showMessage(profileFormMessage, 'Details auto-generated from paragraph using AI!', true);
             } catch (error) {
@@ -388,9 +403,9 @@
             e.preventDefault();
             showSpinner(profileSubmitSpinner, submitProfileBtn, true);
 
-            const profileData = {
+            const newProfileData = {
                 name: profileNameInput.value,
-                age: parseInt(profileAgeInput.value),
+                dateOfBirth: profileDobInput.value, // Store DOB
                 location: profileLocationInput.value,
                 religion: profileReligionInput.value,
                 education: profileEducationInput.value,
@@ -401,31 +416,79 @@
                 photoURL: profilePhotoPreview.src !== '#' ? profilePhotoPreview.src : '',
                 updatedAt: serverTimestamp(),
                 updatedBy: currentUser.uid,
+                profileStatus: 'active', // Default for new profiles and updates, can be changed later
             };
 
+            // Prepare fields for auditing
+            const fieldsToAudit = ['name', 'dateOfBirth', 'location', 'religion', 'education', 'profession', 'maritalStatus', 'matrimonyGroupId', 'bio', 'photoURL', 'profileStatus'];
+
+            let oldProfileData = {};
+
+            // Only set createdAt and createdBy for new profiles
             if (!editingProfileId) {
-                profileData.createdAt = serverTimestamp();
-                profileData.createdBy = currentUser.uid;
+                newProfileData.createdAt = serverTimestamp();
+                newProfileData.createdBy = currentUser.uid;
+            } else {
+                // If editing, fetch old data for audit trail
+                const oldProfileDoc = await getDoc(doc(db, 'profiles', editingProfileId));
+                if (oldProfileDoc.exists()) {
+                    oldProfileData = oldProfileDoc.data();
+                }
             }
 
             const photoFile = profilePhotoInput.files[0];
+            let oldPhotoURL = oldProfileData.photoURL;
+
 
             try {
                 if (photoFile) {
+                    // Upload new photo
                     const storageRef = ref(storage, `profile_photos/${currentUser.uid}/${Date.now()}_${photoFile.name}`);
                     const uploadTask = await uploadBytes(storageRef, photoFile);
-                    profileData.photoURL = await getDownloadURL(uploadTask.ref);
+                    newProfileData.photoURL = await getDownloadURL(uploadTask.ref);
+
+                    // If there was an old photo and a new one is uploaded, delete the old one from storage
+                    if (editingProfileId && oldPhotoURL && oldPhotoURL !== newProfileData.photoURL) {
+                        try {
+                            const oldPhotoRef = ref(storage, oldPhotoURL);
+                            await deleteObject(oldPhotoRef);
+                        } catch (deleteError) {
+                            console.warn("Could not delete old photo from storage:", deleteError);
+                        }
+                    }
+                } else if (editingProfileId && profilePhotoInput.value === '' && oldPhotoURL && profilePhotoPreview.src === '#') {
+                    // If no new file is selected, and previous photo was cleared from preview, remove old photoURL
+                    newProfileData.photoURL = '';
+                    if (oldPhotoURL) {
+                        try {
+                            const oldPhotoRef = ref(storage, oldPhotoURL);
+                            await deleteObject(oldPhotoRef);
+                        } catch (deleteError) {
+                            console.warn("Could not delete old photo from storage when clearing photo:", deleteError);
+                        }
+                    }
+                } else if (editingProfileId && !photoFile && profilePhotoPreview.src !== '#') {
+                    // If editing, no new file, but preview still shows existing photo, retain old photoURL
+                    newProfileData.photoURL = oldPhotoURL;
                 }
+                // If editingProfileId is false (new profile) and no photoFile, photoURL will be empty string as initialized.
+
 
                 if (editingProfileId) {
-                    const oldProfileDoc = await getDoc(doc(db, 'profiles', editingProfileId));
-                    const oldProfileData = oldProfileDoc.exists() ? oldProfileDoc.data() : {};
-                    await updateDoc(doc(db, 'profiles', editingProfileId), profileData);
-                    await logChange('edit', 'profile', editingProfileId, { oldData: oldProfileData, newData: profileData });
+                    await updateDoc(doc(db, 'profiles', editingProfileId), newProfileData);
+                    await logChange('edit', 'profile', editingProfileId, { oldData: oldProfileData, newData: newProfileData });
+
+                    // Log field-level changes
+                    for (const field of fieldsToAudit) {
+                        if (oldProfileData[field] !== newProfileData[field]) {
+                            await logProfileFieldChange(editingProfileId, field, oldProfileData[field], newProfileData[field]);
+                        }
+                    }
+
                     showMessage(profileFormMessage, 'Profile updated successfully!', true);
                 } else {
-                    const docRef = await addDoc(collection(db, 'profiles'), profileData);
-                    await logChange('add', 'profile', docRef.id, { newData: profileData });
+                    const docRef = await addDoc(collection(db, 'profiles'), newProfileData);
+                    await logChange('add', 'profile', docRef.id, { newData: newProfileData });
                     showMessage(profileFormMessage, 'Profile created successfully!', true);
                 }
                 resetProfileForm();
@@ -453,7 +516,7 @@
 
                 profileIdInput.value = profile.id;
                 profileNameInput.value = profile.name;
-                profileAgeInput.value = profile.age;
+                profileDobInput.value = profile.dateOfBirth; // Assign DOB
                 profileLocationInput.value = profile.location;
                 profileReligionInput.value = profile.religion;
                 profileEducationInput.value = profile.education;
