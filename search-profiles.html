@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Matrimony Portal - Search Profiles</title>
-    <!-- Firebase SDKs - CDN (ES module versions) -->
     <script type="module" src="https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js"></script>
     <script type="module" src="https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js"></script>
     <script type="module" src="https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js"></script>
@@ -45,9 +44,72 @@
         .profile-card .actions button { margin-top: 15px; margin-right: 10px; }
         .no-profiles { text-align: center; color: #777; font-style: italic; margin-top: 30px; }
 
-        .grid-form { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .grid-form .full-width { grid-column: 1 / -1; }
-        .grid-form textarea { min-height: 80px; }
+        /* New Search Layout Styles */
+        .search-filters-container {
+            display: grid;
+            grid-template-columns: 2fr 1fr; /* Two columns: standard filters wider, smart search narrower */
+            gap: 30px;
+            margin-bottom: 30px;
+            padding: 25px;
+            background: #fdfdfd;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .filter-block {
+            padding: 15px;
+            border-radius: 5px;
+            background: #fff;
+            border: 1px solid #f0f0f0;
+        }
+        .filter-block h3 {
+            color: #3498db;
+            margin-top: 0;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+
+        .filter-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .smart-search-block .form-group textarea {
+            min-height: 150px;
+            resize: vertical;
+        }
+        
+        .action-buttons {
+            grid-column: 1 / -1; /* Span across both columns */
+            display: flex;
+            justify-content: flex-end; /* Align buttons to the right */
+            gap: 15px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            margin-top: 15px;
+        }
+        .action-buttons button {
+            width: auto;
+            padding: 10px 25px;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 900px) {
+            .search-filters-container {
+                grid-template-columns: 1fr; /* Stack columns on smaller screens */
+            }
+            .action-buttons {
+                justify-content: center; /* Center buttons on small screens */
+                flex-wrap: wrap;
+            }
+            .action-buttons button {
+                width: 100%;
+                max-width: 250px; /* Limit button width for better stacking */
+            }
+        }
 
         .loading-spinner {
             border: 4px solid #f3f3f3;
@@ -86,45 +148,56 @@
         <div class="container">
             <section id="search-profile-section">
                 <h2>Search Profiles</h2>
-                <div class="grid-form">
-                    <div class="form-group">
-                        <label for="search-age-min">Min Age:</label>
-                        <input type="number" id="search-age-min" min="18" value="18">
+                <p id="search-message" class="success-message hidden"></p>
+
+                <div class="search-filters-container">
+                    <div class="filter-block">
+                        <h3>Standard Filters</h3>
+                        <div class="filter-grid">
+                            <div class="form-group">
+                                <label for="search-age-min">Min Age:</label>
+                                <input type="number" id="search-age-min" min="18" value="18">
+                            </div>
+                            <div class="form-group">
+                                <label for="search-age-max">Max Age:</label>
+                                <input type="number" id="search-age-max" min="18" value="99">
+                            </div>
+                            <div class="form-group">
+                                <label for="search-location">Location:</label>
+                                <input type="text" id="search-location">
+                            </div>
+                            <div class="form-group">
+                                <label for="search-religion">Religion:</label>
+                                <input type="text" id="search-religion">
+                            </div>
+                            <div class="form-group">
+                                <label for="search-education">Education:</label>
+                                <input type="text" id="search-education">
+                            </div>
+                            <div class="form-group">
+                                <label for="search-matrimony-group">Matrimony Group:</label>
+                                <select id="search-matrimony-group">
+                                    <!-- Options populated by JS below -->
+                                </select>
+                            </div>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label for="search-age-max">Max Age:</label>
-                        <input type="number" id="search-age-max" min="18" value="99">
+
+                    <div class="filter-block smart-search-block">
+                        <h3>Smart Paragraph Search</h3>
+                        <div class="form-group full-width">
+                            <textarea id="smart-search-paragraph" placeholder="e.g., Looking for a partner in their late 20s from London, preferably with a Bachelor's degree." rows="4"></textarea>
+                            <button type="button" id="smart-search-btn" style="margin-top: 10px;">Smart Search <span class="loading-spinner hidden" id="smart-search-spinner"></span></button>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label for="search-location">Location:</label>
-                        <input type="text" id="search-location">
-                    </div>
-                    <div class="form-group">
-                        <label for="search-religion">Religion:</label>
-                        <input type="text" id="search-religion">
-                    </div>
-                    <div class="form-group">
-                        <label for="search-education">Education:</label>
-                        <input type="text" id="search-education">
-                    </div>
-                    <div class="form-group">
-                        <label for="search-matrimony-group">Matrimony Group:</label>
-                        <select id="search-matrimony-group">
-                            <!-- Options populated by JS below -->
-                        </select>
-                    </div>
-                    <div class="form-group full-width">
-                        <label for="smart-search-paragraph">Smart Paragraph Search:</label>
-                        <textarea id="smart-search-paragraph" placeholder="e.g., Looking for a partner in their late 20s from London, preferably with a Bachelor's degree." rows="3"></textarea>
-                        <button type="button" id="smart-search-btn" style="margin-top: 10px;">Smart Search <span class="loading-spinner hidden" id="smart-search-spinner"></span></button>
-                    </div>
-                    <div class="form-group full-width">
+                    
+                    <div class="action-buttons">
                         <button type="button" id="apply-filters-btn">Apply Filters</button>
                         <button type="button" id="reset-filters-btn" style="background-color: #7f8c8d;">Reset Filters</button>
                     </div>
                 </div>
+
                 <h3>Matching Profiles</h3>
-                <p id="search-message" class="success-message hidden"></p>
                 <div id="search-results" class="profile-list">
                     <p class="no-profiles">No profiles found. Try adjusting your search criteria.</p>
                 </div>
@@ -157,7 +230,7 @@
         let currentUser = null;
         let currentUserRole = null;
         const hardcodedMatrimonyGroups = [
-            { id: '', name: 'Any' }, // Default "Any" option
+            { id: '', name: 'Any' },
             { id: 'US', name: 'US' },
             { id: 'BY_OTHERS', name: 'BY OTHERS' }
         ];
@@ -200,7 +273,6 @@
             }
         }
         
-        // Matrimony Groups are hardcoded, no fetch needed
         function populateMatrimonyGroupSelects() {
             searchMatrimonyGroupSelect.innerHTML = '';
             hardcodedMatrimonyGroups.forEach(group => {
@@ -257,8 +329,8 @@
                     navAdminPanelItem.classList.add('hidden');
                 }
 
-                populateMatrimonyGroupSelects(); // Populate hardcoded groups
-                searchProfiles(); // Perform initial search on load
+                populateMatrimonyGroupSelects();
+                searchProfiles();
             } else {
                 window.location.href = 'index.html';
             }
