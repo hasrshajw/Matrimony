@@ -249,6 +249,7 @@
         let currentUser = null;
         let currentUserRole = null;
         let profilesByMonthChart;
+        const ADMIN_EMAIL = "harshavardhanjw@gmail.com";
 
         const dom = {
             sidebarAvatar: document.getElementById('sidebar-avatar'),
@@ -285,17 +286,19 @@
             if (user) {
                 currentUser = user;
                 try {
-                    const userDoc = await getDoc(doc(db, 'users', user.uid));
-                    const userData = userDoc.exists() ? userDoc.data() : {};
-                    currentUserRole = userData.role;
-                    const userStatus = userData.status;
-
-                    if (userStatus !== 'approved' || currentUserRole !== 'admin') {
+                    // **FIX:** Check for admin by email first, as it's the most reliable method.
+                    if (user.email !== ADMIN_EMAIL) {
                         alert('Access Denied. You do not have permission to view this page.');
-                        window.location.href = 'index.html';
+                        window.location.href = 'index.html'; // Redirect non-admins
                         return;
                     }
 
+                    // Since we've confirmed the user is an admin by email, we can proceed.
+                    const userDoc = await getDoc(doc(db, 'users', user.uid));
+                    const userData = userDoc.exists() ? userDoc.data() : {};
+                    currentUserRole = userData.role || 'admin'; // Default to admin if role isn't set
+
+                    // Update UI with user info
                     dom.sidebarUserEmail.textContent = user.email;
                     dom.sidebarUserRole.textContent = currentUserRole;
                     dom.sidebarAvatar.src = user.photoURL || 'https://via.placeholder.com/40';
@@ -305,8 +308,8 @@
                     dom.realContent.style.display = 'grid';
 
                 } catch (error) {
-                    console.error("Error fetching user data:", error);
-                    alert('Could not verify your role. Please try logging in again.');
+                    console.error("Error during authentication check:", error);
+                    alert('An error occurred. Please try logging in again.');
                     await signOut(auth);
                 }
             } else {
@@ -434,7 +437,7 @@
 
                 if (profilesByMonthChart) profilesByMonthChart.destroy();
 
-                // CORRECTED CHART CONFIGURATION
+                // **FIX:** Replaced CSS variables with static color values for JavaScript compatibility.
                 profilesByMonthChart = new Chart(dom.profilesByMonthChartCtx, {
                     type: 'bar',
                     data: {
