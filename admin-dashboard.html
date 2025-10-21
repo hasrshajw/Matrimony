@@ -4,13 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Matrimony Portal - Admin Dashboard</title>
-    <!-- Firebase SDKs - CDN (ES module versions) -->
     <script type="module" src="https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js"></script>
     <script type="module" src="https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js"></script>
     <script type="module" src="https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js"></script>
+    <script type="module" src="https://www.gstatic.com/firebasejs/12.4.0/firebase-storage.js"></script>
 
     <style>
-        /* General Styles */
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background: #f4f7f6; color: #333; }
         .container { max-width: 1200px; margin: 20px auto; background: #fff; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); padding: 30px; }
         h1, h2, h3 { color: #2c3e50; margin-top: 0; }
@@ -26,7 +25,6 @@
         .success-message { color: #2ecc71; margin-top: 10px; font-weight: bold; }
         .hidden { display: none !important; }
 
-        /* Header and Navigation */
         #app-header { background: #34495e; color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #3498db; }
         #app-header h1 { margin: 0; font-size: 24px; }
         #app-header nav ul { list-style: none; margin: 0; padding: 0; display: flex; }
@@ -38,12 +36,77 @@
         #user-info button { background-color: #e74c3c; }
         #user-info button:hover { background-color: #c0392b; }
 
-        /* Admin Dashboard specific styles */
         #admin-dashboard-section h2 { margin-bottom: 20px; }
         #admin-dashboard-section .admin-section-block { background: #fdfdfd; border: 1px solid #eee; border-radius: 8px; padding: 25px; margin-bottom: 20px; }
         #admin-dashboard-section .admin-section-block h3 { margin-top: 0; color: #3498db; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 20px; }
 
-        /* Dashboard Metrics */
+        .user-table-container {
+            overflow-x: auto;
+        }
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            font-size: 0.9em;
+        }
+        .data-table th, .data-table td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+            vertical-align: top;
+        }
+        .data-table th {
+            background-color: #ecf0f1;
+            font-weight: bold;
+            color: #34495e;
+        }
+        .data-table td .actions button, .data-table td .status-badge {
+            padding: 5px 10px;
+            font-size: 0.85em;
+            margin: 2px;
+            border-radius: 4px;
+            white-space: nowrap;
+        }
+        .data-table td .actions button.approve { background-color: #2ecc71; }
+        .data-table td .actions button.deny { background-color: #e74c3c; }
+        .data-table td .actions button.suspend { background-color: #f39c12; }
+        .data-table td .actions button.reactivate { background-color: #3498db; }
+        .data-table td .actions button.edit-role { background-color: #9b59b6; }
+        .data-table td .actions button.delete-user { background-color: #c0392b; }
+
+        .status-badge {
+            display: inline-block;
+            min-width: 70px;
+            text-align: center;
+            font-weight: bold;
+            color: white;
+            background-color: #ccc;
+        }
+        .status-badge.pending { background-color: #f39c12; }
+        .status-badge.approved, .status-badge.employee, .status-badge.active { background-color: #2ecc71; }
+        .status-badge.admin { background-color: #3498db; }
+        .status-badge.denied, .status-badge.suspended { background-color: #e74c3c; }
+        .status-badge.married, .status-badge.inactive { background-color: #95a5a6; }
+
+        .profile-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; margin-top: 20px; }
+        .profile-card { background: #f9f9f9; border: 1px solid #e0e0e0; border-radius: 8px; padding: 20px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .profile-card img { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; margin-bottom: 15px; border: 3px solid #3498db; }
+        .profile-card h3 { margin-top: 0; margin-bottom: 10px; color: #3498db; }
+        .profile-card p { margin: 5px 0; font-size: 15px; color: #555; }
+        .profile-card .actions button { margin-top: 15px; margin-right: 10px; }
+        .profile-card .actions button.edit { background-color: #f39c12; }
+        .profile-card .actions button.edit:hover { background-color: #e67e22; }
+        .profile-card .actions button.delete { background-color: #e74c3c; }
+        .profile-card .actions button.delete:hover { background-color: #c0392b; }
+        .profile-card .actions button.married { background-color: #e67e22; }
+        .profile-card .actions button.married:hover { background-color: #d35400; }
+        .profile-card .actions button.deactivate { background-color: #f39c12; }
+        .profile-card .actions button.deactivate:hover { background-color: #e67e22; }
+        .profile-card .actions button.reactivate { background-color: #2ecc71; }
+        .profile-card .actions button.reactivate:hover { background-color: #27ae60; }
+
+        .no-profiles { text-align: center; color: #777; font-style: italic; margin-top: 30px; }
+
         .metrics-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -68,7 +131,6 @@
             color: #555;
         }
 
-        /* Quick Links / Actions */
         .quick-links {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -76,7 +138,7 @@
             margin-top: 20px;
         }
         .quick-link-card {
-            background: #eaf3f8; /* Lighter blue/grey */
+            background: #eaf3f8;
             padding: 20px;
             border-radius: 8px;
             text-align: center;
@@ -92,7 +154,7 @@
             color: #2c3e50;
             font-weight: bold;
             font-size: 1.1em;
-            display: block; /* Make the whole card clickable */
+            display: block;
         }
         .quick-link-card .icon {
             font-size: 2em;
@@ -101,7 +163,7 @@
         }
         .recent-activity-list {
             margin-top: 20px;
-            max-height: 250px; /* Limit height for summary */
+            max-height: 250px;
             overflow-y: auto;
             border: 1px solid #eee;
             border-radius: 5px;
@@ -211,11 +273,6 @@
                         <p class="no-profiles">No recent activity to display.</p>
                     </div>
                 </div>
-
-                <!-- Global Change History section (removed) -->
-                <!-- User Management section (removed) -->
-                <!-- All Profiles section (removed) -->
-
             </section>
         </div>
     </div>
@@ -257,7 +314,6 @@
 
         const recentActivityListDiv = document.getElementById('recent-activity-list');
 
-
         function showMessage(element, message, isSuccess = true) {
             element.textContent = message;
             element.classList.remove('hidden');
@@ -289,8 +345,8 @@
                 try {
                     const userDoc = await getDoc(doc(db, 'users', user.uid));
                     const userData = userDoc.exists() ? userDoc.data() : {};
-                    currentUserRole = userData.role;
-                    const userStatus = userData.status;
+                    currentUserRole = userData.role || null; // Default to null if not found
+                    const userStatus = userData.status || null; // Default to null if not found
 
                     if (userStatus === 'pending') {
                         window.location.href = 'pending.html';
@@ -304,7 +360,7 @@
                         return;
                     }
                 } catch (error) {
-                    console.error("Error fetching user role/status:", error);
+                    console.error("Error fetching user role/status:", error.message || error); // Log error message for better diagnosis
                     alert('Error verifying user role. Redirecting to login.');
                     await signOut(auth);
                     window.location.href = 'index.html';
@@ -333,7 +389,6 @@
             }
         });
 
-        // --- Dashboard Metrics ---
         async function fetchDashboardMetrics() {
             try {
                 const profilesSnapshot = await getDocs(collection(db, 'profiles'));
@@ -369,7 +424,6 @@
             }
         }
 
-        // --- Recent Activity Feed ---
         async function fetchRecentActivity() {
             recentActivityListDiv.innerHTML = '<p class="no-profiles">Loading recent activity...</p>';
             try {
