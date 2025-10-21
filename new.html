@@ -292,15 +292,13 @@
 
                     if (userStatus !== 'approved' || currentUserRole !== 'admin') {
                         alert('Access Denied. You do not have permission to view this page.');
-                        window.location.href = 'index.html'; // Redirect non-admins
+                        window.location.href = 'index.html';
                         return;
                     }
 
-                    // Update UI with user info
                     dom.sidebarUserEmail.textContent = user.email;
                     dom.sidebarUserRole.textContent = currentUserRole;
-                    // Assuming you have a placeholder for avatar
-                    // dom.sidebarAvatar.src = user.photoURL || 'default-avatar.png';
+                    dom.sidebarAvatar.src = user.photoURL || 'https://via.placeholder.com/40';
 
                     await fetchDashboardData();
                     dom.skeletonLoader.style.display = 'none';
@@ -373,7 +371,7 @@
         async function fetchRecentlyAddedProfiles() {
             dom.recentlyAddedProfilesList.innerHTML = '<p class="placeholder-text">Loading...</p>';
             try {
-                const q = query(collection(db, 'profiles'), orderBy('createdAt', 'desc'), limit(5));
+                const q = query(collection(db, 'profiles'), orderBy('createdAt', 'desc'), limit(3));
                 const snapshot = await getDocs(q);
 
                 if (snapshot.empty) {
@@ -436,9 +434,7 @@
 
                 if (profilesByMonthChart) profilesByMonthChart.destroy();
 
-                // FIX APPLIED HERE
-                const gridColor = getComputedStyle(document.documentElement).getPropertyValue('--border-color').trim();
-
+                // CORRECTED CHART CONFIGURATION
                 profilesByMonthChart = new Chart(dom.profilesByMonthChartCtx, {
                     type: 'bar',
                     data: {
@@ -457,15 +453,13 @@
                         scales: { 
                             y: { 
                                 beginAtZero: true, 
-                                grid: { color: gridColor } 
+                                grid: { color: '#E5E7EB' } // Hardcoded color value
                             }, 
                             x: { 
                                 grid: { display: false } 
                             } 
                         },
-                        plugins: { 
-                            legend: { display: false } 
-                        }
+                        plugins: { legend: { display: false } }
                     }
                 });
             } catch (error) {
