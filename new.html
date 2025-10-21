@@ -436,6 +436,9 @@
 
                 if (profilesByMonthChart) profilesByMonthChart.destroy();
 
+                // FIX APPLIED HERE
+                const gridColor = getComputedStyle(document.documentElement).getPropertyValue('--border-color').trim();
+
                 profilesByMonthChart = new Chart(dom.profilesByMonthChartCtx, {
                     type: 'bar',
                     data: {
@@ -451,8 +454,18 @@
                     },
                     options: {
                         responsive: true,
-                        scales: { y: { beginAtZero: true, grid: { color: var(--border-color) } }, x: { grid: { display: false } } },
-                        plugins: { legend: { display: false } }
+                        scales: { 
+                            y: { 
+                                beginAtZero: true, 
+                                grid: { color: gridColor } 
+                            }, 
+                            x: { 
+                                grid: { display: false } 
+                            } 
+                        },
+                        plugins: { 
+                            legend: { display: false } 
+                        }
                     }
                 });
             } catch (error) {
