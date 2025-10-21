@@ -3,261 +3,177 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Matrimony Portal - Admin Dashboard</title>
+    <title>Matrimony Portal - Login/Signup</title>
     <script type="module" src="https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js"></script>
     <script type="module" src="https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js"></script>
     <script type="module" src="https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js"></script>
-    <script type="module" src="https://www.gstatic.com/firebasejs/12.4.0/firebase-storage.js"></script>
 
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background: #f4f7f6; color: #333; }
-        .container { max-width: 1200px; margin: 20px auto; background: #fff; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); padding: 30px; }
-        h1, h2, h3 { color: #2c3e50; margin-top: 0; }
-        button { background-color: #3498db; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; transition: background-color 0.2s ease; }
-        button:hover { background-color: #2980b9; }
-        button:disabled { background-color: #cccccc; cursor: not-allowed; }
-        input[type="text"], input[type="email"], input[type="password"], input[type="number"], input[type="date"], textarea, select {
-            width: calc(100% - 22px); padding: 10px; margin: 8px 0; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; font-size: 16px;
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f4f7f6;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background: linear-gradient(to right, #4facfe 0%, #00f2fe 100%);
         }
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; color: #555; }
-        .error-message { color: #e74c3c; margin-top: 10px; font-weight: bold; }
-        .success-message { color: #2ecc71; margin-top: 10px; font-weight: bold; }
-        .hidden { display: none !important; }
 
-        #app-header { background: #34495e; color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #3498db; }
-        #app-header h1 { margin: 0; font-size: 24px; }
-        #app-header nav ul { list-style: none; margin: 0; padding: 0; display: flex; }
-        #app-header nav li { margin-left: 20px; }
-        #app-header nav a { color: white; text-decoration: none; font-weight: bold; font-size: 17px; transition: color 0.2s ease; }
-        #app-header nav a:hover, #app-header nav a.active { color: #3498db; }
-        #user-info { display: flex; align-items: center; }
-        #user-info span { margin-right: 15px; font-size: 15px; }
-        #user-info button { background-color: #e74c3c; }
-        #user-info button:hover { background-color: #c0392b; }
-
-        #admin-dashboard-section h2 { margin-bottom: 20px; }
-        #admin-dashboard-section .admin-section-block { background: #fdfdfd; border: 1px solid #eee; border-radius: 8px; padding: 25px; margin-bottom: 20px; }
-        #admin-dashboard-section .admin-section-block h3 { margin-top: 0; color: #3498db; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 20px; }
-
-        .user-table-container, .change-history-container {
-            overflow-x: auto;
-        }
-        .data-table {
+        .auth-container {
+            background: #fff;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
             width: 100%;
-            border-collapse: collapse;
-            margin-top: 15px;
-            font-size: 0.9em;
+            max-width: 400px;
+            text-align: center;
         }
-        .data-table th, .data-table td {
-            border: 1px solid #ddd;
-            padding: 10px;
+
+        h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
             text-align: left;
-            vertical-align: top;
         }
-        .data-table th {
-            background-color: #ecf0f1;
-            font-weight: bold;
-            color: #34495e;
-        }
-        .data-table td .actions button, .data-table td .status-badge {
-            padding: 5px 10px;
-            font-size: 0.85em;
-            margin: 2px;
-            border-radius: 4px;
-            white-space: nowrap;
-        }
-        .data-table td .actions button.approve { background-color: #2ecc71; }
-        .data-table td .actions button.deny { background-color: #e74c3c; }
-        .data-table td .actions button.suspend { background-color: #f39c12; }
-        .data-table td .actions button.reactivate { background-color: #3498db; }
-        .data-table td .actions button.edit-role { background-color: #9b59b6; }
-        .data-table td .actions button.delete-user { background-color: #c0392b; }
 
-        .status-badge {
-            display: inline-block;
-            min-width: 70px;
-            text-align: center;
-            font-weight: bold;
-            color: white;
-            background-color: #ccc;
-        }
-        .status-badge.pending { background-color: #f39c12; }
-        .status-badge.approved, .status-badge.employee, .status-badge.active { background-color: #2ecc71; }
-        .status-badge.admin { background-color: #3498db; }
-        .status-badge.denied, .status-badge.suspended { background-color: #e74c3c; }
-        .status-badge.married, .status-badge.inactive { background-color: #95a5a6; }
-
-
-        #change-history-list { margin-top: 20px; max-height: 400px; overflow-y: auto; border: 1px solid #eee; border-radius: 5px; padding: 15px; background: #f8f8f8; }
-        #change-history-list div { padding: 10px 0; border-bottom: 1px dashed #eee; font-size: 14px; color: #666; }
-        #change-history-list div:last-child { border-bottom: none; }
-        #change-history-list div strong { color: #333; }
-        #change-history-list div .timestamp { font-size: 12px; color: #999; margin-left: 10px; }
-
-        .profile-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; margin-top: 20px; }
-        .profile-card { background: #f9f9f9; border: 1px solid #e0e0e0; border-radius: 8px; padding: 20px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .profile-card img { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; margin-bottom: 15px; border: 3px solid #3498db; }
-        .profile-card h3 { margin-top: 0; margin-bottom: 10px; color: #3498db; }
-        .profile-card p { margin: 5px 0; font-size: 15px; color: #555; }
-        .profile-card .actions button { margin-top: 15px; margin-right: 10px; }
-        .profile-card .actions button.edit { background-color: #f39c12; }
-        .profile-card .actions button.edit:hover { background-color: #e67e22; }
-        .profile-card .actions button.delete { background-color: #e74c3c; }
-        .profile-card .actions button.delete:hover { background-color: #c0392b; }
-        .profile-card .actions button.married { background-color: #e67e22; }
-        .profile-card .actions button.married:hover { background-color: #d35400; }
-        .profile-card .actions button.deactivate { background-color: #f39c12; }
-        .profile-card .actions button.deactivate:hover { background-color: #e67e22; }
-        .profile-card .actions button.reactivate { background-color: #2ecc71; }
-        .profile-card .actions button.reactivate:hover { background-color: #27ae60; }
-
-        .no-profiles { text-align: center; color: #777; font-style: italic; margin-top: 30px; }
-
-        .metrics-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-top: 20px;
-        }
-        .metric-card {
-            background: #ecf0f1;
-            padding: 20px;
-            border-radius: 8px;
-            text-align: center;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        }
-        .metric-card .value {
-            font-size: 2.5em;
-            font-weight: bold;
-            color: #3498db;
+        .form-group label {
+            display: block;
             margin-bottom: 5px;
-        }
-        .metric-card .label {
-            font-size: 1em;
+            font-weight: bold;
             color: #555;
+        }
+
+        input[type="email"],
+        input[type="password"] {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin: 8px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+
+        button {
+            background-color: #3498db;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.2s ease;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        button:disabled {
+            background-color: #a0c4ff;
+            cursor: not-allowed;
+        }
+        
+        #google-login-btn {
+            background-color: #db4437;
+            margin-top: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        #google-login-btn:hover {
+            background-color: #c0392b;
+        }
+
+        #google-login-btn img {
+            width: 20px;
+            height: 20px;
+        }
+
+        .error-message {
+            color: #e74c3c;
+            margin-top: 10px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .toggle-auth {
+            margin-top: 20px;
+            font-size: 14px;
+            color: #555;
+        }
+        .toggle-auth a {
+            color: #3498db;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .toggle-auth a:hover {
+            text-decoration: underline;
         }
     </style>
 </head>
 <body>
-    <div id="app-content">
-        <header id="app-header">
-            <h1>Matrimony Portal</h1>
-            <nav>
-                <ul>
-                    <li><a href="create-profile.html" id="nav-create-profile">Create Profile</a></li>
-                    <li><a href="search-profiles.html" id="nav-search-profile">Search Profiles</a></li>
-                    <li id="nav-admin-panel-item"><a href="admin-dashboard.html" id="nav-admin-panel" class="active">Admin Dashboard</a></li>
-                </ul>
-            </nav>
-            <div id="user-info">
-                <span>Welcome, <strong id="current-user-email"></strong> (<span id="current-user-role"></span>)</span>
-                <button id="logout-btn">Logout</button>
+    <div class="auth-container">
+        <h2 id="auth-title">Matrimony Portal Login</h2>
+
+        <div id="login-form-area">
+            <div class="form-group">
+                <label for="login-email">Email:</label>
+                <input type="email" id="login-email" placeholder="Enter your email" required>
             </div>
-        </header>
-
-        <div class="container">
-            <section id="admin-dashboard-section">
-                <h2>Admin Dashboard</h2>
-                <p id="admin-global-message" class="success-message hidden"></p>
-
-                <div class="admin-section-block">
-                    <h3>Dashboard Metrics</h3>
-                    <div class="metrics-grid">
-                        <div class="metric-card">
-                            <div class="value" id="total-profiles-metric">0</div>
-                            <div class="label">Total Profiles</div>
-                        </div>
-                        <div class="metric-card">
-                            <div class="value" id="active-profiles-metric">0</div>
-                            <div class="label">Active Profiles</div>
-                        </div>
-                        <div class="metric-card">
-                            <div class="value" id="married-profiles-metric">0</div>
-                            <div class="label">Married Profiles</div>
-                        </div>
-                        <div class="metric-card">
-                            <div class="value" id="pending-users-metric">0</div>
-                            <div class="label">Pending Users</div>
-                        </div>
-                        <div class="metric-card">
-                            <div class="value" id="total-users-metric">0</div>
-                            <div class="label">Total Registered Users</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="admin-section-block">
-                    <h3>User Management</h3>
-                    <p id="user-management-message" class="success-message hidden"></p>
-                    <div class="user-table-container">
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Email</th>
-                                    <th>Role</th>
-                                    <th>Status</th>
-                                    <th>Created At</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="all-users-table-body">
-                                <tr><td colspan="5" class="no-profiles">Loading users...</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <div class="admin-section-block">
-                    <h3>All Profiles</h3>
-                    <p id="admin-profile-message" class="success-message hidden"></p>
-                    <div id="all-profiles-list" class="profile-list">
-                        <p class="no-profiles">Loading profiles...</p>
-                    </div>
-                </div>
-
-                <div class="admin-section-block" id="change-history-block">
-                    <h3>Global Change History</h3>
-                    <div class="filter-options form-group">
-                        <label for="history-filter-user">Filter by User Email:</label>
-                        <input type="text" id="history-filter-user" placeholder="e.g., admin@example.com">
-                        <label for="history-filter-action">Filter by Action:</label>
-                        <select id="history-filter-action">
-                            <option value="">Any Action</option>
-                            <option value="add">Add</option>
-                            <option value="edit">Edit</option>
-                            <option value="delete">Delete</option>
-                            <option value="approve">Approve User</option>
-                            <option value="deny">Deny User</option>
-                            <option value="suspend">Suspend User</option>
-                            <option value="reactivate">Reactivate User</option>
-                            <option value="update_profile_status">Update Profile Status</option>
-                            <option value="update_user_role">Update User Role</option>
-                        </select>
-                         <label for="history-filter-entity">Filter by Entity Type:</label>
-                        <select id="history-filter-entity">
-                            <option value="">Any Entity</option>
-                            <option value="profile">Profile</option>
-                            <option value="user">User</option>
-                            <option value="profile_status">Profile Status</option>
-                            <option value="user_role">User Role</option>
-                        </select>
-                        <button id="apply-history-filters-btn" style="width: auto;">Apply Filters</button>
-                        <button id="reset-history-filters-btn" style="width: auto; background-color: #7f8c8d;">Reset Filters</button>
-                    </div>
-                    <div id="change-history-list">
-                        <p class="no-profiles">No change history to display.</p>
-                    </div>
-                </div>
-            </section>
+            <div class="form-group">
+                <label for="login-password">Password:</label>
+                <input type="password" id="login-password" placeholder="Enter your password" required>
+            </div>
+            <p id="auth-error" class="error-message hidden"></p>
+            <button id="login-btn">Login</button>
+            <button id="google-login-btn">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google icon">
+                Sign in with Google
+            </button>
+            <p class="toggle-auth">Don't have an account? <a href="#" id="show-signup">Sign up</a></p>
         </div>
+
+        <div id="signup-form-area" class="hidden">
+            <div class="form-group">
+                <label for="signup-email">Email:</label>
+                <input type="email" id="signup-email" placeholder="Enter your email" required>
+            </div>
+            <div class="form-group">
+                <label for="signup-password">Password:</label>
+                <input type="password" id="signup-password" placeholder="Create a password" required>
+            </div>
+            <p id="signup-error" class="error-message hidden"></p>
+            <button id="signup-btn">Sign Up</button>
+            <p class="toggle-auth">Already have an account? <a href="#" id="show-login">Login</a></p>
+        </div>
+
+        <p style="text-align: center; margin-top: 20px; font-size: 14px; color: #777;">
+            For demo: Use 'admin@example.com' (password: 123456) for admin access.<br>
+            Or 'employee@example.com' (password: 123456) for employee access.<br>
+        </p>
     </div>
 
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js';
-        import { getAuth, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js';
-        import { getFirestore, collection, addDoc, getDoc, getDocs, updateDoc, deleteDoc, doc, query, where, orderBy, limit, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js';
-        import { getStorage, ref, deleteObject } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-storage.js';
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js';
+        import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js';
 
         const firebaseConfig = {
             apiKey: "AIzaSyAuxA-e71uX_uLDe6oyFU69q-eLfgUzbXA",
@@ -272,571 +188,179 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        const storage = getStorage(app);
+        const googleProvider = new GoogleAuthProvider();
 
-        let currentUser = null;
-        let currentUserRole = null;
-        const hardcodedMatrimonyGroups = [
-            { id: 'US', name: 'US' },
-            { id: 'BY_OTHERS', name: 'BY OTHERS' }
-        ];
+        const authTitle = document.getElementById('auth-title');
+        const loginFormArea = document.getElementById('login-form-area');
+        const signupFormArea = document.getElementById('signup-form-area');
 
-        const currentUserEmailSpan = document.getElementById('current-user-email');
-        const currentUserRoleSpan = document.getElementById('current-user-role');
-        const logoutBtn = document.getElementById('logout-btn');
+        const loginEmailInput = document.getElementById('login-email');
+        const loginPasswordInput = document.getElementById('login-password');
+        const loginBtn = document.getElementById('login-btn');
+        const googleLoginBtn = document.getElementById('google-login-btn');
+        const authError = document.getElementById('auth-error');
 
-        const navAdminPanelItem = document.getElementById('nav-admin-panel-item');
+        const signupEmailInput = document.getElementById('signup-email');
+        const signupPasswordInput = document.getElementById('signup-password');
+        const signupBtn = document.getElementById('signup-btn');
+        const signupError = document.getElementById('signup-error');
 
-        const adminGlobalMessage = document.getElementById('admin-global-message');
+        const showSignupLink = document.getElementById('show-signup');
+        const showLoginLink = document.getElementById('show-login');
 
-        const totalProfilesMetric = document.getElementById('total-profiles-metric');
-        const activeProfilesMetric = document.getElementById('active-profiles-metric');
-        const marriedProfilesMetric = document.getElementById('married-profiles-metric');
-        const pendingUsersMetric = document.getElementById('pending-users-metric');
-        const totalUsersMetric = document.getElementById('total-users-metric');
-
-
-        const allUsersTableBody = document.getElementById('all-users-table-body');
-        const userManagementMessage = document.getElementById('user-management-message');
-
-        const allProfilesListDiv = document.getElementById('all-profiles-list');
-        const adminProfileMessage = document.getElementById('admin-profile-message');
-
-        const changeHistoryBlock = document.getElementById('change-history-block');
-        const changeHistoryListDiv = document.getElementById('change-history-list');
-        const historyFilterUser = document.getElementById('history-filter-user');
-        const historyFilterAction = document.getElementById('history-filter-action');
-        const historyFilterEntity = document.getElementById('history-filter-entity');
-        const applyHistoryFiltersBtn = document.getElementById('apply-history-filters-btn');
-        const resetHistoryFiltersBtn = document.getElementById('reset-history-filters-btn');
-
-
-        function showMessage(element, message, isSuccess = true) {
+        function showAuthMessage(element, message) {
             element.textContent = message;
             element.classList.remove('hidden');
-            element.classList.toggle('success-message', isSuccess);
-            element.classList.toggle('error-message', !isSuccess);
             setTimeout(() => element.classList.add('hidden'), 5000);
         }
 
-        async function logChange(action, entityType, entityId, details = {}) {
-            if (!currentUser) return;
+        function toggleAuthMode(showLogin) {
+            if (showLogin) {
+                authTitle.textContent = 'Matrimony Portal Login';
+                loginFormArea.classList.remove('hidden');
+                signupFormArea.classList.add('hidden');
+                authError.classList.add('hidden');
+                signupError.classList.add('hidden');
+            } else {
+                authTitle.textContent = 'Matrimony Portal Sign Up';
+                loginFormArea.classList.add('hidden');
+                signupFormArea.classList.remove('hidden');
+                authError.classList.add('hidden');
+                signupError.classList.add('hidden');
+            }
+        }
+
+        showSignupLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            toggleAuthMode(false);
+        });
+
+        showLoginLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            toggleAuthMode(true);
+        });
+
+        loginBtn.addEventListener('click', async () => {
+            const email = loginEmailInput.value;
+            const password = loginPasswordInput.value;
+            authError.classList.add('hidden');
+
+            if (!email || !password) {
+                showAuthMessage(authError, 'Please enter both email and password.');
+                return;
+            }
+
             try {
-                await addDoc(collection(db, 'changeHistory'), {
-                    action,
-                    entityType,
-                    entityId,
-                    userId: currentUser.uid,
-                    userEmail: currentUser.email,
-                    timestamp: serverTimestamp(),
-                    details: JSON.stringify(details)
+                await signInWithEmailAndPassword(auth, email, password);
+            } catch (error) {
+                console.error("Login failed:", error);
+                showAuthMessage(authError, `Login failed: ${error.message}`);
+            }
+        });
+
+        googleLoginBtn.addEventListener('click', async () => {
+            authError.classList.add('hidden');
+            try {
+                const result = await signInWithPopup(auth, googleProvider);
+                const user = result.user;
+
+                const userDocRef = doc(db, 'users', user.uid);
+                const userDocSnap = await getDoc(userDocRef);
+
+                if (!userDocSnap.exists()) {
+                    await setDoc(userDocRef, {
+                        email: user.email,
+                        role: 'pending',
+                        status: 'pending',
+                        createdAt: serverTimestamp(),
+                    });
+                }
+            } catch (error) {
+                console.error("Google login failed:", error);
+                showAuthMessage(authError, `Google login failed: ${error.message}`);
+            }
+        });
+
+        signupBtn.addEventListener('click', async () => {
+            const email = signupEmailInput.value;
+            const password = signupPasswordInput.value;
+            signupError.classList.add('hidden');
+
+            if (!email || !password) {
+                showAuthMessage(signupError, 'Please enter both email and password.');
+                return;
+            }
+            if (password.length < 6) {
+                showAuthMessage(signupError, 'Password must be at least 6 characters long.');
+                return;
+            }
+
+            try {
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
+
+                await setDoc(doc(db, 'users', user.uid), {
+                    email: user.email,
+                    role: 'pending',
+                    status: 'pending',
+                    createdAt: serverTimestamp(),
                 });
             } catch (error) {
-                console.error("Error logging global change:", error);
+                console.error("Signup failed:", error);
+                showAuthMessage(signupError, `Signup failed: ${error.message}`);
             }
-        }
-
-        async function logProfileFieldChange(profileId, fieldName, oldValue, newValue) {
-            if (!currentUser || oldValue === newValue) return;
-
-            try {
-                await addDoc(collection(db, 'profiles', profileId, 'history'), {
-                    fieldName,
-                    oldValue,
-                    newValue,
-                    changedByUid: currentUser.uid,
-                    changedByEmail: currentUser.email,
-                    timestamp: serverTimestamp(),
-                });
-            } catch (error) {
-                console.error(`Error logging field change for ${fieldName}:`, error);
-            }
-        }
-        
-        function getMatrimonyGroupName(groupId) {
-            if (!groupId) {
-                return 'Not Specified';
-            }
-            const group = hardcodedMatrimonyGroups.find(g => g.id === groupId);
-            return group ? group.name : 'Unknown Group';
-        }
-
-        function calculateAge(dateOfBirthString) {
-            if (!dateOfBirthString) return 'N/A';
-            const dob = new Date(dateOfBirthString);
-            const today = new Date();
-            let age = today.getFullYear() - dob.getFullYear();
-            const monthDiff = today.getMonth() - dob.getMonth();
-            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
-                age--;
-            }
-            return age;
-        }
+        });
 
         onAuthStateChanged(auth, async (user) => {
             if (user) {
-                currentUser = user;
                 try {
-                    const userDoc = await getDoc(doc(db, 'users', user.uid));
-                    const userData = userDoc.exists() ? userDoc.data() : {};
-                    currentUserRole = userData.role;
+                    const userDocRef = doc(db, 'users', user.uid);
+                    let userDoc = await getDoc(userDocRef);
+
+                    if (!userDoc.exists()) {
+                        console.warn("User document not found immediately after auth. Attempting to create/retry.");
+                        await new Promise(resolve => setTimeout(resolve, 500));
+                        userDoc = await getDoc(userDocRef);
+
+                        if (!userDoc.exists()) {
+                            await setDoc(userDocRef, {
+                                email: user.email,
+                                role: 'pending',
+                                status: 'pending',
+                                createdAt: serverTimestamp(),
+                            });
+                            userDoc = await getDoc(userDocRef);
+                            console.log("Created missing user document as pending.");
+                        }
+                    }
+
+                    const userData = userDoc.data();
                     const userStatus = userData.status;
+                    const userRole = userData.role;
 
                     if (userStatus === 'pending') {
                         window.location.href = 'pending.html';
-                        return;
-                    } else if (userStatus === 'denied' || userStatus === 'suspended') {
-                        window.location.href = 'denied.html';
-                        return;
-                    } else if (currentUserRole !== 'admin') {
-                        alert('You do not have sufficient permissions to access the Admin Dashboard. Redirecting to employee dashboard.');
+                    } else if (userStatus === 'denied' || userStatus === 'suspended') { // Handle suspended here
+                        window.location.href = 'denied.html'; // Or a dedicated suspended.html
+                    } else if (userRole === 'admin') {
+                        window.location.href = 'admin-dashboard.html';
+                    } else if (userRole === 'employee') {
                         window.location.href = 'employee-dashboard.html';
-                        return;
+                    } else {
+                        window.location.href = 'employee-dashboard.html';
                     }
                 } catch (error) {
-                    console.error("Error fetching user role/status:", error);
-                    alert('Error verifying user role. Redirecting to login.');
+                    console.error("Error checking user status/role:", error);
+                    alert("Account status verification error. Please try again. Logging out.");
                     await signOut(auth);
                     window.location.href = 'index.html';
-                    return;
                 }
-
-                currentUserEmailSpan.textContent = user.email;
-                currentUserRoleSpan.textContent = currentUserRole;
-
-                navAdminPanelItem.classList.remove('hidden');
-
-                fetchDashboardMetrics();
-                fetchAllUsers();
-                fetchAllProfilesForAdmin();
-                fetchChangeHistory();
-
-            } else {
-                window.location.href = 'index.html';
             }
         });
 
-        logoutBtn.addEventListener('click', async () => {
-            try {
-                await signOut(auth);
-                window.location.href = 'index.html';
-            } catch (error) {
-                console.error("Error signing out:", error);
-            }
+        document.addEventListener('DOMContentLoaded', () => {
+            toggleAuthMode(true);
         });
-
-        async function fetchDashboardMetrics() {
-            try {
-                const profilesSnapshot = await getDocs(collection(db, 'profiles'));
-                let totalProfiles = 0;
-                let activeProfiles = 0;
-                let marriedProfiles = 0;
-
-                profilesSnapshot.forEach(doc => {
-                    totalProfiles++;
-                    const status = doc.data().profileStatus;
-                    if (status === 'active') activeProfiles++;
-                    if (status === 'married') marriedProfiles++;
-                });
-
-                const usersSnapshot = await getDocs(collection(db, 'users'));
-                let totalUsers = 0;
-                let pendingUsers = 0;
-
-                usersSnapshot.forEach(doc => {
-                    totalUsers++;
-                    if (doc.data().status === 'pending') pendingUsers++;
-                });
-
-                totalProfilesMetric.textContent = totalProfiles;
-                activeProfilesMetric.textContent = activeProfiles;
-                marriedProfilesMetric.textContent = marriedProfiles;
-                totalUsersMetric.textContent = totalUsers;
-                pendingUsersMetric.textContent = pendingUsers;
-
-            } catch (error) {
-                console.error("Error fetching dashboard metrics:", error);
-                showMessage(adminGlobalMessage, `Error loading metrics: ${error.message}`, false);
-            }
-        }
-
-
-        async function fetchAllUsers() {
-            allUsersTableBody.innerHTML = '<tr><td colspan="5" class="no-profiles">Loading users...</td></tr>';
-            try {
-                const q = query(collection(db, 'users'), orderBy('createdAt', 'desc'));
-                const snapshot = await getDocs(q);
-
-                if (snapshot.empty) {
-                    allUsersTableBody.innerHTML = '<tr><td colspan="5" class="no-profiles">No registered users.</td></tr>';
-                    return;
-                }
-
-                allUsersTableBody.innerHTML = '';
-                snapshot.docs.forEach(userDoc => {
-                    const user = { id: userDoc.id, ...userDoc.data() };
-                    const createdAt = user.createdAt ? new Date(user.createdAt.toDate()).toLocaleString() : 'N/A';
-                    const row = document.createElement('tr');
-
-                    let statusClass = '';
-                    switch (user.status) {
-                        case 'pending': statusClass = 'pending'; break;
-                        case 'approved': statusClass = 'approved'; break;
-                        case 'denied': statusClass = 'denied'; break;
-                        case 'suspended': statusClass = 'suspended'; break;
-                        default: statusClass = ''; break;
-                    }
-                     let roleClass = '';
-                    switch (user.role) {
-                        case 'admin': roleClass = 'admin'; break;
-                        case 'employee': roleClass = 'employee'; break;
-                        case 'pending': roleClass = 'pending'; break;
-                        case 'denied': roleClass = 'denied'; break;
-                        default: roleClass = ''; break;
-                    }
-
-                    row.innerHTML = `
-                        <td>${user.email}</td>
-                        <td><span class="status-badge ${roleClass}">${user.role || 'N/A'}</span></td>
-                        <td><span class="status-badge ${statusClass}">${user.status || 'N/A'}</span></td>
-                        <td>${createdAt}</td>
-                        <td>
-                            <div class="actions">
-                                ${user.status === 'pending' ? `<button class="approve" data-uid="${user.id}">Approve</button>` : ''}
-                                ${user.status !== 'denied' ? `<button class="deny" data-uid="${user.id}">Deny</button>` : ''}
-                                ${user.status === 'approved' || user.status === 'employee' ? `<button class="suspend" data-uid="${user.id}">Suspend</button>` : ''}
-                                ${user.status === 'suspended' || user.status === 'denied' ? `<button class="reactivate" data-uid="${user.id}">Reactivate</button>` : ''}
-                                ${user.id !== currentUser.uid ? `<button class="edit-role" data-uid="${user.id}" data-current-role="${user.role}">Edit Role</button>` : ''}
-                                ${user.id !== currentUser.uid ? `<button class="delete-user" data-uid="${user.id}">Delete Account</button>` : ''}
-                            </div>
-                        </td>
-                    `;
-                    allUsersTableBody.appendChild(row);
-                });
-
-                allUsersTableBody.querySelectorAll('button.approve').forEach(button => {
-                    button.addEventListener('click', (e) => approveUser(e.target.dataset.uid));
-                });
-                allUsersTableBody.querySelectorAll('button.deny').forEach(button => {
-                    button.addEventListener('click', (e) => denyUser(e.target.dataset.uid));
-                });
-                allUsersTableBody.querySelectorAll('button.suspend').forEach(button => {
-                    button.addEventListener('click', (e) => suspendUser(e.target.dataset.uid));
-                });
-                allUsersTableBody.querySelectorAll('button.reactivate').forEach(button => {
-                    button.addEventListener('click', (e) => reactivateUser(e.target.dataset.uid));
-                });
-                allUsersTableBody.querySelectorAll('button.edit-role').forEach(button => {
-                    button.addEventListener('click', (e) => editUserRole(e.target.dataset.uid, e.target.dataset.currentRole));
-                });
-                allUsersTableBody.querySelectorAll('button.delete-user').forEach(button => {
-                    button.addEventListener('click', (e) => deleteUser(e.target.dataset.uid));
-                });
-
-            } catch (error) {
-                console.error("Error fetching all users:", error);
-                showMessage(userManagementMessage, `Error loading users: ${error.message}`, false);
-                allUsersTableBody.innerHTML = '<tr><td colspan="5" class="no-profiles">Error loading users.</td></tr>';
-            }
-        }
-
-        async function updateUserStatusAndRole(uid, newStatus, newRole, actionType) {
-            if (!confirm(`Are you sure you want to ${actionType.toUpperCase()} user ${uid}?`)) return;
-
-            try {
-                const userDocRef = doc(db, 'users', uid);
-                const oldUserDoc = await getDoc(userDocRef);
-                const oldUserData = oldUserDoc.exists() ? oldUserDoc.data() : {};
-
-                await updateDoc(userDocRef, {
-                    role: newRole,
-                    status: newStatus,
-                    updatedAt: serverTimestamp(),
-                    updatedBy: currentUser.uid,
-                });
-                await logChange(actionType, 'user', uid, { oldRole: oldUserData.role, newRole: newRole, oldStatus: oldUserData.status, newStatus: newStatus });
-                showMessage(userManagementMessage, `User ${uid} ${actionType}d successfully!`, true);
-                fetchAllUsers();
-                fetchDashboardMetrics();
-            } catch (error) {
-                console.error(`Error ${actionType}ing user:`, error);
-                showMessage(userManagementMessage, `Error ${actionType}ing user: ${error.message}`, false);
-            }
-        }
-
-        async function approveUser(uid) { await updateUserStatusAndRole(uid, 'approved', 'employee', 'approve'); }
-        async function denyUser(uid) { await updateUserStatusAndRole(uid, 'denied', 'denied', 'deny'); }
-        async function suspendUser(uid) { await updateUserStatusAndRole(uid, 'suspended', 'suspended', 'suspend'); }
-        async function reactivateUser(uid) { await updateUserStatusAndRole(uid, 'approved', 'employee', 'reactivate'); }
-
-        async function editUserRole(uid, currentRole) {
-            const newRole = prompt(`Enter new role for user ${uid} (admin or employee):`, currentRole);
-            if (newRole === null) return;
-            if (newRole !== 'admin' && newRole !== 'employee') {
-                showMessage(userManagementMessage, 'Invalid role. Must be "admin" or "employee".', false);
-                return;
-            }
-
-            try {
-                const userDocRef = doc(db, 'users', uid);
-                const oldUserDoc = await getDoc(userDocRef);
-                const oldUserData = oldUserDoc.exists() ? oldUserDoc.data() : {};
-
-                const updates = {
-                    role: newRole,
-                    updatedAt: serverTimestamp(),
-                    updatedBy: currentUser.uid,
-                };
-
-                // If role is changing to admin/employee, ensure status is approved (unless it's already denied/suspended and admin wants to keep it that way for role edit only)
-                // This logic ensures if a denied/suspended user's role is edited to 'admin'/'employee', their status is also set to 'approved'.
-                // If they are currently 'pending', and role is set, they become 'approved'.
-                // If the admin *only* wants to change role and keep status denied/suspended, they would use the dedicated status buttons.
-                if (oldUserData.status === 'pending' || oldUserData.status === 'denied' || oldUserData.status === 'suspended') {
-                    updates.status = 'approved';
-                }
-
-
-                await updateDoc(userDocRef, updates);
-
-                await logChange('update_user_role', 'user', uid, { oldRole: oldUserData.role, newRole: newRole, oldStatus: oldUserData.status, newStatus: updates.status || oldUserData.status });
-                showMessage(userManagementMessage, `User ${uid} role updated to ${newRole}!`, true);
-                fetchAllUsers();
-                fetchDashboardMetrics();
-            } catch (error) {
-                console.error("Error editing user role:", error);
-                showMessage(userManagementMessage, `Error editing user role: ${error.message}`, false);
-            }
-        }
-
-        async function deleteUser(uid) {
-            if (!confirm(`WARNING: Are you sure you want to permanently DELETE user ${uid} and all associated data? This cannot be undone.`)) return;
-
-            try {
-                const userDocRef = doc(db, 'users', uid);
-                const userDoc = await getDoc(userDocRef);
-                const userData = userDoc.exists() ? userDoc.data() : {};
-
-                await deleteDoc(userDocRef);
-                await logChange('delete', 'user', uid, { deletedEmail: userData.email, deletedRole: userData.role });
-                
-                showMessage(userManagementMessage, `User ${uid} deleted successfully! (Auth account would also be deleted via Cloud Function in a real app)`, true);
-                fetchAllUsers();
-                fetchDashboardMetrics();
-            } catch (error) {
-                console.error("Error deleting user:", error);
-                showMessage(userManagementMessage, `Error deleting user: ${error.message}`, false);
-            }
-        }
-
-        async function fetchAllProfilesForAdmin() {
-            allProfilesListDiv.innerHTML = '<p class="no-profiles">Loading all profiles...</p>';
-            try {
-                const q = query(collection(db, 'profiles'), orderBy('name'));
-                const snapshot = await getDocs(q);
-                renderProfiles(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })), allProfilesListDiv, true);
-            } catch (error) {
-                console.error("Error fetching all profiles:", error);
-                adminProfileMessage.innerHTML = `<p class="error-message">Error loading profiles: ${error.message}</p>`;
-            }
-        }
-
-        function renderProfiles(profiles, targetDiv, showAdminActions = false) {
-            targetDiv.innerHTML = '';
-            if (profiles.length === 0) {
-                targetDiv.innerHTML = '<p class="no-profiles">No profiles found.</p>';
-                return;
-            }
-            profiles.forEach(profile => {
-                const matrimonyGroupName = getMatrimonyGroupName(profile.matrimonyGroupId);
-                const age = calculateAge(profile.dateOfBirth);
-                let statusClass = '';
-                switch (profile.profileStatus) {
-                    case 'active': statusClass = 'approved'; break;
-                    case 'married': statusClass = 'married'; break;
-                    case 'inactive': statusClass = 'inactive'; break;
-                    default: statusClass = ''; break;
-                }
-
-                const profileCard = document.createElement('div');
-                profileCard.className = 'profile-card';
-                profileCard.innerHTML = `
-                    <img src="${profile.photoURL || 'https://via.placeholder.com/120'}" alt="${profile.name}">
-                    <h3>${profile.name}</h3>
-                    <p><strong>Age:</strong> ${age}</p>
-                    <p><strong>Location:</strong> ${profile.location}</p>
-                    <p><strong>Group:</strong> ${matrimonyGroupName}</p>
-                    <p><strong>Status:</strong> <span class="status-badge ${statusClass}">${profile.profileStatus || 'N/A'}</span></p>
-                    <p>${profile.bio ? profile.bio.substring(0, 70) + '...' : 'No bio provided.'}</p>
-                    <div class="actions">
-                        <button class="view-profile-btn" data-id="${profile.id}">View Details</button>
-                        ${showAdminActions && (currentUserRole === 'admin' || currentUserRole === 'employee') ? `<button class="edit-profile-btn edit" data-id="${profile.id}">Edit</button>` : ''}
-                        ${showAdminActions && (currentUserRole === 'admin' || currentUserRole === 'employee') && profile.profileStatus !== 'married' ? `<button class="married" data-id="${profile.id}" data-status="married">Mark Married</button>` : ''}
-                        ${showAdminActions && (currentUserRole === 'admin' || currentUserRole === 'employee') && profile.profileStatus !== 'inactive' ? `<button class="deactivate" data-id="${profile.id}" data-status="inactive">Deactivate</button>` : ''}
-                        ${showAdminActions && currentUserRole === 'admin' && (profile.profileStatus === 'married' || profile.profileStatus === 'inactive') ? `<button class="reactivate" data-id="${profile.id}" data-status="active">Reactivate</button>` : ''}
-                        ${showAdminActions && currentUserRole === 'admin' ? `<button class="delete-profile-btn delete" data-id="${profile.id}">Delete</button>` : ''}
-                    </div>
-                `;
-                targetDiv.appendChild(profileCard);
-            });
-
-            targetDiv.querySelectorAll('.view-profile-btn').forEach(button => {
-                button.addEventListener('click', (e) => {
-                    window.location.href = `view-profile.html?profileId=${e.target.dataset.id}`;
-                });
-            });
-            targetDiv.querySelectorAll('.edit-profile-btn').forEach(button => {
-                button.addEventListener('click', (e) => {
-                    window.location.href = `create-profile.html?profileId=${e.target.dataset.id}`;
-                });
-            });
-            targetDiv.querySelectorAll('.delete-profile-btn').forEach(button => {
-                button.addEventListener('click', (e) => deleteProfile(e.target.dataset.id));
-            });
-            targetDiv.querySelectorAll('.actions button.married').forEach(button => {
-                button.addEventListener('click', (e) => updateProfileStatus(e.target.dataset.id, e.target.dataset.status));
-            });
-            targetDiv.querySelectorAll('.actions button.deactivate').forEach(button => {
-                button.addEventListener('click', (e) => updateProfileStatus(e.target.dataset.id, e.target.dataset.status));
-            });
-            targetDiv.querySelectorAll('.actions button.reactivate').forEach(button => {
-                button.addEventListener('click', (e) => updateProfileStatus(e.target.dataset.id, e.target.dataset.status));
-            });
-        }
-
-        async function updateProfileStatus(profileId, newStatus) {
-            if (!currentUser || (!['admin', 'employee'].includes(currentUserRole))) {
-                showMessage(adminProfileMessage, 'You do not have permission to change profile status.', false);
-                return;
-            }
-            if (currentUserRole !== 'admin' && newStatus === 'active') {
-                showMessage(adminProfileMessage, 'Only an admin can reactivate a profile.', false);
-                return;
-            }
-
-            const confirmationMessage = `Are you sure you want to change this profile's status to '${newStatus.toUpperCase()}'?`;
-            if (!confirm(confirmationMessage)) return;
-
-            try {
-                const profileRef = doc(db, 'profiles', profileId);
-                const oldProfileDoc = await getDoc(profileRef);
-                const oldStatus = oldProfileDoc.exists() ? oldProfileDoc.data().profileStatus : 'unknown';
-
-                await updateDoc(profileRef, {
-                    profileStatus: newStatus,
-                    updatedAt: serverTimestamp(),
-                    updatedBy: currentUser.uid,
-                });
-                await logChange('update_profile_status', 'profile', profileId, { oldStatus: oldStatus, newStatus: newStatus });
-                await logProfileFieldChange(profileId, 'profileStatus', oldStatus, newStatus);
-
-                showMessage(adminProfileMessage, `Profile status updated to '${newStatus}' successfully!`, true);
-                fetchAllProfilesForAdmin();
-                fetchDashboardMetrics();
-            } catch (error) {
-                console.error("Error updating profile status:", error);
-                showMessage(adminProfileMessage, `Error updating profile status: ${error.message}`, false);
-            }
-        }
-
-        async function deleteProfile(profileId) {
-            if (currentUserRole !== 'admin') {
-                showMessage(adminProfileMessage, 'You do not have permission to delete profiles.', false);
-                return;
-            }
-            if (!confirm("Are you sure you want to delete this profile? This action cannot be undone.")) return;
-
-            try {
-                const profileDocRef = doc(db, 'profiles', profileId);
-                const profileDoc = await getDoc(profileDocRef);
-                const profileData = profileDoc.exists() ? profileDoc.data() : {};
-
-                if (profileData.photoURL) {
-                    try {
-                        const photoRef = ref(storage, profileData.photoURL);
-                        await deleteObject(photoRef);
-                    } catch (deleteError) {
-                        console.warn("Could not delete profile photo from storage:", deleteError);
-                    }
-                }
-
-                const historySnapshot = await getDocs(collection(db, 'profiles', profileId, 'history'));
-                const batch = db.batch();
-                historySnapshot.forEach(doc => {
-                    batch.delete(doc.ref);
-                });
-                await batch.commit();
-
-                await deleteDoc(profileDocRef);
-                await logChange('delete', 'profile', profileId, { deletedData: profileData });
-                
-                showMessage(adminProfileMessage, 'Profile deleted successfully!', true);
-                fetchAllProfilesForAdmin();
-                fetchDashboardMetrics();
-            } catch (error) {
-                console.error("Error deleting profile:", error);
-                showMessage(adminProfileMessage, `Error deleting profile: ${error.message}`, false);
-            }
-        }
-
-        applyHistoryFiltersBtn.addEventListener('click', () => fetchChangeHistory());
-        resetHistoryFiltersBtn.addEventListener('click', () => {
-            historyFilterUser.value = '';
-            historyFilterAction.value = '';
-            historyFilterEntity.value = '';
-            fetchChangeHistory();
-        });
-
-        async function fetchChangeHistory() {
-            if (currentUserRole !== 'admin') {
-                changeHistoryListDiv.innerHTML = '<p class="no-profiles">You do not have permission to view change history.</p>';
-                changeHistoryBlock.classList.add('hidden');
-                return;
-            }
-            changeHistoryBlock.classList.remove('hidden');
-            changeHistoryListDiv.innerHTML = '<p class="no-profiles">Loading change history...</p>';
-            try {
-                let q = collection(db, 'changeHistory');
-                const filters = [];
-
-                const userFilter = historyFilterUser.value.trim().toLowerCase();
-                if (userFilter) {
-                    filters.push(where('userEmail', '==', userFilter));
-                }
-                const actionFilter = historyFilterAction.value;
-                if (actionFilter) {
-                    filters.push(where('action', '==', actionFilter));
-                }
-                const entityFilter = historyFilterEntity.value;
-                if (entityFilter) {
-                    filters.push(where('entityType', '==', entityFilter));
-                }
-
-                q = query(q, ...filters, orderBy('timestamp', 'desc'), limit(50));
-                
-                const snapshot = await getDocs(q);
-                if (snapshot.empty) {
-                    changeHistoryListDiv.innerHTML = '<p class="no-profiles">No change history to display.</p>';
-                    return;
-                }
-                changeHistoryListDiv.innerHTML = '';
-                snapshot.docs.forEach(doc => {
-                    const history = doc.data();
-                    const timestamp = history.timestamp ? new Date(history.timestamp.toDate()).toLocaleString() : 'N/A';
-                    const details = history.details ? JSON.parse(history.details) : {};
-                    const entry = document.createElement('div');
-                    entry.innerHTML = `
-                        <strong>${history.action.toUpperCase()}</strong> ${history.entityType} (ID: ${history.entityId}) by <strong>${history.userEmail}</strong>
-                        <span class="timestamp">${timestamp}</span>
-                        <br><small>Details: ${JSON.stringify(details).substring(0,200)}...</small>
-                    `;
-                    changeHistoryListDiv.appendChild(entry);
-                });
-            } catch (error) {
-                console.error("Error fetching change history:", error);
-                changeHistoryListDiv.innerHTML = `<p class="error-message">Error loading change history: ${error.message}</p>`;
-            }
-        }
     </script>
 </body>
 </html>
