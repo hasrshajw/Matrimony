@@ -8,10 +8,13 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
-    
+    <script type="module" src="https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js"></script>
+    <script type="module" src="https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js"></script>
+    <script type="module" src="https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js"></script>
+    <script type="module" src="https://www.gstatic.com/firebasejs/12.4.0/firebase-storage.js"></script>
 
     <style>
-        :root { --body-bg: #F9FAFB; --widget-bg: #FFFFFF; --border-color: #E5E7EB; --text-primary: #002726; --text-secondary: #6B7280; --brand-green: #33C375; --hover-bg: #F3F4F6; --warning-color: #F59E0B; --danger-color: #EF4444; }
+        :root { --body-bg: #F9FAFB; --widget-bg: #FFFFFF; --border-color: #E5E7EB; --text-primary: #002726; --text-secondary: #6B7280; --brand-green: #33C375; --hover-bg: #F3F4F6; --warning-color: #F59E0B; --danger-color: #EF4444; --info-color: #3498db;}
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'IBM Plex Sans', sans-serif; background-color: var(--body-bg); color: var(--text-primary); font-size: 14px; overflow: hidden; }
         .dashboard-container { display: grid; grid-template-columns: 260px 1fr; height: 100vh; position: relative; }
@@ -22,8 +25,9 @@
         .main-nav ul { list-style: none; display: flex; flex-direction: column; gap: 0.5rem; }
         .main-nav a { display: flex; align-items: center; gap: 1rem; text-decoration: none; color: var(--text-primary); font-weight: 500; padding: 0.75rem 1rem; border-radius: 8px; transition: background-color 0.2s ease, color 0.2s ease; }
         .main-nav a i { font-size: 1.5rem; color: var(--text-secondary); transition: color 0.2s ease; }
+        .main-nav a:hover { background-color: var(--hover-bg); }
         .main-nav a.active { background-color: var(--hover-bg); font-weight: 600; }
-        .main-nav a.active i { color: var(--brand-green); }
+        .main-nav a.active i { color: var(--info-color); } /* Changed to info-color */
         .profile-section { margin-top: auto; padding-top: 1.5rem; border-top: 1px solid var(--border-color); display: flex; align-items: center; gap: 0.75rem; cursor: pointer; }
         .profile-content-wrapper { display: flex; align-items: center; gap: 0.75rem; width: 100%; }
         .profile-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
@@ -44,62 +48,107 @@
         .main-area { display: flex; flex-direction: column; overflow-y: auto; background-color: var(--body-bg); }
         .main-header { padding: 1.25rem 3rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background-color: var(--widget-bg); position: sticky; top: 0; z-index: 10; }
         .main-header h1 { font-size: 1.5rem; font-weight: 600; }
-        .content-body { padding: 2rem 3rem; display: grid; grid-template-columns: repeat(2, 1fr); gap: 2rem; align-items: flex-start; }
+        .content-body { padding: 2rem 3rem; display: grid; grid-template-columns: 1fr; gap: 2rem; align-items: flex-start; } /* Changed to 1 column for overview */
         .column { display: flex; flex-direction: column; gap: 2rem; }
         .widget { background-color: var(--widget-bg); border-radius: 16px; border: 1px solid var(--border-color); padding: 1.5rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.03), 0 2px 4px -1px rgba(0,0,0,0.02); }
         .widget-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
         .widget-header h2 { font-size: 1.125rem; font-weight: 600; }
-        .widget-header a { font-size: 0.9rem; color: var(--brand-green); text-decoration: none; font-weight: 500; cursor: pointer; }
+        .widget-header a { font-size: 0.9rem; color: var(--info-color); text-decoration: none; font-weight: 500; cursor: pointer; }
         
-        .no-records { color: var(--text-secondary); text-align: center; padding: 1rem 0; font-style: italic; }
-        
-        @keyframes shimmer { 100% { transform: translateX(100%); } }
-        .skeleton { background-color: #e2e8f0; position: relative; overflow: hidden; border-radius: 4px; }
-        .skeleton::after { content: ''; position: absolute; top: 0; right: 0; bottom: 0; left: 0; transform: translateX(-100%); background-image: linear-gradient(90deg, rgba(255, 255, 255, 0) 0, rgba(255, 255, 255, 0.2) 20%, rgba(255, 255, 255, 0.5) 60%, rgba(255, 255, 255, 0)); animation: shimmer 2s infinite; }
-        .skeleton-avatar { width: 40px; height: 40px; border-radius: 50%; }
-        .skeleton-line { height: 14px; border-radius: 4px; }
-        .skeleton-widget { padding: 1.5rem; border-radius: 16px; border: 1px solid var(--border-color); background-color: var(--widget-bg); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.03), 0 2px 4px -1px rgba(0,0,0,0.02); }
-
-        .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; }
-        .metric-card { background: var(--hover-bg); padding: 15px; border-radius: 12px; text-align: center; border: 1px solid var(--border-color); }
-        .metric-card .value { font-size: 2.2rem; font-weight: 700; color: var(--brand-green); margin-bottom: 5px; }
-        .metric-card .label { font-size: 0.9rem; color: var(--text-secondary); }
-        .metric-card a { text-decoration: none; color: inherit; display: block; }
-        .metric-card.link-card .value i { font-size: 40px; margin: 0 auto 5px auto; display: block; }
-
-
-        .recently-added-profiles-list { list-style: none; display: flex; flex-direction: column; gap: 1rem; }
-        .recent-profile-item { display: flex; align-items: center; gap: 1rem; padding: 0.75rem 0; border-bottom: 1px solid var(--border-color); }
-        .recent-profile-item:last-child { border-bottom: none; }
-        .recent-profile-item img { width: 48px; height: 48px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
-        .recent-profile-info { flex-grow: 1; min-width: 0; }
-        .recent-profile-info h4 { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .recent-profile-info p { font-size: 0.85rem; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .recent-profile-item a.button {
-            background-color: #3498db;
-            color: white;
+        /* Specific Styles for Matrimony Portal Widgets */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .metric-card {
+            background: #ecf0f1;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            text-decoration: none; /* For quick links */
+            color: var(--text-primary); /* For quick links */
+        }
+        .metric-card .value {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: var(--info-color);
+            margin-bottom: 5px;
+        }
+        .metric-card .label {
+            font-size: 1em;
+            color: var(--text-secondary);
+        }
+        .metric-card img {
+            height: 40px;
+            width: 40px;
+            margin-bottom: 10px;
+        }
+        .profile-list-dashboard { /* Renamed to avoid conflict with generic .profile-list */
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .profile-list-dashboard .profile-card {
+            background: #fdfdfd;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        .profile-list-dashboard .profile-card img {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 10px;
+            border: 2px solid var(--info-color);
+        }
+        .profile-list-dashboard .profile-card h3 {
+            margin-top: 0;
+            margin-bottom: 5px;
+            font-size: 1.1em;
+            color: var(--text-primary);
+        }
+        .profile-list-dashboard .profile-card p {
+            margin: 3px 0;
+            font-size: 0.9em;
+            color: var(--text-secondary);
+        }
+        .profile-list-dashboard .profile-card .actions {
+            margin-top: 10px;
+        }
+        .profile-list-dashboard .profile-card .actions a.button {
             padding: 6px 12px;
-            border-radius: 5px;
-            text-decoration: none;
             font-size: 0.8em;
+            background-color: var(--info-color);
+            border-radius: 4px;
+            text-decoration: none;
+            color: white;
             transition: background-color 0.2s ease;
         }
-        .recent-profile-item a.button:hover { background-color: #2980b9; }
+        .profile-list-dashboard .profile-card .actions a.button:hover {
+            background-color: #2980b9;
+        }
 
-
-        .bar-chart-container {
+        /* Monthly Growth Chart Styles */
+        .bar-chart {
             display: flex;
             align-items: flex-end;
             justify-content: space-around;
             height: 200px;
             background: #f9f9f9;
-            border: 1px solid #ddd;
+            border: 1px solid var(--border-color);
             border-radius: 5px;
             padding: 10px;
             gap: 5px;
             margin-top: 15px;
         }
-        .bar-wrapper {
+        .bar-container {
             flex: 1;
             display: flex;
             flex-direction: column;
@@ -109,34 +158,42 @@
             margin: 0 2px;
         }
         .bar {
-            width: 80%;
-            background-color: var(--brand-green);
+            width: 80%; /* Adjust bar width within its container */
+            background-color: var(--info-color);
             border-radius: 3px;
             position: relative;
             transition: height 0.5s ease;
-            color: white;
-            font-size: 0.8em;
-            font-weight: bold;
         }
         .bar .value {
             padding: 3px 0;
             position: absolute;
-            top: -1.2em;
-            color: var(--text-secondary);
+            top: -1.8em; /* Position above the bar */
+            color: var(--text-primary);
+            font-size: 0.9em;
+            font-weight: bold;
+            white-space: nowrap;
             width: 100%;
             text-align: center;
         }
-        .bar-wrapper .label {
+        .bar .label {
             margin-top: 5px;
             font-size: 0.75em;
             color: var(--text-secondary);
             text-align: center;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
             width: 100%;
         }
+        
+        .no-records { color: var(--text-secondary); text-align: center; padding: 2rem; }
 
+        /* SKELETON LOADER SPECIFIC STYLES */
+        @keyframes shimmer { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+        .skeleton { background-color: #e2e8f0; position: relative; overflow: hidden; border-radius: 4px; }
+        .skeleton::after { content: ''; position: absolute; top: 0; right: 0; bottom: 0; left: 0; transform: translateX(-100%); background-image: linear-gradient(90deg, rgba(255, 255, 255, 0) 0, rgba(255, 255, 255, 0.2) 20%, rgba(255, 255, 255, 0.5) 60%, rgba(255, 255, 255, 0)); animation: shimmer 2s infinite; }
+        .skeleton-avatar { width: 40px; height: 40px; border-radius: 50%; }
+        .skeleton-line { height: 14px; border-radius: 4px; }
+        .skeleton-text { background-color: #cbd5e0; } /* Slightly darker for text lines */
+
+        /* Responsive adjustments */
         @media (max-width: 1024px) {
             .dashboard-container { grid-template-columns: 1fr; }
             .sidebar { position: fixed; top: 0; left: 0; height: 100%; width: 80%; max-width: 300px; z-index: 1000; transform: translateX(-100%); box-shadow: 0 0 30px rgba(0,0,0,0.1); }
@@ -150,15 +207,19 @@
             .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.4); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); z-index: 999; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
             .overlay.active { opacity: 1; pointer-events: auto; }
         }
-        @media (max-width: 600px) {
-             .content-body { padding: 1rem; }
-             .main-header { padding: 1rem; }
-             .metric-card { padding: 10px; }
-             .metric-card .value { font-size: 1.8rem; }
-             .metric-card .label { font-size: 0.8rem; }
-             .bar-chart-container { flex-wrap: wrap; height: auto; }
-             .bar-wrapper { flex-basis: 45%; margin-bottom: 20px; }
-             .bar-wrapper .label { font-size: 0.7em; }
+         @media (max-width: 600px) {
+            .bar-chart {
+                flex-wrap: wrap;
+                height: auto;
+            }
+            .bar-container {
+                flex-basis: 45%; /* Two bars per row */
+                margin-bottom: 30px;
+            }
+            .bar .label {
+                transform: none; /* No rotation */
+                margin-bottom: 0;
+            }
         }
     </style>
 </head>
@@ -167,153 +228,125 @@
     <div class="dashboard-container">
         <aside class="sidebar" id="sidebar">
             <button class="sidebar-close-btn" id="sidebar-close-btn"><i class='bx bx-x'></i></button>
-            <div class="sidebar-header">
-                <img src="https://via.placeholder.com/150x40?text=Matrimony+Logo" alt="Matrimony Logo" class="logo-image">
-            </div>
+            <div class="sidebar-header"><img src="https://i.ibb.co/689jL0w/logo.png" alt="Matrimony Portal Logo" class="logo-image"></div>
             <nav class="main-nav">
                 <ul>
                     <li><a href="admin-dashboard.html" class="active"><i class='bx bx-home-alt'></i> Dashboard</a></li>
-                    <li><a href="create-profile.html"><i class='bx bx-user-plus'></i> Create Profile</a></li>
-                    <li><a href="search-profiles.html"><i class='bx bx-search'></i> Search Profiles</a></li>
+                    <li><a href="create-profile.html"><i class='bx bx-plus-circle'></i> Create Profile</a></li>
+                    <li><a href="admin-profiles.html"><i class='bx bx-user-circle'></i> Manage Profiles</a></li>
                     <li><a href="admin-users.html"><i class='bx bx-group'></i> Manage Users</a></li>
-                    <li><a href="admin-profiles.html"><i class='bx bx-list-ul'></i> Manage Profiles</a></li>
+                    <li><a href="search-profiles.html"><i class='bx bx-search-alt'></i> Search Profiles</a></li>
                     <li><a href="admin-history.html"><i class='bx bx-history'></i> Global History</a></li>
                 </ul>
             </nav>
             <div class="profile-section" id="profile-section">
-                <div class="profile-skeleton" style="display: flex; align-items: center; gap: 0.75rem; width: 100%;">
+                <div class="profile-skeleton" id="sidebar-profile-skeleton" style="display: flex; align-items: center; gap: 0.75rem; width: 100%;">
                     <div class="skeleton skeleton-avatar"></div>
                     <div style="flex-grow: 1; min-width: 0;">
                         <div class="skeleton skeleton-line" style="width: 70%; height: 14px; margin-bottom: 0.5rem;"></div>
                         <div class="skeleton skeleton-line" style="width: 90%; height: 12px;"></div>
                     </div>
                 </div>
-                <div class="profile-content-wrapper" style="display: none;">
-                    <img src="https://i.pravatar.cc/150?u=admin" alt="Profile Picture" class="profile-avatar" id="sidebar-profile-avatar">
+                <div class="profile-content-wrapper" id="sidebar-profile-content" style="display: none;">
+                    <img src="https://i.pravatar.cc/150?img=68" alt="Profile Picture" class="profile-avatar" id="sidebar-profile-avatar">
                     <div class="profile-details">
-                        <span class="profile-name" id="current-user-email"></span>
-                        <span class="profile-email" id="current-user-role"></span>
+                        <span class="profile-name" id="sidebar-profile-name"></span>
+                        <span class="profile-email" id="sidebar-profile-email"></span>
                     </div>
                     <div class="profile-options"><i class='bx bx-chevron-down'></i></div>
                 </div>
             </div>
             <div class="profile-popup" id="profile-popup">
                 <div class="popup-header">
-                    <img src="https://i.pravatar.cc/150?u=admin" alt="Profile Picture" class="profile-avatar" id="popup-profile-avatar">
+                    <img src="https://i.pravatar.cc/150?img=68" alt="Profile Picture" class="profile-avatar" id="popup-profile-avatar">
                     <div class="profile-details">
-                        <span class="profile-name" id="popup-user-email"></span>
-                        <span class="profile-email" id="popup-user-role"></span>
+                        <span class="profile-name" id="popup-profile-name"></span>
+                        <span class="profile-email" id="popup-profile-email"></span>
                     </div>
                 </div>
                 <ul class="popup-list">
-                    <li><a href="#"><i class='bx bx-user'></i> Profile Settings</a></li>
-                    <li><a href="#" class="logout" id="logout-btn-popup"><i class='bx bx-log-out'></i> Logout</a></li>
+                    <li><a href="#"><i class='bx bx-user'></i> My Profile</a></li>
+                    <li><a href="index.html" class="logout" id="logout-btn-popup"><i class='bx bx-log-out'></i> Logout</a></li>
                 </ul>
             </div>
         </aside>
+
         <main class="main-area">
             <header class="main-header">
                 <i class='bx bx-menu menu-toggle' id="menu-toggle"></i>
                 <h1>Admin Dashboard</h1>
             </header>
             
+            <!-- SKELETON LOADER -->
             <section class="content-body" id="skeleton-loader">
-                <div class="column">
-                    <div class="skeleton-widget">
-                        <div class="widget-header"><div class="skeleton skeleton-line" style="width: 40%; height: 20px;"></div></div>
+                <div class="column main-col">
+                    <div class="widget">
+                         <div class="widget-header"><div class="skeleton skeleton-line" style="width: 40%; height: 20px;"></div></div>
                         <div class="metrics-grid">
-                            <div class="metric-card skeleton">
-                                <div class="skeleton-line" style="width: 50%; height: 28px; margin: 0 auto 5px auto;"></div>
-                                <div class="skeleton-line" style="width: 80%; height: 14px; margin: 0 auto;"></div>
-                            </div>
-                            <div class="metric-card skeleton">
-                                <div class="skeleton-line" style="width: 50%; height: 28px; margin: 0 auto 5px auto;"></div>
-                                <div class="skeleton-line" style="width: 80%; height: 14px; margin: 0 auto;"></div>
-                            </div>
-                            <div class="metric-card skeleton">
-                                <div class="skeleton-line" style="width: 50%; height: 28px; margin: 0 auto 5px auto;"></div>
-                                <div class="skeleton-line" style="width: 80%; height: 14px; margin: 0 auto;"></div>
-                            </div>
-                            <div class="metric-card skeleton">
-                                <div class="skeleton-line" style="width: 50%; height: 28px; margin: 0 auto 5px auto;"></div>
-                                <div class="skeleton-line" style="width: 80%; height: 14px; margin: 0 auto;"></div>
-                            </div>
-                            <div class="metric-card skeleton">
-                                <div class="skeleton-line" style="width: 50%; height: 28px; margin: 0 auto 5px auto;"></div>
-                                <div class="skeleton-line" style="width: 80%; height: 14px; margin: 0 auto;"></div>
-                            </div>
+                            <div class="metric-card skeleton" style="height: 120px;"></div>
+                            <div class="metric-card skeleton" style="height: 120px;"></div>
+                            <div class="metric-card skeleton" style="height: 120px;"></div>
+                            <div class="metric-card skeleton" style="height: 120px;"></div>
+                            <div class="metric-card skeleton" style="height: 120px;"></div>
                         </div>
                     </div>
-                    <div class="skeleton-widget">
-                        <div class="widget-header"><div class="skeleton skeleton-line" style="width: 50%; height: 20px;"></div></div>
-                        <ul class="recently-added-profiles-list" style="gap: 1rem;">
-                            <li class="recent-profile-item" style="border: none; padding: 0;"><div class="skeleton skeleton-avatar" style="width: 48px; height: 48px;"></div><div style="flex:1; display: flex; flex-direction: column; gap: 0.5rem;"><div class="skeleton skeleton-line" style="width: 70%; height: 16px;"></div><div class="skeleton skeleton-line" style="width: 90%; height: 12px;"></div></div><div class="skeleton skeleton-line" style="width: 80px; height: 30px;"></div></li>
-                            <li class="recent-profile-item" style="border: none; padding: 0;"><div class="skeleton skeleton-avatar" style="width: 48px; height: 48px;"></div><div style="flex:1; display: flex; flex-direction: column; gap: 0.5rem;"><div class="skeleton skeleton-line" style="width: 60%; height: 16px;"></div><div class="skeleton skeleton-line" style="width: 80%; height: 12px;"></div></div><div class="skeleton skeleton-line" style="width: 80px; height: 30px;"></div></li>
-                            <li class="recent-profile-item" style="border: none; padding: 0;"><div class="skeleton skeleton-avatar" style="width: 48px; height: 48px;"></div><div style="flex:1; display: flex; flex-direction: column; gap: 0.5rem;"><div class="skeleton skeleton-line" style="width: 80%; height: 16px;"></div><div class="skeleton skeleton-line" style="width: 70%; height: 12px;"></div></div><div class="skeleton skeleton-line" style="width: 80px; height: 30px;"></div></li>
-                        </ul>
-                    </div>
-                </div>
-                <div class="column">
-                    <div class="skeleton-widget">
-                        <div class="widget-header"><div class="skeleton skeleton-line" style="width: 60%; height: 20px;"></div></div>
-                        <div class="bar-chart-container" style="height: 200px; position: relative;">
-                            <div class="skeleton" style="width: 100%; height: 100%; position: absolute; top:0; left:0; border-radius: 5px;"></div>
+
+                    <div class="widget">
+                        <div class="widget-header">
+                            <div class="skeleton skeleton-line" style="width: 60%; height: 20px;"></div>
+                            <div class="skeleton skeleton-line" style="width: 20%; height: 16px;"></div>
+                        </div>
+                        <div class="profile-list-dashboard">
+                            <div class="profile-card skeleton" style="height: 180px;"></div>
+                            <div class="profile-card skeleton" style="height: 180px;"></div>
+                            <div class="profile-card skeleton" style="height: 180px;"></div>
                         </div>
                     </div>
-                    <div class="skeleton-widget">
-                        <div class="widget-header"><div class="skeleton skeleton-line" style="width: 40%; height: 20px;"></div></div>
+
+                    <div class="widget">
+                        <div class="widget-header">
+                            <div class="skeleton skeleton-line" style="width: 70%; height: 20px;"></div>
+                        </div>
+                        <div class="bar-chart skeleton" style="height: 200px;"></div>
+                    </div>
+
+                    <div class="widget">
+                         <div class="widget-header"><div class="skeleton skeleton-line" style="width: 40%; height: 20px;"></div></div>
                         <div class="metrics-grid">
-                            <div class="metric-card skeleton link-card">
-                                <div class="skeleton-avatar" style="margin: 0 auto 5px auto;"></div>
-                                <div class="skeleton-line" style="width: 80%; height: 14px; margin: 0 auto;"></div>
-                            </div>
-                            <div class="metric-card skeleton link-card">
-                                <div class="skeleton-avatar" style="margin: 0 auto 5px auto;"></div>
-                                <div class="skeleton-line" style="width: 80%; height: 14px; margin: 0 auto;"></div>
-                            </div>
-                            <div class="metric-card skeleton link-card">
-                                <div class="skeleton-avatar" style="margin: 0 auto 5px auto;"></div>
-                                <div class="skeleton-line" style="width: 80%; height: 14px; margin: 0 auto;"></div>
-                            </div>
+                            <div class="metric-card skeleton" style="height: 100px;"></div>
+                            <div class="metric-card skeleton" style="height: 100px;"></div>
+                            <div class="metric-card skeleton" style="height: 100px;"></div>
+                            <div class="metric-card skeleton" style="height: 100px;"></div>
                         </div>
                     </div>
                 </div>
             </section>
 
+            <!-- REAL CONTENT (Initially hidden) -->
             <section class="content-body" id="real-content" style="display: none;">
                 <div class="column">
                     <div class="widget">
                         <div class="widget-header"><h2>Dashboard Metrics</h2></div>
                         <div class="metrics-grid">
                             <div class="metric-card">
-                                <a href="admin-profiles.html">
-                                    <div class="value" id="total-profiles-metric">0</div>
-                                    <div class="label">Total Profiles</div>
-                                </a>
+                                <div class="value" id="total-profiles-metric">0</div>
+                                <div class="label">Total Profiles</div>
                             </div>
                             <div class="metric-card">
-                                <a href="admin-profiles.html?status=active">
-                                    <div class="value" id="active-profiles-metric">0</div>
-                                    <div class="label">Active Profiles</div>
-                                </a>
+                                <div class="value" id="active-profiles-metric">0</div>
+                                <div class="label">Active Profiles</div>
                             </div>
                             <div class="metric-card">
-                                <a href="admin-profiles.html?status=married">
-                                    <div class="value" id="married-profiles-metric">0</div>
-                                    <div class="label">Married Profiles</div>
-                                </a>
+                                <div class="value" id="married-profiles-metric">0</div>
+                                <div class="label">Married Profiles</div>
                             </div>
                             <div class="metric-card">
-                                <a href="admin-users.html?status=pending">
-                                    <div class="value" id="pending-users-metric">0</div>
-                                    <div class="label">Pending Users</div>
-                                </a>
+                                <div class="value" id="pending-users-metric">0</div>
+                                <div class="label">Pending Users</div>
                             </div>
                             <div class="metric-card">
-                                <a href="admin-users.html">
-                                    <div class="value" id="total-users-metric">0</div>
-                                    <div class="label">Total Registered Users</div>
-                                </a>
+                                <div class="value" id="total-users-metric">0</div>
+                                <div class="label">Total Registered Users</div>
                             </div>
                         </div>
                     </div>
@@ -321,19 +354,19 @@
                     <div class="widget">
                         <div class="widget-header">
                             <h2>Recently Added Profiles</h2>
-                            <a href="admin-profiles.html">View All &rarr;</a>
+                            <a href="admin-profiles.html">View All Profiles &rarr;</a>
                         </div>
-                        <ul id="recently-added-profiles-list" class="recently-added-profiles-list">
+                        <div id="recently-added-profiles-list" class="profile-list-dashboard">
                             <p class="no-records">No profiles added yet.</p>
-                        </ul>
+                        </div>
                     </div>
-                </div>
 
-                <div class="column">
                     <div class="widget">
-                        <div class="widget-header"><h2>Profile Growth (Last 6 Months)</h2></div>
-                        <p id="profile-growth-message" class="error-message hidden"></p>
-                        <div id="monthly-growth-chart" class="bar-chart-container">
+                        <div class="widget-header">
+                            <h2>Profile Growth (Last 6 Months)</h2>
+                            <p id="profile-growth-message" class="error-message hidden"></p>
+                        </div>
+                        <div id="monthly-growth-chart" class="bar-chart">
                             <p class="no-records">Loading growth data...</p>
                         </div>
                     </div>
@@ -341,24 +374,25 @@
                     <div class="widget">
                         <div class="widget-header"><h2>Quick Links</h2></div>
                         <div class="metrics-grid">
-                             <a href="admin-users.html" class="metric-card link-card">
-                                <div class="value"><i class='bx bx-group' style="color: #4facfe;"></i></div>
+                             <a href="admin-users.html" class="metric-card">
+                                <div class="value"><i class='bx bx-group' style="color: var(--info-color);"></i></div>
                                 <div class="label">Manage Users</div>
                             </a>
-                            <a href="admin-profiles.html" class="metric-card link-card">
-                                <div class="value"><i class='bx bx-list-ul' style="color: #00f2fe;"></i></div>
+                            <a href="admin-profiles.html" class="metric-card">
+                                <div class="value"><i class='bx bx-user-circle' style="color: var(--info-color);"></i></div>
                                 <div class="label">Manage Profiles</div>
                             </a>
-                            <a href="create-profile.html" class="metric-card link-card">
-                                <div class="value"><i class='bx bx-user-plus' style="color: #33c375;"></i></div>
+                            <a href="create-profile.html" class="metric-card">
+                                <div class="value"><i class='bx bx-plus-circle' style="color: var(--info-color);"></i></div>
                                 <div class="label">Add New Profile</div>
                             </a>
-                             <a href="admin-history.html" class="metric-card link-card">
-                                <div class="value"><i class='bx bx-history' style="color: #f39c12;"></i></div>
+                             <a href="admin-history.html" class="metric-card">
+                                <div class="value"><i class='bx bx-history' style="color: var(--info-color);"></i></div>
                                 <div class="label">Global History</div>
                             </a>
                         </div>
                     </div>
+
                 </div>
             </section>
         </main>
@@ -367,9 +401,9 @@
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js';
         import { getAuth, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js';
-        import { getFirestore, collection, addDoc, getDoc, getDocs, doc, query, where, orderBy, limit, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js';
+        import { getFirestore, collection, addDoc, getDoc, getDocs, doc, query, orderBy, limit, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js';
+        import { getStorage } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-storage.js';
 
-        // --- Firebase Configuration ---
         const firebaseConfig = {
             apiKey: "AIzaSyAuxA-e71uX_uLDe6oyFU69q-eLfgUzbXA",
             authDomain: "harsha-jw.firebaseapp.com",
@@ -383,9 +417,8 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
+        const storage = getStorage(app); // Keep storage initialized for consistency
 
-        // --- Global Variables (will be initialized within DOMContentLoaded for safety) ---
-        const DEFAULT_AVATAR = 'https://i.pravatar.cc/150';
         let currentUser = null;
         let currentUserRole = null;
         const hardcodedMatrimonyGroups = [
@@ -393,320 +426,337 @@
             { id: 'BY_OTHERS', name: 'BY OTHERS' }
         ];
 
-        // --- DOMContentLoaded ensures all HTML elements are loaded ---
-        document.addEventListener('DOMContentLoaded', async () => {
-            // --- DOM Element References ---
-            const currentUserEmailSpan = document.getElementById('current-user-email');
-            const currentUserRoleSpan = document.getElementById('current-user-role');
-            const popupUserEmailSpan = document.getElementById('popup-user-email');
-            const popupUserRoleSpan = document.getElementById('popup-user-role');
-            const sidebarProfileAvatar = document.getElementById('sidebar-profile-avatar');
-            const popupProfileAvatar = document.getElementById('popup-profile-avatar');
-            const logoutBtnPopup = document.getElementById('logout-btn-popup');
-            const navAdminPanelItem = document.getElementById('nav-admin-panel-item');
-            const adminGlobalMessage = document.getElementById('admin-global-message');
+        const sidebarProfileSkeleton = document.getElementById('sidebar-profile-skeleton');
+        const sidebarProfileContent = document.getElementById('sidebar-profile-content');
+        const sidebarProfileAvatar = document.getElementById('sidebar-profile-avatar');
+        const sidebarProfileName = document.getElementById('sidebar-profile-name');
+        const sidebarProfileEmail = document.getElementById('sidebar-profile-email');
 
-            const totalProfilesMetric = document.getElementById('total-profiles-metric');
-            const activeProfilesMetric = document.getElementById('active-profiles-metric');
-            const marriedProfilesMetric = document.getElementById('married-profiles-metric');
-            const pendingUsersMetric = document.getElementById('pending-users-metric');
-            const totalUsersMetric = document.getElementById('total-users-metric');
+        const popupProfileAvatar = document.getElementById('popup-profile-avatar');
+        const popupProfileName = document.getElementById('popup-profile-name');
+        const popupProfileEmail = document.getElementById('popup-profile-email');
+        const logoutBtnPopup = document.getElementById('logout-btn-popup');
 
-            const recentlyAddedProfilesList = document.getElementById('recently-added-profiles-list');
-            const monthlyGrowthChart = document.getElementById('monthly-growth-chart');
-            const profileGrowthMessage = document.getElementById('profile-growth-message');
+        const navAdminPanelItem = document.getElementById('nav-admin-panel-item');
 
-            const skeletonLoader = document.getElementById('skeleton-loader');
-            const realContent = document.getElementById('real-content');
+        const adminGlobalMessage = document.getElementById('admin-global-message');
 
+        const totalProfilesMetric = document.getElementById('total-profiles-metric');
+        const activeProfilesMetric = document.getElementById('active-profiles-metric');
+        const marriedProfilesMetric = document.getElementById('married-profiles-metric');
+        const pendingUsersMetric = document.getElementById('pending-users-metric');
+        const totalUsersMetric = document.getElementById('total-users-metric');
+
+        const recentlyAddedProfilesList = document.getElementById('recently-added-profiles-list');
+        const monthlyGrowthChart = document.getElementById('monthly-growth-chart');
+        const profileGrowthMessage = document.getElementById('profile-growth-message');
+        
+        const skeletonLoader = document.getElementById('skeleton-loader');
+        const realContent = document.getElementById('real-content');
+
+
+        function showMessage(element, message, isSuccess = true) {
+            element.textContent = message;
+            element.classList.remove('hidden');
+            element.classList.toggle('success-message', isSuccess);
+            element.classList.toggle('error-message', !isSuccess);
+            setTimeout(() => element.classList.add('hidden'), 5000);
+        }
+
+        async function logChange(action, entityType, entityId, details = {}) {
+            if (!currentUser) return;
+            try {
+                await addDoc(collection(db, 'changeHistory'), {
+                    action,
+                    entityType,
+                    entityId,
+                    userId: currentUser.uid,
+                    userEmail: currentUser.email,
+                    timestamp: serverTimestamp(),
+                    details: JSON.stringify(details)
+                });
+            } catch (error) {
+                console.error("Error logging global change:", error);
+            }
+        }
+
+        function getMatrimonyGroupName(groupId) {
+            if (!groupId) {
+                return 'Not Specified';
+            }
+            const group = hardcodedMatrimonyGroups.find(g => g.id === groupId);
+            return group ? group.name : 'Unknown Group';
+        }
+
+        function calculateAge(dateOfBirthString) {
+            if (!dateOfBirthString) return 'N/A';
+            const dob = new Date(dateOfBirthString);
+            const today = new Date();
+            let age = today.getFullYear() - dob.getFullYear();
+            const monthDiff = today.getMonth() - dob.getMonth();
+            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
+                age--;
+            }
+            return age;
+        }
+
+        // --- UI Event Listeners for new Dashboard Structure ---
+        const setupEventListeners = () => {
+            const profileSection = document.getElementById('profile-section');
+            const profilePopup = document.getElementById('profile-popup');
+            profileSection.addEventListener('click', e => { 
+                e.stopPropagation(); 
+                profilePopup.classList.toggle('active'); 
+                profileSection.classList.toggle('active'); 
+            });
+            document.addEventListener('click', e => { 
+                if (!profileSection.contains(e.target)) { 
+                    profilePopup.classList.remove('active'); 
+                    profileSection.classList.remove('active'); 
+                } 
+            });
+            
             const sidebar = document.getElementById('sidebar');
             const menuToggle = document.getElementById('menu-toggle');
             const closeBtn = document.getElementById('sidebar-close-btn');
             const overlay = document.getElementById('overlay');
-            const profileSection = document.getElementById('profile-section');
-            const profilePopup = document.getElementById('profile-popup');
-
-            // --- UI Interactions Functions ---
-            const toggleMenu = () => {
-                sidebar.classList.toggle('active');
-                overlay.classList.toggle('active');
+            const toggleMenu = () => { 
+                sidebar.classList.toggle('active'); 
+                overlay.classList.toggle('active'); 
             };
-
             menuToggle.addEventListener('click', toggleMenu);
             closeBtn.addEventListener('click', toggleMenu);
             overlay.addEventListener('click', toggleMenu);
 
-            profileSection.addEventListener('click', e => {
-                e.stopPropagation();
-                profilePopup.classList.toggle('active');
-                profileSection.classList.toggle('active');
-            });
-            document.addEventListener('click', e => {
-                if (!profileSection.contains(e.target) && !profilePopup.contains(e.target)) {
-                    profilePopup.classList.remove('active');
-                    profileSection.classList.remove('active');
-                }
-            });
-
-            // --- General Utility Functions ---
-            function showMessage(element, message, isSuccess = true) {
-                element.textContent = message;
-                element.classList.remove('hidden');
-                element.classList.toggle('success-message', isSuccess);
-                element.classList.toggle('error-message', !isSuccess);
-                setTimeout(() => element.classList.add('hidden'), 5000);
-            }
-
-            function getMatrimonyGroupName(groupId) {
-                const group = hardcodedMatrimonyGroups.find(g => g.id === groupId);
-                return group ? group.name : 'Not Specified';
-            }
-
-            function calculateAge(dateOfBirthString) {
-                if (!dateOfBirthString) return 'N/A';
-                const dob = new Date(dateOfBirthString);
-                const today = new Date();
-                let age = today.getFullYear() - dob.getFullYear();
-                const monthDiff = today.getMonth() - dob.getMonth();
-                if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
-                    age--;
-                }
-                return age;
-            }
-
-            function showSkeletonLoader() {
-                skeletonLoader.style.display = 'grid';
-                realContent.style.display = 'none';
-            }
-
-            function hideSkeletonLoader() {
-                setTimeout(() => { // Small delay to show animation
-                    skeletonLoader.style.display = 'none';
-                    realContent.style.display = 'grid';
-                }, 500);
-            }
-
-            function updateProfileUIContent(user) {
-                if (user) {
-                    const avatarUrl = user.photoURL || DEFAULT_AVATAR;
-                    sidebarProfileAvatar.src = avatarUrl;
-                    popupProfileAvatar.src = avatarUrl;
-                    
-                    currentUserEmailSpan.textContent = user.email;
-                    currentUserRoleSpan.textContent = currentUserRole ? `(${currentUserRole.charAt(0).toUpperCase() + currentUserRole.slice(1)})` : '';
-                    popupUserEmailSpan.textContent = user.email;
-                    popupUserRoleSpan.textContent = currentUserRole ? `(${currentUserRole.charAt(0).toUpperCase() + currentUserRole.slice(1)})` : '';
-                    
-                    document.querySelector('.profile-skeleton').style.display = 'none';
-                    document.querySelector('.profile-content-wrapper').style.display = 'flex';
-                } else {
-                    document.querySelector('.profile-skeleton').style.display = 'flex';
-                    document.querySelector('.profile-content-wrapper').style.display = 'none';
-                }
-            }
-
-            // --- Authentication Logic ---
-            onAuthStateChanged(auth, async (user) => {
-                if (user) {
-                    currentUser = user;
-                    try {
-                        const userDoc = await getDoc(doc(db, 'users', user.uid));
-                        const userData = userDoc.exists() ? userDoc.data() : {};
-                        currentUserRole = userData.role;
-                        const userStatus = userData.status;
-
-                        if (userStatus === 'pending') {
-                            window.location.href = 'pending.html';
-                            return;
-                        } else if (userStatus === 'denied' || userStatus === 'suspended') {
-                            window.location.href = 'denied.html';
-                            return;
-                        } else if (currentUserRole !== 'admin') {
-                            alert('You do not have sufficient permissions to access the Admin Dashboard. Redirecting to employee dashboard.');
-                            window.location.href = 'employee-dashboard.html';
-                            return;
-                        }
-                    } catch (error) {
-                        console.error("Error fetching user role/status:", error);
-                        alert('Error verifying user role. Redirecting to login.');
-                        await signOut(auth);
-                        window.location.href = 'index.html';
-                        return;
-                    }
-
-                    updateProfileUIContent(user);
-                    
-                    navAdminPanelItem.classList.remove('hidden');
-
-                    await loadAdminDashboardData(); // Load all dashboard content after auth
-
-                } else {
-                    window.location.href = 'index.html';
-                }
-            });
-
             logoutBtnPopup.addEventListener('click', async () => {
                 try {
                     await signOut(auth);
+                    window.location.href = 'index.html'; // Redirect to login page
                 } catch (error) {
                     console.error("Error signing out:", error);
                 }
             });
+        };
 
-            // --- Dashboard Data Loading ---
-            async function loadAdminDashboardData() {
-                showSkeletonLoader();
-                try {
-                    await Promise.all([
-                        fetchDashboardMetrics(),
-                        fetchRecentlyAddedProfiles(),
-                        fetchMonthlyProfileGrowth()
-                    ]);
-                } catch (error) {
-                    console.error("Error loading admin dashboard data:", error);
-                    showMessage(adminGlobalMessage, `Failed to load dashboard data: ${error.message}`, false);
-                } finally {
-                    hideSkeletonLoader();
-                }
+        const updateProfileUI = (user) => {
+            if (user) {
+                const avatarUrl = user.photoURL || `https://ui-avatars.com/api/?name=${user.email.split('@')[0]}&background=random&color=fff&size=150`;
+                
+                sidebarProfileAvatar.src = avatarUrl;
+                sidebarProfileName.textContent = user.email.split('@')[0];
+                sidebarProfileEmail.textContent = user.email;
+
+                popupProfileAvatar.src = avatarUrl;
+                popupProfileName.textContent = user.email.split('@')[0];
+                popupProfileEmail.textContent = user.email;
+
+                sidebarProfileSkeleton.style.display = 'none';
+                sidebarProfileContent.style.display = 'flex';
+            } else {
+                sidebarProfileSkeleton.style.display = 'flex';
+                sidebarProfileContent.style.display = 'none';
             }
+        };
 
-            async function fetchDashboardMetrics() {
+        // --- Authentication State Observer ---
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUser = user;
+                updateProfileUI(user); // Update sidebar profile immediately
+
                 try {
-                    const profilesSnapshot = await getDocs(collection(db, 'profiles'));
-                    let totalProfiles = 0;
-                    let activeProfiles = 0;
-                    let marriedProfiles = 0;
+                    const userDoc = await getDoc(doc(db, 'users', user.uid));
+                    const userData = userDoc.exists() ? userDoc.data() : {};
+                    currentUserRole = userData.role;
+                    const userStatus = userData.status;
 
-                    profilesSnapshot.forEach(doc => {
-                        totalProfiles++;
-                        const status = doc.data().profileStatus;
-                        if (status === 'active') activeProfiles++;
-                        if (status === 'married') marriedProfiles++;
-                    });
-
-                    const usersSnapshot = await getDocs(collection(db, 'users'));
-                    let totalUsers = 0;
-                    let pendingUsers = 0;
-
-                    usersSnapshot.forEach(doc => {
-                        totalUsers++;
-                        if (doc.data().status === 'pending') pendingUsers++;
-                    });
-
-                    totalProfilesMetric.textContent = totalProfiles;
-                    activeProfilesMetric.textContent = activeProfiles;
-                    marriedProfilesMetric.textContent = marriedProfiles;
-                    totalUsersMetric.textContent = totalUsers;
-                    pendingUsersMetric.textContent = pendingUsers;
-
-                } catch (error) {
-                    console.error("Error fetching dashboard metrics:", error);
-                    showMessage(adminGlobalMessage, `Error loading metrics: ${error.message}`, false);
-                }
-            }
-
-            async function fetchRecentlyAddedProfiles() {
-                recentlyAddedProfilesList.innerHTML = '<p class="no-records">Loading recent profiles...</p>';
-                try {
-                    const q = query(collection(db, 'profiles'), orderBy('createdAt', 'desc'), limit(5));
-                    const snapshot = await getDocs(q);
-
-                    if (snapshot.empty) {
-                        recentlyAddedProfilesList.innerHTML = '<p class="no-records">No profiles added yet.</p>';
+                    if (userStatus === 'pending') {
+                        window.location.href = 'pending.html';
+                        return;
+                    } else if (userStatus === 'denied' || userStatus === 'suspended') {
+                        window.location.href = 'denied.html';
+                        return;
+                    } else if (currentUserRole !== 'admin') {
+                        alert('You do not have sufficient permissions to access the Admin Dashboard. Redirecting to employee dashboard.');
+                        window.location.href = 'employee-dashboard.html';
                         return;
                     }
-
-                    recentlyAddedProfilesList.innerHTML = '';
-                    snapshot.docs.forEach(doc => {
-                        const profile = { id: doc.id, ...doc.data() };
-                        const age = calculateAge(profile.dateOfBirth);
-                        const matrimonyGroupName = getMatrimonyGroupName(profile.matrimonyGroupId);
-
-                        const profileItem = document.createElement('li');
-                        profileItem.className = 'recent-profile-item';
-                        profileItem.innerHTML = `
-                            <img src="${profile.photoURL || 'https://via.placeholder.com/48'}" alt="${profile.name}">
-                            <div class="recent-profile-info">
-                                <h4>${profile.name} (${age})</h4>
-                                <p>${profile.location}, ${matrimonyGroupName}</p>
-                            </div>
-                            <a href="view-profile.html?profileId=${profile.id}" class="button">View</a>
-                        `;
-                        recentlyAddedProfilesList.appendChild(profileItem);
-                    });
-
                 } catch (error) {
-                    console.error("Error fetching recently added profiles:", error);
-                    recentlyAddedProfilesList.innerHTML = `<p class="error-message">Error loading recent profiles: ${error.message}</p>`;
-                }
-            }
-
-            async function fetchMonthlyProfileGrowth() {
-                monthlyGrowthChart.innerHTML = '<p class="no-records">Loading growth data...</p>';
-                try {
-                    const profilesSnapshot = await getDocs(collection(db, 'profiles'));
-                    const monthlyCounts = {};
-                    const today = new Date();
-
-                    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-                    const last6Months = [];
-                    for (let i = 5; i >= 0; i--) {
-                        const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
-                        const monthYearKey = `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}`;
-                        const monthYearLabel = `${monthNames[d.getMonth()]} '${d.getFullYear().toString().slice(-2)}`;
-                        monthlyCounts[monthYearKey] = { count: 0, label: monthYearLabel };
-                        last6Months.push(monthYearKey);
-                    }
-
-                    profilesSnapshot.forEach(doc => {
-                        const createdAt = doc.data().createdAt;
-                        if (createdAt) {
-                            const date = createdAt.toDate();
-                            const monthYearKey = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}`;
-                            if (monthlyCounts.hasOwnProperty(monthYearKey)) {
-                                monthlyCounts[monthYearKey].count++;
-                            }
-                        }
-                    });
-
-                    renderMonthlyGrowthChart(monthlyCounts, last6Months);
-
-                } catch (error) {
-                    console.error("Error fetching monthly profile growth:", error);
-                    showMessage(profileGrowthMessage, `Error loading profile growth data: ${error.message}`, false);
-                    monthlyGrowthChart.innerHTML = `<p class="error-message">Error loading growth data: ${error.message}</p>`;
-                }
-            }
-
-            function renderMonthlyGrowthChart(monthlyCounts, orderedMonthKeys) {
-                monthlyGrowthChart.innerHTML = '';
-                const counts = orderedMonthKeys.map(key => monthlyCounts[key].count);
-                const labels = orderedMonthKeys.map(key => monthlyCounts[key].label);
-                
-                const maxCount = Math.max(...counts, 1);
-
-                if (counts.every(c => c === 0)) {
-                    monthlyGrowthChart.innerHTML = '<p class="no-records">No profiles added in the last 6 months.</p>';
+                    console.error("Error fetching user role/status:", error);
+                    alert('Error verifying user role. Redirecting to login.');
+                    await signOut(auth);
+                    window.location.href = 'index.html';
                     return;
                 }
 
-                labels.forEach((label, index) => {
-                    const count = counts[index];
-                    const barHeight = (count / maxCount) * 90;
-                    
-                    const barWrapper = document.createElement('div');
-                    barWrapper.className = 'bar-wrapper';
-                    barWrapper.innerHTML = `
-                        <div class="bar" style="height: ${barHeight}%;"></div>
-                        <span class="value">${count}</span>
-                        <span class="label">${label}</span>
-                    `;
-                    monthlyGrowthChart.appendChild(barWrapper);
+                currentUserEmailSpan.textContent = user.email;
+                currentUserRoleSpan.textContent = currentUserRole;
+
+                navAdminPanelItem.classList.remove('hidden');
+
+                // Start loading dashboard data
+                await Promise.all([
+                    fetchDashboardMetrics(),
+                    fetchRecentlyAddedProfiles(),
+                    fetchMonthlyProfileGrowth()
+                ]);
+                
+                // Hide skeleton and show real content after all data loads
+                skeletonLoader.style.display = 'none';
+                realContent.style.display = 'grid';
+
+            } else {
+                window.location.href = 'index.html';
+            }
+        });
+
+        // --- Dashboard Metrics ---
+        async function fetchDashboardMetrics() {
+            try {
+                const profilesSnapshot = await getDocs(collection(db, 'profiles'));
+                let totalProfiles = 0;
+                let activeProfiles = 0;
+                let marriedProfiles = 0;
+
+                profilesSnapshot.forEach(doc => {
+                    totalProfiles++;
+                    const status = doc.data().profileStatus;
+                    if (status === 'active') activeProfiles++;
+                    if (status === 'married') marriedProfiles++;
                 });
+
+                const usersSnapshot = await getDocs(collection(db, 'users'));
+                let totalUsers = 0;
+                let pendingUsers = 0;
+
+                usersSnapshot.forEach(doc => {
+                    totalUsers++;
+                    if (doc.data().status === 'pending') pendingUsers++;
+                });
+
+                totalProfilesMetric.textContent = totalProfiles;
+                activeProfilesMetric.textContent = activeProfiles;
+                marriedProfilesMetric.textContent = marriedProfiles;
+                totalUsersMetric.textContent = totalUsers;
+                pendingUsersMetric.textContent = pendingUsers;
+
+            } catch (error) {
+                console.error("Error fetching dashboard metrics:", error);
+                showMessage(adminGlobalMessage, `Error loading metrics: ${error.message}`, false);
+            }
+        }
+
+        // --- Recently Added Profiles ---
+        async function fetchRecentlyAddedProfiles() {
+            recentlyAddedProfilesList.innerHTML = '<p class="no-records">Loading recent profiles...</p>';
+            try {
+                const q = query(collection(db, 'profiles'), orderBy('createdAt', 'desc'), limit(5));
+                const snapshot = await getDocs(q);
+
+                if (snapshot.empty) {
+                    recentlyAddedProfilesList.innerHTML = '<p class="no-records">No profiles added yet.</p>';
+                    return;
+                }
+
+                recentlyAddedProfilesList.innerHTML = '';
+                snapshot.docs.forEach(doc => {
+                    const profile = { id: doc.id, ...doc.data() };
+                    const age = calculateAge(profile.dateOfBirth);
+                    const matrimonyGroupName = getMatrimonyGroupName(profile.matrimonyGroupId);
+
+                    const profileCard = document.createElement('div');
+                    profileCard.className = 'profile-card';
+                    profileCard.innerHTML = `
+                        <img src="${profile.photoURL || `https://ui-avatars.com/api/?name=${profile.name}&background=random&color=fff&size=120`}" alt="${profile.name}">
+                        <h3>${profile.name}</h3>
+                        <p><strong>Age:</strong> ${age}</p>
+                        <p><strong>Location:</strong> ${profile.location}</p>
+                        <p><strong>Group:</strong> ${matrimonyGroupName}</p>
+                        <div class="actions">
+                            <a href="view-profile.html?profileId=${profile.id}" class="button">View Details</a>
+                        </div>
+                    `;
+                    recentlyAddedProfilesList.appendChild(profileCard);
+                });
+
+            } catch (error) {
+                console.error("Error fetching recently added profiles:", error);
+                recentlyAddedProfilesList.innerHTML = `<p class="error-message">Error loading recent profiles: ${error.message}</p>`;
+            }
+        }
+
+        // --- Monthly Profile Growth ---
+        async function fetchMonthlyProfileGrowth() {
+            monthlyGrowthChart.innerHTML = '<p class="no-records">Loading growth data...</p>';
+            try {
+                const profilesSnapshot = await getDocs(collection(db, 'profiles'));
+                const monthlyCounts = {};
+                const today = new Date();
+
+                // Initialize counts for the last 6 months
+                for (let i = 0; i < 6; i++) {
+                    const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
+                    const monthYear = `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}`;
+                    monthlyCounts[monthYear] = 0;
+                }
+
+                profilesSnapshot.forEach(doc => {
+                    const createdAt = doc.data().createdAt;
+                    if (createdAt) {
+                        const date = createdAt.toDate();
+                        const monthYear = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}`;
+                        if (monthlyCounts.hasOwnProperty(monthYear)) {
+                            monthlyCounts[monthYear]++;
+                        }
+                    }
+                });
+
+                renderMonthlyGrowthChart(monthlyCounts);
+
+            } catch (error) {
+                console.error("Error fetching monthly profile growth:", error);
+                showMessage(profileGrowthMessage, `Error loading profile growth data: ${error.message}`, false);
+                monthlyGrowthChart.innerHTML = `<p class="error-message">Error loading growth data: ${error.message}</p>`;
+            }
+        }
+
+        function renderMonthlyGrowthChart(monthlyCounts) {
+            monthlyGrowthChart.innerHTML = '';
+            const months = Object.keys(monthlyCounts).sort((a,b) => new Date(a) - new Date(b)); // Sort chronologically
+            
+            if (months.length === 0) {
+                 monthlyGrowthChart.innerHTML = '<p class="no-records">No growth data available.</p>';
+                 return;
             }
 
-            // Initial call to show skeleton loader (ensured DOM is ready)
-            showSkeletonLoader();
+            const maxCount = Math.max(...Object.values(monthlyCounts));
+            if (maxCount === 0) {
+                 monthlyGrowthChart.innerHTML = '<p class="no-records">No profiles added in the last 6 months.</p>';
+                 return;
+            }
+
+            months.forEach(monthYear => {
+                const count = monthlyCounts[monthYear];
+                // Scale bar height: ensure minimum height for visibility if count is 0 but maxCount > 0
+                const barHeight = maxCount > 0 ? Math.max(5, (count / maxCount) * 100) : 0; 
+                const monthLabel = new Date(monthYear).toLocaleString('en-us', { month: 'short', year: 'numeric' });
+
+                const barContainer = document.createElement('div');
+                barContainer.className = 'bar-container';
+                barContainer.innerHTML = `
+                    <div class="bar" style="height: ${barHeight}%;">
+                        <span class="value">${count}</span>
+                    </div>
+                    <span class="label">${monthLabel}</span>
+                `;
+                monthlyGrowthChart.appendChild(barContainer);
+            });
+        }
+        // --- Main Execution Logic ---
+        document.addEventListener('DOMContentLoaded', function() {
+            setupEventListeners();
+            // The loading of dashboard data is now handled within onAuthStateChanged
+            // to ensure user context is available before making Firebase calls.
         });
     </script>
 </body>
