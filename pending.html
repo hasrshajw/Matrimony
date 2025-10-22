@@ -24,7 +24,7 @@
             --text-color: #333;
             --text-light: #666;
             --border-gray: #e0e0e0;
-            --color-danger: #dc2626; /* Adjusted red for logout */
+            --color-danger: #dc2626; 
             --color-danger-hover: #b91c1c;
         }
 
@@ -32,14 +32,19 @@
         *::before,
         *::after { box-sizing: border-box; margin: 0; padding: 0; }
         html, body { height: 100%; overflow: hidden; }
-        body { font-family: 'IBM Plex Sans', sans-serif; background-color: var(--pure-white); display: flex; justify-content: center; align-items: center; color: var(--text-color); }
+        body { 
+            font-family: 'IBM Plex Sans', sans-serif; 
+            background-color: var(--pure-white); /* White background for mobile */
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            color: var(--text-color); 
+        }
         
-        /* Using the same container structure as login */
+        /* Container Setup (Mobile First) */
         .container { 
             width: 100%; 
-            max-width: 420px; 
-            height: 100%; 
-            max-height: 900px; 
+            height: 100%; /* Full height */
             background-color: var(--pure-white); 
             border-radius: 0; 
             overflow: hidden; 
@@ -48,26 +53,41 @@
         }
         .form-panel-wrapper { 
             flex-grow: 1; 
-            position: relative; 
-            display: flex; /* Use flex to center content */
+            display: flex; 
             flex-direction: column; 
             overflow-y: auto; 
-            padding: 3rem 2rem; /* Added padding */
-            justify-content: center; /* Center content vertically */
-            align-items: center; /* Center content horizontally */
-            text-align: center; /* Center text within the message container */
+            padding: 0; /* Remove padding for edge-to-edge */
+            justify-content: space-between; /* Space out content */
         }
         .info-panel { display: none; } /* Hide side panel on mobile */
 
-        /* Message Box Styling */
-        .message-box {
-            width: 100%;
-            max-width: 500px; /* Limit width */
+        /* --- NEW Mobile Structure --- */
+        .mobile-top-section {
+            padding: 3rem 2rem 1rem; /* Padding top, sides, bottom */
+            text-align: center;
         }
+        .mobile-illustration {
+            font-size: 6rem; /* Large icon */
+            color: var(--accent-green);
+            opacity: 0.8;
+            margin-bottom: 1.5rem;
+        }
+        .message-box {
+            padding: 0 2rem; /* Side padding only */
+            text-align: center;
+        }
+         .mobile-bottom-section {
+            padding: 2rem 2rem 3rem; /* Padding top, sides, bottom */
+            text-align: center;
+            background-color: var(--light-gray); /* Subtle background */
+            border-top: 1px solid var(--border-gray);
+         }
+        /* --- End NEW Mobile Structure --- */
+
         .message-box h2 {
             font-size: 1.8rem;
             font-weight: 600;
-            margin-bottom: 1.5rem;
+            margin-bottom: 1rem; /* Reduced margin */
             color: var(--primary-dark);
         }
         .message-box p {
@@ -79,15 +99,16 @@
         
         /* Status Indicator */
         .status-indicator {
-            margin-top: 2rem;
+            margin-bottom: 1.5rem; /* Space before logout */
             padding: 0.75rem 1rem;
-            background-color: var(--light-gray);
+            background-color: var(--pure-white); /* White background on gray */
             border-radius: 8px;
-            display: inline-flex; /* Use inline-flex to keep spinner and text together */
+            display: inline-flex; 
             align-items: center;
             font-size: 0.9rem;
             color: var(--text-light);
             font-weight: 500;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
         .status-indicator .bx-loader-alt {
             font-size: 1.2em;
@@ -101,18 +122,20 @@
 
         /* Logout Button */
         .logout-btn {
+            width: 100%; /* Full width in bottom section */
+            max-width: 300px; /* Limit max width */
             background-color: var(--color-danger);
             color: white;
-            padding: 0.75rem 1.5rem; /* Slightly larger padding */
+            padding: 0.9rem 1.5rem; /* Consistent padding */
             border: none;
-            border-radius: 12px; /* Match input radius */
+            border-radius: 12px; 
             cursor: pointer;
-            font-size: 0.95rem; /* Match other buttons */
-            font-weight: 600; /* Match other buttons */
-            margin-top: 2.5rem;
+            font-size: 1rem; /* Slightly larger */
+            font-weight: 600; 
             transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
-            display: inline-flex; /* Align icon if needed */
+            display: inline-flex; 
             align-items: center;
+            justify-content: center; /* Center icon and text */
             gap: 0.5rem;
         }
         .logout-btn:hover {
@@ -133,8 +156,8 @@
                 border-radius: 2rem; 
                 box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.2); 
             }
+            /* Show side panel and adjust main panel */
             .info-panel { 
-                /* Use a different, relevant background for pending */
                 background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('https://images.unsplash.com/photo-1590486804120-11019f18a4a2?auto=format&fit=crop&q=80&w=1887') center center / cover; 
                 display: flex; 
                 flex-direction: column; 
@@ -156,6 +179,26 @@
                 position: static; 
                 flex-grow: 0; 
                 text-align: center;
+                background-color: var(--pure-white); /* Ensure white background */
+            }
+            /* Hide mobile-specific sections */
+            .mobile-top-section { display: none; }
+            .mobile-bottom-section { 
+                padding: 0; /* Reset padding */
+                background-color: transparent; /* Reset background */
+                border-top: none; /* Reset border */
+                margin-top: 2.5rem; /* Add margin like login page */
+             }
+             .message-box { 
+                 padding: 0; /* Reset padding */
+                 max-width: none; /* Remove max width */
+            }
+            .status-indicator { margin-top: 2rem; } /* Restore margin */
+            .logout-btn { 
+                width: auto; /* Reset width */
+                max-width: none; /* Reset max width */
+                padding: 0.75rem 1.5rem; /* Restore padding */
+                margin-top: 2.5rem; /* Restore margin */
             }
         }
     </style>
@@ -172,15 +215,19 @@
         </div>
 
         <div class="form-panel-wrapper">
+            <div class="mobile-top-section">
+                 <i class='bx bx-time-five mobile-illustration'></i> </div>
+            
             <div class="message-box">
                 <h2>Account Pending Approval</h2>
-                <p>Thank you for signing up for the Matrimony Portal!</p>
-                <p>Your account is currently under review by our administrators. This page will automatically update once your status changes.</p>
-                
+                <p>Thank you for signing up!</p>
+                <p>Your account is currently under review. This page will automatically update once your status changes.</p>
+            </div>
+
+            <div class="mobile-bottom-section">
                 <div class="status-indicator">
                     <i class='bx bx-loader-alt'></i> Checking status...
                 </div>
-                
                 <button class="logout-btn" id="logout-btn">
                     <i class='bx bx-log-out'></i> Logout
                 </button>
@@ -191,7 +238,6 @@
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js';
         import { getAuth, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js';
-        // Import onSnapshot for real-time updates
         import { getFirestore, doc, onSnapshot } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js';
 
         const firebaseConfig = {
@@ -209,10 +255,9 @@
         const db = getFirestore(app);
 
         const logoutBtn = document.getElementById('logout-btn');
-        let unsubscribeUserStatus = null; // Variable to hold the listener unsubscribe function
+        let unsubscribeUserStatus = null; 
 
         logoutBtn.addEventListener('click', async () => {
-            // Unsubscribe from listener before logging out
             if (unsubscribeUserStatus) {
                 unsubscribeUserStatus();
                 console.log("Unsubscribed from user status listener.");
@@ -227,64 +272,55 @@
 
         onAuthStateChanged(auth, (user) => {
             if (user) {
-                // If already subscribed, unsubscribe first (safety measure)
                 if (unsubscribeUserStatus) {
-                    unsubscribeUserStatus();
+                    unsubscribeUserStatus(); // Clean up previous listener if exists
                 }
 
                 const userDocRef = doc(db, 'users', user.uid);
 
-                // Set up the real-time listener
                 unsubscribeUserStatus = onSnapshot(userDocRef, (docSnap) => {
                     if (docSnap.exists()) {
                         const userData = docSnap.data();
                         const userStatus = userData.status;
                         const userRole = userData.role;
 
-                        console.log(`Current user status: ${userStatus}`); // Log status changes
+                        console.log(`Current user status: ${userStatus}`); 
 
                         if (userStatus === 'approved') {
-                            if (unsubscribeUserStatus) unsubscribeUserStatus(); // Unsubscribe before redirecting
+                            if (unsubscribeUserStatus) unsubscribeUserStatus(); 
                             if (userRole === 'admin') {
                                 window.location.href = 'admin-dashboard.html';
-                            } else { // Assume employee or default approved role
+                            } else { 
                                 window.location.href = 'employee-dashboard.html';
                             }
                         } else if (userStatus === 'denied' || userStatus === 'suspended') {
-                            if (unsubscribeUserStatus) unsubscribeUserStatus(); // Unsubscribe before redirecting
+                            if (unsubscribeUserStatus) unsubscribeUserStatus(); 
                             window.location.href = 'denied.html';
                         } else if (userStatus === 'pending') {
-                            // User is still pending, stay on this page
-                            // The listener will continue checking
+                            // Stay on this page
                         } else {
-                             // Unexpected status, maybe redirect to login or show error
                              console.warn("Unexpected user status:", userStatus);
                              if (unsubscribeUserStatus) unsubscribeUserStatus();
                              alert("An unexpected account status was detected. Please log in again.");
                              signOut(auth).then(() => { window.location.href = 'index.html'; });
                         }
                     } else {
-                        // User document doesn't exist (shouldn't happen if they logged in)
                         console.error("User document not found for logged-in user:", user.uid);
                         if (unsubscribeUserStatus) unsubscribeUserStatus();
                         alert("Error retrieving your account information. Please log in again.");
                         signOut(auth).then(() => { window.location.href = 'index.html'; });
                     }
                 }, (error) => {
-                    // Handle errors during listening
                     console.error("Error listening to user status:", error);
                     alert("Error checking account status. Please refresh or log in again.");
                     if (unsubscribeUserStatus) unsubscribeUserStatus();
-                    // Optionally log out here if the error is critical
-                    // signOut(auth).then(() => { window.location.href = 'index.html'; });
                 });
 
                 console.log("Subscribed to user status listener.");
 
             } else {
-                // User is not logged in, redirect to login page
                 if (unsubscribeUserStatus) {
-                    unsubscribeUserStatus(); // Clean up listener if it exists
+                    unsubscribeUserStatus(); 
                     console.log("Unsubscribed from user status listener (user logged out).");
                 }
                 window.location.href = 'index.html';
