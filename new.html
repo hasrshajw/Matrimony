@@ -65,7 +65,6 @@
         .metric-card .value { font-size: 2.2rem; font-weight: 700; color: var(--brand-green); margin-bottom: 5px; }
         .metric-card .label { font-size: 0.9rem; color: var(--text-secondary); }
         .metric-card a { text-decoration: none; color: inherit; display: block; }
-        .metric-card.link-card .value img { height: 40px; width: 40px; margin: 0 auto 5px auto; display: block; } /* Reverted to i for boxicons */
         .metric-card.link-card .value i { font-size: 40px; margin: 0 auto 5px auto; display: block; }
 
 
@@ -385,7 +384,7 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // --- Global Variables ---
+        // --- Global Variables (will be initialized within DOMContentLoaded for safety) ---
         const DEFAULT_AVATAR = 'https://i.pravatar.cc/150';
         let currentUser = null;
         let currentUserRole = null;
@@ -394,315 +393,321 @@
             { id: 'BY_OTHERS', name: 'BY OTHERS' }
         ];
 
-        // --- DOM Element References ---
-        const currentUserEmailSpan = document.getElementById('current-user-email');
-        const currentUserRoleSpan = document.getElementById('current-user-role');
-        const popupUserEmailSpan = document.getElementById('popup-user-email');
-        const popupUserRoleSpan = document.getElementById('popup-user-role');
-        const sidebarProfileAvatar = document.getElementById('sidebar-profile-avatar');
-        const popupProfileAvatar = document.getElementById('popup-profile-avatar');
-        const logoutBtnPopup = document.getElementById('logout-btn-popup');
-        const navAdminPanelItem = document.getElementById('nav-admin-panel-item');
-        const adminGlobalMessage = document.getElementById('admin-global-message');
+        // --- DOMContentLoaded ensures all HTML elements are loaded ---
+        document.addEventListener('DOMContentLoaded', async () => {
+            // --- DOM Element References ---
+            const currentUserEmailSpan = document.getElementById('current-user-email');
+            const currentUserRoleSpan = document.getElementById('current-user-role');
+            const popupUserEmailSpan = document.getElementById('popup-user-email');
+            const popupUserRoleSpan = document.getElementById('popup-user-role');
+            const sidebarProfileAvatar = document.getElementById('sidebar-profile-avatar');
+            const popupProfileAvatar = document.getElementById('popup-profile-avatar');
+            const logoutBtnPopup = document.getElementById('logout-btn-popup');
+            const navAdminPanelItem = document.getElementById('nav-admin-panel-item');
+            const adminGlobalMessage = document.getElementById('admin-global-message');
 
-        const totalProfilesMetric = document.getElementById('total-profiles-metric');
-        const activeProfilesMetric = document.getElementById('active-profiles-metric');
-        const marriedProfilesMetric = document.getElementById('married-profiles-metric');
-        const pendingUsersMetric = document.getElementById('pending-users-metric');
-        const totalUsersMetric = document.getElementById('total-users-metric');
+            const totalProfilesMetric = document.getElementById('total-profiles-metric');
+            const activeProfilesMetric = document.getElementById('active-profiles-metric');
+            const marriedProfilesMetric = document.getElementById('married-profiles-metric');
+            const pendingUsersMetric = document.getElementById('pending-users-metric');
+            const totalUsersMetric = document.getElementById('total-users-metric');
 
-        const recentlyAddedProfilesList = document.getElementById('recently-added-profiles-list');
-        const monthlyGrowthChart = document.getElementById('monthly-growth-chart');
-        const profileGrowthMessage = document.getElementById('profile-growth-message');
+            const recentlyAddedProfilesList = document.getElementById('recently-added-profiles-list');
+            const monthlyGrowthChart = document.getElementById('monthly-growth-chart');
+            const profileGrowthMessage = document.getElementById('profile-growth-message');
 
-        const skeletonLoader = document.getElementById('skeleton-loader');
-        const realContent = document.getElementById('real-content');
+            const skeletonLoader = document.getElementById('skeleton-loader');
+            const realContent = document.getElementById('real-content');
 
-        const sidebar = document.getElementById('sidebar');
-        const menuToggle = document.getElementById('menu-toggle');
-        const closeBtn = document.getElementById('sidebar-close-btn');
-        const overlay = document.getElementById('overlay');
-        const profileSection = document.getElementById('profile-section');
-        const profilePopup = document.getElementById('profile-popup');
+            const sidebar = document.getElementById('sidebar');
+            const menuToggle = document.getElementById('menu-toggle');
+            const closeBtn = document.getElementById('sidebar-close-btn');
+            const overlay = document.getElementById('overlay');
+            const profileSection = document.getElementById('profile-section');
+            const profilePopup = document.getElementById('profile-popup');
 
-        // --- UI Interactions Functions ---
-        const toggleMenu = () => {
-            sidebar.classList.toggle('active');
-            overlay.classList.toggle('active');
-        };
+            // --- UI Interactions Functions ---
+            const toggleMenu = () => {
+                sidebar.classList.toggle('active');
+                overlay.classList.toggle('active');
+            };
 
-        menuToggle.addEventListener('click', toggleMenu);
-        closeBtn.addEventListener('click', toggleMenu);
-        overlay.addEventListener('click', toggleMenu);
+            menuToggle.addEventListener('click', toggleMenu);
+            closeBtn.addEventListener('click', toggleMenu);
+            overlay.addEventListener('click', toggleMenu);
 
-        profileSection.addEventListener('click', e => {
-            e.stopPropagation();
-            profilePopup.classList.toggle('active');
-            profileSection.classList.toggle('active');
-        });
-        document.addEventListener('click', e => {
-            if (!profileSection.contains(e.target) && !profilePopup.contains(e.target)) {
-                profilePopup.classList.remove('active');
-                profileSection.classList.remove('active');
-            }
-        });
-
-        // --- General Utility Functions ---
-        function showMessage(element, message, isSuccess = true) {
-            element.textContent = message;
-            element.classList.remove('hidden');
-            element.classList.toggle('success-message', isSuccess);
-            element.classList.toggle('error-message', !isSuccess);
-            setTimeout(() => element.classList.add('hidden'), 5000);
-        }
-
-        function getMatrimonyGroupName(groupId) {
-            const group = hardcodedMatrimonyGroups.find(g => g.id === groupId);
-            return group ? group.name : 'Not Specified';
-        }
-
-        function calculateAge(dateOfBirthString) {
-            if (!dateOfBirthString) return 'N/A';
-            const dob = new Date(dateOfBirthString);
-            const today = new Date();
-            let age = today.getFullYear() - dob.getFullYear();
-            const monthDiff = today.getMonth() - dob.getMonth();
-            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
-                age--;
-            }
-            return age;
-        }
-
-        function showSkeletonLoader() {
-            skeletonLoader.style.display = 'grid';
-            realContent.style.display = 'none';
-        }
-
-        function hideSkeletonLoader() {
-            setTimeout(() => { // Small delay to show animation
-                skeletonLoader.style.display = 'none';
-                realContent.style.display = 'grid';
-            }, 500);
-        }
-
-        function updateProfileUIContent(user) {
-            if (user) {
-                const avatarUrl = user.photoURL || DEFAULT_AVATAR;
-                sidebarProfileAvatar.src = avatarUrl;
-                popupProfileAvatar.src = avatarUrl;
-                
-                currentUserEmailSpan.textContent = user.email;
-                currentUserRoleSpan.textContent = currentUserRole ? `(${currentUserRole.charAt(0).toUpperCase() + currentUserRole.slice(1)})` : '';
-                popupUserEmailSpan.textContent = user.email;
-                popupUserRoleSpan.textContent = currentUserRole ? `(${currentUserRole.charAt(0).toUpperCase() + currentUserRole.slice(1)})` : '';
-                
-                document.querySelector('.profile-skeleton').style.display = 'none';
-                document.querySelector('.profile-content-wrapper').style.display = 'flex';
-            } else {
-                document.querySelector('.profile-skeleton').style.display = 'flex';
-                document.querySelector('.profile-content-wrapper').style.display = 'none';
-            }
-        }
-
-        // --- Authentication Logic ---
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                currentUser = user;
-                try {
-                    const userDoc = await getDoc(doc(db, 'users', user.uid));
-                    const userData = userDoc.exists() ? userDoc.data() : {};
-                    currentUserRole = userData.role;
-                    const userStatus = userData.status;
-
-                    if (userStatus === 'pending') {
-                        window.location.href = 'pending.html';
-                        return;
-                    } else if (userStatus === 'denied' || userStatus === 'suspended') {
-                        window.location.href = 'denied.html';
-                        return;
-                    } else if (currentUserRole !== 'admin') {
-                        alert('You do not have sufficient permissions to access the Admin Dashboard. Redirecting to employee dashboard.');
-                        window.location.href = 'employee-dashboard.html';
-                        return;
-                    }
-                } catch (error) {
-                    console.error("Error fetching user role/status:", error);
-                    alert('Error verifying user role. Redirecting to login.');
-                    await signOut(auth);
-                    window.location.href = 'index.html';
-                    return;
-                }
-
-                updateProfileUIContent(user);
-                
-                navAdminPanelItem.classList.remove('hidden');
-
-                await loadAdminDashboardData(); // Load all dashboard content after auth
-
-            } else {
-                window.location.href = 'index.html';
-            }
-        });
-
-        logoutBtnPopup.addEventListener('click', async () => {
-            try {
-                await signOut(auth);
-            } catch (error) {
-                console.error("Error signing out:", error);
-            }
-        });
-
-        // --- Dashboard Data Loading ---
-        async function loadAdminDashboardData() {
-            showSkeletonLoader();
-            try {
-                await Promise.all([
-                    fetchDashboardMetrics(),
-                    fetchRecentlyAddedProfiles(),
-                    fetchMonthlyProfileGrowth()
-                ]);
-            } catch (error) {
-                console.error("Error loading admin dashboard data:", error);
-                showMessage(adminGlobalMessage, `Failed to load dashboard data: ${error.message}`, false);
-            } finally {
-                hideSkeletonLoader();
-            }
-        }
-
-        async function fetchDashboardMetrics() {
-            try {
-                const profilesSnapshot = await getDocs(collection(db, 'profiles'));
-                let totalProfiles = 0;
-                let activeProfiles = 0;
-                let marriedProfiles = 0;
-
-                profilesSnapshot.forEach(doc => {
-                    totalProfiles++;
-                    const status = doc.data().profileStatus;
-                    if (status === 'active') activeProfiles++;
-                    if (status === 'married') marriedProfiles++;
-                });
-
-                const usersSnapshot = await getDocs(collection(db, 'users'));
-                let totalUsers = 0;
-                let pendingUsers = 0;
-
-                usersSnapshot.forEach(doc => {
-                    totalUsers++;
-                    if (doc.data().status === 'pending') pendingUsers++;
-                });
-
-                totalProfilesMetric.textContent = totalProfiles;
-                activeProfilesMetric.textContent = activeProfiles;
-                marriedProfilesMetric.textContent = marriedProfiles;
-                totalUsersMetric.textContent = totalUsers;
-                pendingUsersMetric.textContent = pendingUsers;
-
-            } catch (error) {
-                console.error("Error fetching dashboard metrics:", error);
-                showMessage(adminGlobalMessage, `Error loading metrics: ${error.message}`, false);
-            }
-        }
-
-        async function fetchRecentlyAddedProfiles() {
-            recentlyAddedProfilesList.innerHTML = '<p class="no-records">Loading recent profiles...</p>';
-            try {
-                const q = query(collection(db, 'profiles'), orderBy('createdAt', 'desc'), limit(5));
-                const snapshot = await getDocs(q);
-
-                if (snapshot.empty) {
-                    recentlyAddedProfilesList.innerHTML = '<p class="no-records">No profiles added yet.</p>';
-                    return;
-                }
-
-                recentlyAddedProfilesList.innerHTML = '';
-                snapshot.docs.forEach(doc => {
-                    const profile = { id: doc.id, ...doc.data() };
-                    const age = calculateAge(profile.dateOfBirth);
-                    const matrimonyGroupName = getMatrimonyGroupName(profile.matrimonyGroupId);
-
-                    const profileItem = document.createElement('li');
-                    profileItem.className = 'recent-profile-item';
-                    profileItem.innerHTML = `
-                        <img src="${profile.photoURL || 'https://via.placeholder.com/48'}" alt="${profile.name}">
-                        <div class="recent-profile-info">
-                            <h4>${profile.name} (${age})</h4>
-                            <p>${profile.location}, ${matrimonyGroupName}</p>
-                        </div>
-                        <a href="view-profile.html?profileId=${profile.id}" class="button">View</a>
-                    `;
-                    recentlyAddedProfilesList.appendChild(profileItem);
-                });
-
-            } catch (error) {
-                console.error("Error fetching recently added profiles:", error);
-                recentlyAddedProfilesList.innerHTML = `<p class="error-message">Error loading recent profiles: ${error.message}</p>`;
-            }
-        }
-
-        async function fetchMonthlyProfileGrowth() {
-            monthlyGrowthChart.innerHTML = '<p class="no-records">Loading growth data...</p>';
-            try {
-                const profilesSnapshot = await getDocs(collection(db, 'profiles'));
-                const monthlyCounts = {};
-                const today = new Date();
-
-                const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-                const last6Months = [];
-                for (let i = 5; i >= 0; i--) {
-                    const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
-                    const monthYearKey = `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}`;
-                    const monthYearLabel = `${monthNames[d.getMonth()]} '${d.getFullYear().toString().slice(-2)}`;
-                    monthlyCounts[monthYearKey] = { count: 0, label: monthYearLabel };
-                    last6Months.push(monthYearKey);
-                }
-
-                profilesSnapshot.forEach(doc => {
-                    const createdAt = doc.data().createdAt;
-                    if (createdAt) {
-                        const date = createdAt.toDate();
-                        const monthYearKey = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}`;
-                        if (monthlyCounts.hasOwnProperty(monthYearKey)) {
-                            monthlyCounts[monthYearKey].count++;
-                        }
-                    }
-                });
-
-                renderMonthlyGrowthChart(monthlyCounts, last6Months);
-
-            } catch (error) {
-                console.error("Error fetching monthly profile growth:", error);
-                showMessage(profileGrowthMessage, `Error loading profile growth data: ${error.message}`, false);
-                monthlyGrowthChart.innerHTML = `<p class="error-message">Error loading growth data: ${error.message}</p>`;
-            }
-        }
-
-        function renderMonthlyGrowthChart(monthlyCounts, orderedMonthKeys) {
-            monthlyGrowthChart.innerHTML = '';
-            const counts = orderedMonthKeys.map(key => monthlyCounts[key].count);
-            const labels = orderedMonthKeys.map(key => monthlyCounts[key].label);
-            
-            const maxCount = Math.max(...counts, 1);
-
-            if (counts.every(c => c === 0)) {
-                monthlyGrowthChart.innerHTML = '<p class="no-records">No profiles added in the last 6 months.</p>';
-                return;
-            }
-
-            labels.forEach((label, index) => {
-                const count = counts[index];
-                const barHeight = (count / maxCount) * 90;
-                
-                const barWrapper = document.createElement('div');
-                barWrapper.className = 'bar-wrapper';
-                barWrapper.innerHTML = `
-                    <div class="bar" style="height: ${barHeight}%;"></div>
-                    <span class="value">${count}</span>
-                    <span class="label">${label}</span>
-                `;
-                monthlyGrowthChart.appendChild(barWrapper);
+            profileSection.addEventListener('click', e => {
+                e.stopPropagation();
+                profilePopup.classList.toggle('active');
+                profileSection.classList.toggle('active');
             });
-        }
+            document.addEventListener('click', e => {
+                if (!profileSection.contains(e.target) && !profilePopup.contains(e.target)) {
+                    profilePopup.classList.remove('active');
+                    profileSection.classList.remove('active');
+                }
+            });
+
+            // --- General Utility Functions ---
+            function showMessage(element, message, isSuccess = true) {
+                element.textContent = message;
+                element.classList.remove('hidden');
+                element.classList.toggle('success-message', isSuccess);
+                element.classList.toggle('error-message', !isSuccess);
+                setTimeout(() => element.classList.add('hidden'), 5000);
+            }
+
+            function getMatrimonyGroupName(groupId) {
+                const group = hardcodedMatrimonyGroups.find(g => g.id === groupId);
+                return group ? group.name : 'Not Specified';
+            }
+
+            function calculateAge(dateOfBirthString) {
+                if (!dateOfBirthString) return 'N/A';
+                const dob = new Date(dateOfBirthString);
+                const today = new Date();
+                let age = today.getFullYear() - dob.getFullYear();
+                const monthDiff = today.getMonth() - dob.getMonth();
+                if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
+                    age--;
+                }
+                return age;
+            }
+
+            function showSkeletonLoader() {
+                skeletonLoader.style.display = 'grid';
+                realContent.style.display = 'none';
+            }
+
+            function hideSkeletonLoader() {
+                setTimeout(() => { // Small delay to show animation
+                    skeletonLoader.style.display = 'none';
+                    realContent.style.display = 'grid';
+                }, 500);
+            }
+
+            function updateProfileUIContent(user) {
+                if (user) {
+                    const avatarUrl = user.photoURL || DEFAULT_AVATAR;
+                    sidebarProfileAvatar.src = avatarUrl;
+                    popupProfileAvatar.src = avatarUrl;
+                    
+                    currentUserEmailSpan.textContent = user.email;
+                    currentUserRoleSpan.textContent = currentUserRole ? `(${currentUserRole.charAt(0).toUpperCase() + currentUserRole.slice(1)})` : '';
+                    popupUserEmailSpan.textContent = user.email;
+                    popupUserRoleSpan.textContent = currentUserRole ? `(${currentUserRole.charAt(0).toUpperCase() + currentUserRole.slice(1)})` : '';
+                    
+                    document.querySelector('.profile-skeleton').style.display = 'none';
+                    document.querySelector('.profile-content-wrapper').style.display = 'flex';
+                } else {
+                    document.querySelector('.profile-skeleton').style.display = 'flex';
+                    document.querySelector('.profile-content-wrapper').style.display = 'none';
+                }
+            }
+
+            // --- Authentication Logic ---
+            onAuthStateChanged(auth, async (user) => {
+                if (user) {
+                    currentUser = user;
+                    try {
+                        const userDoc = await getDoc(doc(db, 'users', user.uid));
+                        const userData = userDoc.exists() ? userDoc.data() : {};
+                        currentUserRole = userData.role;
+                        const userStatus = userData.status;
+
+                        if (userStatus === 'pending') {
+                            window.location.href = 'pending.html';
+                            return;
+                        } else if (userStatus === 'denied' || userStatus === 'suspended') {
+                            window.location.href = 'denied.html';
+                            return;
+                        } else if (currentUserRole !== 'admin') {
+                            alert('You do not have sufficient permissions to access the Admin Dashboard. Redirecting to employee dashboard.');
+                            window.location.href = 'employee-dashboard.html';
+                            return;
+                        }
+                    } catch (error) {
+                        console.error("Error fetching user role/status:", error);
+                        alert('Error verifying user role. Redirecting to login.');
+                        await signOut(auth);
+                        window.location.href = 'index.html';
+                        return;
+                    }
+
+                    updateProfileUIContent(user);
+                    
+                    navAdminPanelItem.classList.remove('hidden');
+
+                    await loadAdminDashboardData(); // Load all dashboard content after auth
+
+                } else {
+                    window.location.href = 'index.html';
+                }
+            });
+
+            logoutBtnPopup.addEventListener('click', async () => {
+                try {
+                    await signOut(auth);
+                } catch (error) {
+                    console.error("Error signing out:", error);
+                }
+            });
+
+            // --- Dashboard Data Loading ---
+            async function loadAdminDashboardData() {
+                showSkeletonLoader();
+                try {
+                    await Promise.all([
+                        fetchDashboardMetrics(),
+                        fetchRecentlyAddedProfiles(),
+                        fetchMonthlyProfileGrowth()
+                    ]);
+                } catch (error) {
+                    console.error("Error loading admin dashboard data:", error);
+                    showMessage(adminGlobalMessage, `Failed to load dashboard data: ${error.message}`, false);
+                } finally {
+                    hideSkeletonLoader();
+                }
+            }
+
+            async function fetchDashboardMetrics() {
+                try {
+                    const profilesSnapshot = await getDocs(collection(db, 'profiles'));
+                    let totalProfiles = 0;
+                    let activeProfiles = 0;
+                    let marriedProfiles = 0;
+
+                    profilesSnapshot.forEach(doc => {
+                        totalProfiles++;
+                        const status = doc.data().profileStatus;
+                        if (status === 'active') activeProfiles++;
+                        if (status === 'married') marriedProfiles++;
+                    });
+
+                    const usersSnapshot = await getDocs(collection(db, 'users'));
+                    let totalUsers = 0;
+                    let pendingUsers = 0;
+
+                    usersSnapshot.forEach(doc => {
+                        totalUsers++;
+                        if (doc.data().status === 'pending') pendingUsers++;
+                    });
+
+                    totalProfilesMetric.textContent = totalProfiles;
+                    activeProfilesMetric.textContent = activeProfiles;
+                    marriedProfilesMetric.textContent = marriedProfiles;
+                    totalUsersMetric.textContent = totalUsers;
+                    pendingUsersMetric.textContent = pendingUsers;
+
+                } catch (error) {
+                    console.error("Error fetching dashboard metrics:", error);
+                    showMessage(adminGlobalMessage, `Error loading metrics: ${error.message}`, false);
+                }
+            }
+
+            async function fetchRecentlyAddedProfiles() {
+                recentlyAddedProfilesList.innerHTML = '<p class="no-records">Loading recent profiles...</p>';
+                try {
+                    const q = query(collection(db, 'profiles'), orderBy('createdAt', 'desc'), limit(5));
+                    const snapshot = await getDocs(q);
+
+                    if (snapshot.empty) {
+                        recentlyAddedProfilesList.innerHTML = '<p class="no-records">No profiles added yet.</p>';
+                        return;
+                    }
+
+                    recentlyAddedProfilesList.innerHTML = '';
+                    snapshot.docs.forEach(doc => {
+                        const profile = { id: doc.id, ...doc.data() };
+                        const age = calculateAge(profile.dateOfBirth);
+                        const matrimonyGroupName = getMatrimonyGroupName(profile.matrimonyGroupId);
+
+                        const profileItem = document.createElement('li');
+                        profileItem.className = 'recent-profile-item';
+                        profileItem.innerHTML = `
+                            <img src="${profile.photoURL || 'https://via.placeholder.com/48'}" alt="${profile.name}">
+                            <div class="recent-profile-info">
+                                <h4>${profile.name} (${age})</h4>
+                                <p>${profile.location}, ${matrimonyGroupName}</p>
+                            </div>
+                            <a href="view-profile.html?profileId=${profile.id}" class="button">View</a>
+                        `;
+                        recentlyAddedProfilesList.appendChild(profileItem);
+                    });
+
+                } catch (error) {
+                    console.error("Error fetching recently added profiles:", error);
+                    recentlyAddedProfilesList.innerHTML = `<p class="error-message">Error loading recent profiles: ${error.message}</p>`;
+                }
+            }
+
+            async function fetchMonthlyProfileGrowth() {
+                monthlyGrowthChart.innerHTML = '<p class="no-records">Loading growth data...</p>';
+                try {
+                    const profilesSnapshot = await getDocs(collection(db, 'profiles'));
+                    const monthlyCounts = {};
+                    const today = new Date();
+
+                    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+                    const last6Months = [];
+                    for (let i = 5; i >= 0; i--) {
+                        const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
+                        const monthYearKey = `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}`;
+                        const monthYearLabel = `${monthNames[d.getMonth()]} '${d.getFullYear().toString().slice(-2)}`;
+                        monthlyCounts[monthYearKey] = { count: 0, label: monthYearLabel };
+                        last6Months.push(monthYearKey);
+                    }
+
+                    profilesSnapshot.forEach(doc => {
+                        const createdAt = doc.data().createdAt;
+                        if (createdAt) {
+                            const date = createdAt.toDate();
+                            const monthYearKey = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}`;
+                            if (monthlyCounts.hasOwnProperty(monthYearKey)) {
+                                monthlyCounts[monthYearKey].count++;
+                            }
+                        }
+                    });
+
+                    renderMonthlyGrowthChart(monthlyCounts, last6Months);
+
+                } catch (error) {
+                    console.error("Error fetching monthly profile growth:", error);
+                    showMessage(profileGrowthMessage, `Error loading profile growth data: ${error.message}`, false);
+                    monthlyGrowthChart.innerHTML = `<p class="error-message">Error loading growth data: ${error.message}</p>`;
+                }
+            }
+
+            function renderMonthlyGrowthChart(monthlyCounts, orderedMonthKeys) {
+                monthlyGrowthChart.innerHTML = '';
+                const counts = orderedMonthKeys.map(key => monthlyCounts[key].count);
+                const labels = orderedMonthKeys.map(key => monthlyCounts[key].label);
+                
+                const maxCount = Math.max(...counts, 1);
+
+                if (counts.every(c => c === 0)) {
+                    monthlyGrowthChart.innerHTML = '<p class="no-records">No profiles added in the last 6 months.</p>';
+                    return;
+                }
+
+                labels.forEach((label, index) => {
+                    const count = counts[index];
+                    const barHeight = (count / maxCount) * 90;
+                    
+                    const barWrapper = document.createElement('div');
+                    barWrapper.className = 'bar-wrapper';
+                    barWrapper.innerHTML = `
+                        <div class="bar" style="height: ${barHeight}%;"></div>
+                        <span class="value">${count}</span>
+                        <span class="label">${label}</span>
+                    `;
+                    monthlyGrowthChart.appendChild(barWrapper);
+                });
+            }
+
+            // Initial call to show skeleton loader (ensured DOM is ready)
+            showSkeletonLoader();
+        });
     </script>
 </body>
 </html>
