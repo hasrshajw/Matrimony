@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Matrimony Portal - Manage Users</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <script type="module" src="https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js"></script>
+    <script type="module" src="https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js"></script>
+    <script type="module" src="https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js"></script>
+    <script type="module" src="https://www.gstatic.com/firebasejs/12.4.0/firebase-storage.js"></script>
+
+    <style>
+        :root { --body-bg: #F9FAFB; --widget-bg: #FFFFFF; --border-color: #E5E7EB; --text-primary: #002726; --text-secondary: #6B7280; --brand-green: #33C375; --hover-bg: #F3F4F6; --warning-color: #F59E0B; --danger-color: #EF4444; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'IBM Plex Sans', sans-serif; background-color: var(--body-bg); color: var(--text-primary); font-size: 14px; overflow: hidden; }
+        .dashboard-container { display: grid; grid-template-columns: 260px 1fr; height: 100vh; position: relative; }
+
+        .sidebar { background-color: var(--widget-bg); border-right: 1px solid var(--border-color); padding: 2rem 1.5rem; display: flex; flex-direction: column; position: relative; transition: transform 0.3s ease-in-out; }
+        .sidebar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem; }
+        .logo-image { height: 40px; background-color: #f0f0f0; border-radius: 8px; width: 120px; display: flex; align-items: center; justify-content: center; font-weight: bold; color: var(--text-secondary); }
+        .main-nav { flex-grow: 1; }
+        .main-nav ul { list-style: none; display: flex; flex-direction: column; gap: 0.5rem; }
+        .main-nav a { display: flex; align-items: center; gap: 1rem; text-decoration: none; color: var(--text-primary); font-weight: 500; padding: 0.75rem 1rem; border-radius: 8px; transition: background-color 0.2s ease, color 0.2s ease; }
+        .main-nav a i { font-size: 1.5rem; color: var(--text-secondary); transition: color 0.2s ease; }
+        .main-nav a:hover { background-color: var(--hover-bg); }
+        .main-nav a.active { background-color: var(--hover-bg); font-weight: 600; }
+        .main-nav a.active i { color: var(--brand-green); }
+
+        .profile-section { margin-top: auto; padding-top: 1.5rem; border-top: 1px solid var(--border-color); display: flex; align-items: center; gap: 0.75rem; cursor: pointer; }
+        .profile-content-wrapper { display: flex; align-items: center; gap: 0.75rem; width: 100%; }
+        .profile-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; flex-shrink: 0; background-color: #e2e8f0; }
+        .profile-details { flex-grow: 1; min-width: 0; }
+        .profile-name { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+        .profile-email { font-size: 0.8rem; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+        .profile-options i { font-size: 1.5rem; color: var(--text-secondary); transition: transform 0.2s ease; }
+        .profile-section.active .profile-options i { transform: rotate(180deg); }
+        .profile-popup { position: absolute; bottom: 90px; left: 1.5rem; right: 1.5rem; background-color: var(--widget-bg); border-radius: 12px; box-shadow: 0 10px 30px -5px rgba(0,0,0,0.1); border: 1px solid var(--border-color); padding: 0.75rem; z-index: 100; opacity: 0; pointer-events: none; transform: translateY(10px) scale(0.95); transition: opacity 0.2s ease, transform 0.2s ease; }
+        .profile-popup.active { opacity: 1; pointer-events: all; transform: translateY(0) scale(1); }
+        .popup-header { display: flex; align-items: center; gap: 0.75rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border-color); }
+        .popup-list { list-style: none; padding-top: 0.5rem; }
+        .popup-list a { display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem; border-radius: 6px; text-decoration: none; color: var(--text-primary); }
+        .popup-list a:hover { background-color: var(--hover-bg); }
+        .popup-list a i { font-size: 1.2rem; color: var(--text-secondary); }
+        .popup-list a.logout i { color: var(--danger-color); }
+        .popup-list a.logout { color: var(--danger-color); }
+
+        .main-area { display: flex; flex-direction: column; overflow-y: auto; background-color: var(--body-bg); }
+        .main-header { padding: 1.25rem 3rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background-color: var(--widget-bg); position: sticky; top: 0; z-index: 10; }
+        .main-header h1 { font-size: 1.5rem; font-weight: 600; }
+        .content-body { padding: 2rem 3rem; display: grid; grid-template-columns: 1fr; gap: 2rem; align-items: flex-start; margin-top: 0; }
+        .column { display: flex; flex-direction: column; gap: 2rem; }
+
+        .widget { background-color: var(--widget-bg); border-radius: 16px; border: 1px solid var(--border-color); padding: 1.5rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.03), 0 2px 4px -1px rgba(0,0,0,0.02); }
+        .widget-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+        .widget-header h3 { font-size: 1.1rem; font-weight: 600; color: var(--text-primary); }
+        .widget-header a { font-size: 0.9rem; color: var(--brand-green); text-decoration: none; font-weight: 500; }
+        .widget-header a:hover { text-decoration: underline; }
+
+        .button-primary {
+            display: inline-block;
+            background-color: var(--brand-green);
+            color: white;
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.9rem;
+            transition: background-color 0.2s ease;
+            border: none;
+            cursor: pointer;
+        }
+        .button-primary:hover { background-color: #2fb165; }
+
+        .user-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        .user-card {
+            background-color: var(--widget-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1rem;
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr auto;
+            align-items: center;
+            gap: 1rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        .user-card-header {
+            display: none;
+            font-weight: 600;
+            color: var(--text-secondary);
+            font-size: 0.8em;
+        }
+        .user-card-content {
+            display: contents;
+        }
+        .user-email-info {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+        .user-email { font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .user-created-at { font-size: 0.8em; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        .user-role-section, .user-status-section {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .user-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            justify-content: flex-end;
+        }
+        .user-actions button, .user-actions select {
+            padding: 0.5rem 0.8rem;
+            font-size: 0.8em;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            background-color: var(--hover-bg);
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            white-space: nowrap;
+        }
+        .user-actions button:hover { background-color: var(--border-color); }
+        .user-actions button.approve { background-color: var(--brand-green); color: white; border-color: var(--brand-green); }
+        .user-actions button.approve:hover { background-color: #2fb165; }
+        .user-actions button.deny { background-color: var(--danger-color); color: white; border-color: var(--danger-color); }
+        .user-actions button.deny:hover { background-color: #b91c1c; }
+        .user-actions button.delete-user { background-color: var(--danger-color); color: white; border-color: var(--danger-color); }
+        .user-actions button.delete-user:hover { background-color: #b91c1c; }
+        
+        .user-role-select {
+            padding: 0.5rem 0.8rem;
+            font-size: 0.8em;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            background-color: var(--hover-bg);
+            color: var(--text-primary);
+            cursor: pointer;
+            min-width: 90px;
+        }
+        .user-role-select:focus { outline: none; border-color: var(--brand-green); }
+
+
+        /* Toggle Switch UI */
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 40px;
+            height: 22px;
+            margin: 0 5px;
+            flex-shrink: 0;
+        }
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 22px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 2px;
+            bottom: 2px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider {
+            background-color: var(--brand-green);
+        }
+        input:focus + .slider {
+            box-shadow: 0 0 1px var(--brand-green);
+        }
+        input:checked + .slider:before {
+            transform: translateX(18px);
+        }
+        .status-text {
+            font-size: 0.85em;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-left: 5px;
+            white-space: nowrap;
+        }
+
+        /* Desktop headings for the list */
+        .user-list-headings {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr auto;
+            gap: 1rem;
+            padding: 0.75rem 1rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            background-color: var(--hover-bg);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 0.5rem;
+        }
+
+
+        /* Responsive Adjustments */
+        .menu-toggle { display: none; }
+        .sidebar-close-btn { display: none; }
+        .no-records { text-align: center; color: var(--text-secondary); font-style: italic; margin-top: 1rem; }
+        
+        /* Actionsheet Styles - Adapted from provided example */
+        .actionsheet-overlay { position: fixed; inset: 0; background-color: rgba(17, 24, 39, 0.6); z-index: 2000; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; backdrop-filter: blur(4px); }
+        .actionsheet-overlay.show { opacity: 1; pointer-events: auto; }
+        .actionsheet { position: fixed; bottom: 0; left: 0; right: 0; background-color: var(--widget-bg); border-top-left-radius: 1rem; border-top-right-radius: 1rem; padding: 1rem; z-index: 2001; transform: translateY(100%); transition: transform 0.3s ease-out; }
+        .actionsheet.show { transform: translateY(0); }
+        .actionsheet-header { text-align: center; padding-bottom: 1rem; }
+        .actionsheet-header::before { content: ''; display: block; width: 40px; height: 4px; background-color: var(--border-color); border-radius: 2px; margin: 0 auto 1rem; }
+        .actionsheet-title { font-size: 1.25rem; font-weight: 700; }
+        .actionsheet-content { padding: 1rem 0; border-top: 1px solid var(--border-color); margin-top: 1rem; }
+        .actionsheet-details { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 1rem; text-align: left; margin-bottom: 1.5rem; }
+        .actionsheet-details p { font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 0.25rem; }
+        .actionsheet-details strong { display: block; font-size: 1rem; font-weight: 600; color: var(--text-primary); }
+        .actionsheet-status-control { display: flex; justify-content: space-between; align-items: center; padding: 1rem; background-color: var(--hover-bg); border-radius: 12px; }
+        
+        .actionsheet-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; padding: 1.5rem 0 0.5rem 0; }
+        .actionsheet-btn { padding: 0.9rem 1rem; border-radius: 12px; font-weight: 600; font-size: 0.9rem; cursor: pointer; border: none; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
+        .actionsheet-btn svg { width: 18px; height: 18px; }
+        .actionsheet-btn:active { transform: scale(0.97); }
+        .actionsheet-btn--edit { background-color: var(--hover-bg); color: var(--text-primary); }
+        .actionsheet-btn--edit:hover { background-color: var(--border-color); }
+        .actionsheet-btn--delete { background-color: var(--danger-color); color: white; }
+        .actionsheet-btn--delete:hover { background-color: #b91c1c; }
+        .actionsheet-btn--approve { background-color: var(--brand-green); color: white; }
+        .actionsheet-btn--approve:hover { background-color: #2fb165; }
+        .actionsheet-btn--deny { background-color: var(--danger-color); color: white; }
+        .actionsheet-btn--deny:hover { background-color: #b91c1c; }
+        .actionsheet-btn--reactivate { background-color: var(--brand-green); color: white; }
+        .actionsheet-btn--reactivate:hover { background-color: #2fb165; }
+
+        .actionsheet-cancel button { width: 100%; background-color: var(--widget-bg); color: var(--text-secondary); font-weight: 600; padding: 0.9rem; border: none; cursor: pointer; border-radius: 12px; transition: background-color 0.2s ease; }
+        .actionsheet-cancel button:hover { background-color: var(--hover-bg); }
+
+        /* Mobile specific overrides */
+        @media (max-width: 1024px) {
+            .dashboard-container { grid-template-columns: 1fr; }
+            .sidebar { position: fixed; top: 0; left: 0; height: 100%; width: 80%; max-width: 300px; z-index: 1000; transform: translateX(-100%); box-shadow: 0 0 30px rgba(0,0,0,0.1); }
+            .sidebar.active { transform: translateX(0); }
+            .main-header { padding: 1.25rem 1.5rem; }
+            .content-body { padding: 1.5rem; }
+            .menu-toggle { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; font-size: 1.5rem; color: var(--text-primary); cursor: pointer; background: none; border: none; }
+            .sidebar-close-btn { display: flex; align-items: center; justify-content: center; position: absolute; top: 1.5rem; right: 1.5rem; font-size: 1.75rem; color: var(--danger-color); cursor: pointer; border: none; background: none; }
+            .overlay { position: fixed; inset: 0; background-color: rgba(0,0,0,0.4); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); z-index: 999; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+            .overlay.active { opacity: 1; pointer-events: auto; }
+
+            /* Mobile-specific adjustments for user list */
+            .user-list-headings { display: none; } /* Hide desktop headings */
+            .user-card {
+                grid-template-columns: 1fr auto; /* Email info on left, Edit button on right */
+                gap: 0.5rem;
+                padding: 1rem;
+                align-items: center;
+            }
+            .user-card .user-email-info {
+                grid-column: 1 / 2; /* Span first column */
+            }
+            .user-card .user-status-section,
+            .user-card .user-role-section,
+            .user-card .user-actions {
+                display: none; /* Hide these sections on mobile by default */
+            }
+            .mobile-action-menu-btn {
+                display: flex; /* Show the mobile edit button */
+                background: none;
+                border: none;
+                cursor: pointer;
+                padding: 0.5rem;
+                border-radius: 50%;
+                font-size: 1.5rem;
+                color: var(--text-secondary);
+                transition: background-color 0.2s ease;
+                justify-self: end; /* Align to end of its grid cell */
+                flex-shrink: 0;
+            }
+            .mobile-action-menu-btn:hover { background-color: var(--hover-bg); }
+        }
+
+        /* Skeleton Loading Styles */
+        @keyframes shimmer { 100% { transform: translateX(100%); } }
+        .skeleton { background-color: #e2e8f0; position: relative; overflow: hidden; }
+        .skeleton::after { content: ''; position: absolute; top: 0; right: 0; bottom: 0; left: 0; transform: translateX(-100%); background-image: linear-gradient(90deg, rgba(255, 255, 255, 0) 0, rgba(255, 255, 255, 0.2) 20%, rgba(255, 255, 255, 0.5) 60%, rgba(255, 255, 255, 0)); animation: shimmer 2s infinite; }
+        .skeleton-avatar { width: 40px; height: 40px; border-radius: 50%; }
+        .skeleton-line { height: 14px; border-radius: 4px; }
+        .skeleton-text { height: 1em; width: 80%; }
+        .skeleton-small-text { height: 0.8em; width: 60%; }
+
+        /* Specific skeleton states for user cards */
+        .user-card.skeleton { height: 100px; display: flex; flex-direction: column; justify-content: space-around; }
+        .user-card.skeleton .skeleton-line { width: 90%; margin-bottom: 0.5rem; }
+        .user-card.skeleton .skeleton-line:last-child { width: 50%; }
+
+    </style>
+</head>
+<body>
+    <div class="overlay" id="overlay"></div>
+    <div class="dashboard-container">
+        <aside class="sidebar" id="sidebar">
+            <button class="sidebar-close-btn" id="sidebar-close-btn"><i class='bx bx-x'></i></button>
+            <div class="sidebar-header">
+                <div class="logo-image">Matrimony Admin</div>
+            </div>
+            <nav class="main-nav">
+                <ul>
+                    <li><a href="admin-dashboard.html"><i class='bx bx-home-alt'></i> Dashboard</a></li>
+                    <li><a href="create-profile.html"><i class='bx bx-user-plus'></i> Create Profile</a></li>
+                    <li><a href="search-profiles.html"><i class='bx bx-search'></i> Search Profiles</a></li>
+                    <li><a href="admin-users.html" class="active"><i class='bx bx-group'></i> Manage Users</a></li>
+                    <li><a href="admin-profiles.html"><i class='bx bx-id-card'></i> Manage Profiles</a></li>
+                    <li><a href="admin-history.html"><i class='bx bx-history'></i> Global History</a></li>
+                </ul>
+            </nav>
+            <div class="profile-section" id="profile-section">
+                <div class="profile-content-wrapper">
+                    <div class="profile-avatar"><img src="https://via.placeholder.com/40" alt="User Avatar" id="sidebar-user-avatar" style="width: 100%; height: 100%; border-radius: 50%;"></div>
+                    <div class="profile-details">
+                        <span class="profile-name" id="current-user-email">Loading...</span>
+                        <span class="profile-email" id="current-user-role">Role</span>
+                    </div>
+                    <div class="profile-options"><i class='bx bx-chevron-down'></i></div>
+                </div>
+            </div>
+            <div class="profile-popup" id="profile-popup">
+                <div class="popup-header">
+                    <div class="profile-avatar"><img src="https://via.placeholder.com/40" alt="User Avatar" id="popup-user-avatar" style="width: 100%; height: 100%; border-radius: 50%;"></div>
+                    <div class="profile-details">
+                        <span class="profile-name" id="popup-user-email">Loading...</span>
+                        <span class="profile-email" id="popup-user-role">Role</span>
+                    </div>
+                </div>
+                <ul class="popup-list">
+                    <li><a href="#"><i class='bx bx-user'></i> Profile Settings</a></li>
+                    <li><a href="#" class="logout" id="logout-btn"><i class='bx bx-log-out'></i> Logout</a></li>
+                </ul>
+            </div>
+        </aside>
+        <main class="main-area">
+            <header class="main-header">
+                <i class='bx bx-menu menu-toggle' id="menu-toggle"></i>
+                <h1>Manage Users</h1>
+            </header>
+            <section class="content-body">
+                <div class="column">
+                    <div class="widget">
+                        <div class="widget-header">
+                            <h3>All Registered Users</h3>
+                        </div>
+                        <p id="user-management-message" class="success-message hidden"></p>
+                        <div class="user-list-headings">
+                            <div>Email</div>
+                            <div>Status</div>
+                            <div>Role</div>
+                            <div style="text-align: right;">Actions</div>
+                        </div>
+                        <div id="all-users-list" class="user-list">
+                            <div class="user-card skeleton"><div class="skeleton-line"></div><div class="skeleton-line"></div><div class="skeleton-line"></div><div class="skeleton-line"></div></div>
+                            <div class="user-card skeleton"><div class="skeleton-line"></div><div class="skeleton-line"></div><div class="skeleton-line"></div><div class="skeleton-line"></div></div>
+                            <div class="user-card skeleton"><div class="skeleton-line"></div><div class="skeleton-line"></div><div class="skeleton-line"></div><div class="skeleton-line"></div></div>
+                            <p class="no-records hidden">No registered users.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Actionsheet Overlay - For Mobile Actions -->
+    <div class="actionsheet-overlay" id="actionsheet-overlay">
+        <div class="actionsheet" id="actionsheet">
+            <div class="actionsheet-header"><h3 id="actionsheet-title">Manage User</h3></div>
+            <div class="actionsheet-content">
+                <div class="actionsheet-details">
+                    <div><p>Email</p><strong id="actionsheet-user-email"></strong></div>
+                    <div><p>Created At</p><strong id="actionsheet-user-created-at"></strong></div>
+                </div>
+
+                <div class="actionsheet-status-control">
+                    <strong>Status</strong>
+                    <div class="status-toggle-wrapper">
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="actionsheet-status-toggle">
+                            <span class="slider"></span>
+                        </label>
+                        <span class="status-text" id="actionsheet-status-text"></span>
+                    </div>
+                </div>
+                
+                <div class="actionsheet-status-control" style="margin-top: 1rem;">
+                    <strong>Role</strong>
+                    <select id="actionsheet-role-select" class="user-role-select">
+                        <option value="admin">Admin</option>
+                        <option value="employee">Employee</option>
+                    </select>
+                </div>
+            </div>
+            <div class="actionsheet-actions">
+                <button class="actionsheet-btn actionsheet-btn--approve hidden" id="actionsheet-approve-btn">
+                    <i class='bx bx-check-circle'></i> Approve
+                </button>
+                <button class="actionsheet-btn actionsheet-btn--deny hidden" id="actionsheet-deny-btn">
+                    <i class='bx bx-x-circle'></i> Deny
+                </button>
+                <button class="actionsheet-btn actionsheet-btn--reactivate hidden" id="actionsheet-reactivate-btn">
+                    <i class='bx bx-redo'></i> Reactivate
+                </button>
+                <button class="actionsheet-btn actionsheet-btn--delete" id="actionsheet-delete-btn">
+                    <i class='bx bx-trash'></i> Delete Account
+                </button>
+            </div>
+            <div class="actionsheet-cancel"><button id="actionsheet-cancel-btn">Cancel</button></div>
+        </div>
+    </div>
+
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js';
+        import { getAuth, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js';
+        import { getFirestore, collection, addDoc, getDoc, getDocs, updateDoc, deleteDoc, doc, query, where, orderBy, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js';
+        import { getStorage } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-storage.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAuxA-e71uX_uLDe6oyFU69q-eLfgUzbXA",
+            authDomain: "harsha-jw.firebaseapp.com",
+            projectId: "harsha-jw",
+            storageBucket: "harsha-jw.firebasestorage.app",
+            messagingSenderId: "471408120499",
+            appId: "1:471408120499:web:91e61514ad3703ce3b16c6",
+            measurementId: "G-NBC16X4R1T"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const storage = getStorage(app);
+
+        let currentUser = null;
+        let currentUserRole = null;
+        const hardcodedMatrimonyGroups = [
+            { id: 'US', name: 'US' },
+            { id: 'BY_OTHERS', name: 'BY OTHERS' }
+        ];
+
+        let sidebarUserAvatar, popupUserAvatar, sidebarUserName, sidebarUserRole, popupUserEmail, popupUserRole;
+        let logoutBtn, navAdminPanelItem, userManagementMessage, allUsersList;
+
+        // Actionsheet elements
+        let actionsheetOverlay, actionsheet, actionsheetUserEmail, actionsheetUserCreatedAt, actionsheetStatusToggle, actionsheetStatusText, actionsheetRoleSelect;
+        let actionsheetApproveBtn, actionsheetDenyBtn, actionsheetReactivateBtn, actionsheetDeleteBtn, actionsheetCancelBtn;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            sidebarUserAvatar = document.getElementById('sidebar-user-avatar');
+            popupUserAvatar = document.getElementById('popup-user-avatar');
+            sidebarUserName = document.getElementById('current-user-email');
+            sidebarUserRole = document.getElementById('current-user-role');
+            popupUserEmail = document.getElementById('popup-user-email');
+            popupUserRole = document.getElementById('popup-user-role');
+
+            logoutBtn = document.getElementById('logout-btn');
+            navAdminPanelItem = document.getElementById('nav-admin-panel-item');
+            userManagementMessage = document.getElementById('user-management-message');
+            allUsersList = document.getElementById('all-users-list');
+
+            // Actionsheet element assignments
+            actionsheetOverlay = document.getElementById('actionsheet-overlay');
+            actionsheet = document.getElementById('actionsheet');
+            actionsheetUserEmail = document.getElementById('actionsheet-user-email');
+            actionsheetUserCreatedAt = document.getElementById('actionsheet-user-created-at');
+            actionsheetStatusToggle = document.getElementById('actionsheet-status-toggle');
+            actionsheetStatusText = document.getElementById('actionsheet-status-text');
+            actionsheetRoleSelect = document.getElementById('actionsheet-role-select');
+            actionsheetApproveBtn = document.getElementById('actionsheet-approve-btn');
+            actionsheetDenyBtn = document.getElementById('actionsheet-deny-btn');
+            actionsheetReactivateBtn = document.getElementById('actionsheet-reactivate-btn');
+            actionsheetDeleteBtn = document.getElementById('actionsheet-delete-btn');
+            actionsheetCancelBtn = document.getElementById('actionsheet-cancel-btn');
+
+
+            const profileSection = document.getElementById('profile-section');
+            const profilePopup = document.getElementById('profile-popup');
+            const sidebar = document.getElementById('sidebar');
+            const menuToggle = document.getElementById('menu-toggle');
+            const closeBtn = document.getElementById('sidebar-close-btn');
+            const overlay = document.getElementById('overlay');
+
+            if (profileSection) {
+                profileSection.addEventListener('click', e => {
+                    e.stopPropagation();
+                    if (profilePopup) profilePopup.classList.toggle('active');
+                    if (profileSection) profileSection.classList.toggle('active');
+                });
+            }
+            
+            document.addEventListener('click', e => {
+                if (profileSection && !profileSection.contains(e.target) && profilePopup && !profilePopup.contains(e.target)) {
+                    profilePopup.classList.remove('active');
+                    profileSection.classList.remove('active');
+                }
+            });
+
+            const toggleMenu = () => {
+                if (sidebar) sidebar.classList.toggle('active');
+                if (overlay) overlay.classList.toggle('active');
+            };
+            
+            if (menuToggle) menuToggle.addEventListener('click', toggleMenu);
+            if (closeBtn) closeBtn.addEventListener('click', toggleMenu);
+            if (overlay) overlay.addEventListener('click', toggleMenu);
+
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', async () => {
+                    try {
+                        await signOut(auth);
+                        window.location.href = 'index.html';
+                    } catch (error) {
+                        console.error("Error signing out:", error);
+                    }
+                });
+            }
+
+            // Actionsheet event listeners
+            if (actionsheetCancelBtn) actionsheetCancelBtn.addEventListener('click', closeActionsheet);
+            if (actionsheetOverlay) actionsheetOverlay.addEventListener('click', closeActionsheet); // Close if click outside
+        });
+
+        function showMessage(element, message, isSuccess = true) {
+            if (element) {
+                element.textContent = message;
+                element.classList.remove('hidden');
+                element.classList.toggle('success-message', isSuccess);
+                element.classList.toggle('error-message', !isSuccess);
+                setTimeout(() => element.classList.add('hidden'), 5000);
+            }
+        }
+
+        async function logChange(action, entityType, entityId, details = {}) {
+            if (!currentUser) return;
+            try {
+                await addDoc(collection(db, 'changeHistory'), {
+                    action,
+                    entityType,
+                    entityId,
+                    userId: currentUser.uid,
+                    userEmail: currentUser.email,
+                    timestamp: serverTimestamp(),
+                    details: JSON.stringify(details)
+                });
+            } catch (error) {
+                console.error("Error logging global change:", error);
+            }
+        }
+        
+        function getMatrimonyGroupName(groupId) {
+            if (!groupId) {
+                return 'Not Specified';
+            }
+            const group = hardcodedMatrimonyGroups.find(g => g.id === groupId);
+            return group ? group.name : 'Unknown Group';
+        }
+
+        function calculateAge(dateOfBirthString) {
+            if (!dateOfBirthString) return 'N/A';
+            const dob = new Date(dateOfBirthString);
+            const today = new Date();
+            let age = today.getFullYear() - dob.getFullYear();
+            const monthDiff = today.getMonth() - dob.getMonth();
+            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
+                age--;
+            }
+            return age;
+        }
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUser = user;
+                try {
+                    const userDoc = await getDoc(doc(db, 'users', user.uid));
+                    const userData = userDoc.exists() ? userDoc.data() : {};
+                    currentUserRole = userData.role;
+                    const userStatus = userData.status;
+
+                    if (userStatus === 'pending') {
+                        window.location.href = 'pending.html';
+                        return;
+                    } else if (userStatus === 'denied' || userStatus === 'suspended') {
+                        window.location.href = 'denied.html';
+                        return;
+                    } else if (currentUserRole !== 'admin') {
+                        alert('You do not have sufficient permissions to access this page. Redirecting to employee dashboard.');
+                        window.location.href = 'employee-dashboard.html';
+                        return;
+                    }
+                } catch (error) {
+                    console.error("Error fetching user role/status:", error);
+                    alert('Error verifying user role. Redirecting to login.');
+                    await signOut(auth);
+                    window.location.href = 'index.html';
+                    return;
+                }
+
+                if (sidebarUserName) sidebarUserName.textContent = user.email;
+                if (sidebarUserRole) sidebarUserRole.textContent = currentUserRole ? currentUserRole.charAt(0).toUpperCase() + currentUserRole.slice(1) : 'Admin';
+                if (popupUserEmail) popupUserEmail.textContent = user.email;
+                if (popupUserRole) popupUserRole.textContent = currentUserRole ? currentUserRole.charAt(0).toUpperCase() + currentUserRole.slice(1) : 'Admin';
+
+                const avatarUrl = user.photoURL || 'https://via.placeholder.com/40';
+                if (sidebarUserAvatar) sidebarUserAvatar.src = avatarUrl;
+                if (popupUserAvatar) popupUserAvatar.src = avatarUrl;
+
+                if (logoutBtn) logoutBtn.classList.remove('hidden');
+                if (navAdminPanelItem) navAdminPanelItem.classList.remove('hidden');
+
+                fetchAllUsers();
+
+            } else {
+                window.location.href = 'index.html';
+            }
+        });
+
+        // --- User Management Functions ---
+        async function fetchAllUsers() {
+            if (allUsersList) allUsersList.innerHTML = `
+                <div class="user-card skeleton"><div class="skeleton-line"></div><div class="skeleton-line"></div><div class="skeleton-line"></div><div class="skeleton-line"></div></div>
+                <div class="user-card skeleton"><div class="skeleton-line"></div><div class="skeleton-line"></div><div class="skeleton-line"></div><div class="skeleton-line"></div></div>
+                <div class="user-card skeleton"><div class="skeleton-line"></div><div class="skeleton-line"></div><div class="skeleton-line"></div><div class="skeleton-line"></div></div>
+            `;
+            try {
+                const q = query(collection(db, 'users'), orderBy('createdAt', 'desc'));
+                const snapshot = await getDocs(q);
+
+                if (allUsersList) allUsersList.innerHTML = '';
+
+                if (snapshot.empty) {
+                    if (allUsersList) allUsersList.innerHTML = '<p class="no-records">No registered users.</p>';
+                    return;
+                }
+
+                snapshot.docs.forEach(userDoc => {
+                    const user = { id: userDoc.id, ...userDoc.data() };
+                    const createdAt = user.createdAt ? new Date(user.createdAt.toDate()).toLocaleString() : 'N/A';
+                    
+                    const userCard = document.createElement('div');
+                    userCard.className = 'user-card';
+
+                    userCard.innerHTML = `
+                        <div class="user-card-content">
+                            <div class="user-card-header mobile-only">Email</div>
+                            <div class="user-email-info">
+                                <div class="user-email">${user.email}</div>
+                                <div class="user-created-at">${createdAt}</div>
+                            </div>
+                            
+                            <div class="user-card-header mobile-only">Status</div>
+                            <div class="user-status-section desktop-only">
+                                ${user.status === 'pending' || user.status === 'denied' ?
+                                    `<span class="status-badge ${user.status}">${user.status || 'N/A'}</span>` :
+                                    `<label class="toggle-switch">
+                                        <input type="checkbox" ${user.status === 'approved' ? 'checked' : ''} data-uid="${user.id}" data-user-email="${user.email}" class="status-toggle">
+                                        <span class="slider"></span>
+                                    </label>
+                                    <span class="status-text">${user.status === 'approved' ? 'Active' : 'Suspended'}</span>`
+                                }
+                                ${user.status === 'denied' || user.status === 'suspended' ? `<button class="reactivate button-primary hidden-on-desktop" data-uid="${user.id}" data-user-email="${user.email}">Reactivate</button>` : ''}
+                            </div>
+                            
+                            <div class="user-card-header mobile-only">Role</div>
+                            <div class="user-role-section desktop-only">
+                                <select class="user-role-select" data-uid="${user.id}" data-user-email="${user.email}">
+                                    <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Admin</option>
+                                    <option value="employee" ${user.role === 'employee' ? 'selected' : ''}>Employee</option>
+                                </select>
+                            </div>
+                            
+                            <div class="user-card-header mobile-only">Actions</div>
+                            <div class="user-actions desktop-only">
+                                ${user.status === 'pending' ? `<button class="approve button-primary" data-uid="${user.id}" data-user-email="${user.email}">Approve</button>` : ''}
+                                ${user.status !== 'denied' && user.status !== 'pending' ? `<button class="deny button-primary" data-uid="${user.id}" data-user-email="${user.email}">Deny</button>` : ''}
+                                ${user.id !== currentUser.uid ? `<button class="delete-user button-primary" data-uid="${user.id}" data-user-email="${user.email}">Delete</button>` : ''}
+                            </div>
+                            
+                            <button class="mobile-action-menu-btn" data-uid="${user.id}" data-user-email="${user.email}" data-user-status="${user.status}" data-user-role="${user.role}"><i class='bx bx-dots-vertical-rounded'></i></button>
+                        </div>
+                    `;
+                    if (allUsersList) allUsersList.appendChild(userCard);
+                });
+
+                if (allUsersList) {
+                    allUsersList.querySelectorAll('.approve').forEach(button => {
+                        button.addEventListener('click', (e) => approveUser(e.target.dataset.uid, e.target.dataset.userEmail));
+                    });
+                    allUsersList.querySelectorAll('.deny').forEach(button => {
+                        button.addEventListener('click', (e) => denyUser(e.target.dataset.uid, e.target.dataset.userEmail));
+                    });
+                    allUsersList.querySelectorAll('.reactivate').forEach(button => { // For denied/suspended desktop reactivate
+                        button.addEventListener('click', (e) => reactivateUser(e.target.dataset.uid, e.target.dataset.userEmail));
+                    });
+                    allUsersList.querySelectorAll('.status-toggle').forEach(toggle => {
+                        toggle.addEventListener('change', (e) => toggleUserStatus(e.target.dataset.uid, e.target.checked, e.target.dataset.userEmail));
+                    });
+                    allUsersList.querySelectorAll('.user-role-select').forEach(select => {
+                        select.addEventListener('change', (e) => editUserRole(e.target.dataset.uid, e.target.value, e.target.dataset.userEmail));
+                    });
+                    allUsersList.querySelectorAll('.delete-user').forEach(button => {
+                        button.addEventListener('click', (e) => deleteUser(e.target.dataset.uid, e.target.dataset.userEmail));
+                    });
+                    allUsersList.querySelectorAll('.mobile-action-menu-btn').forEach(button => {
+                        button.addEventListener('click', (e) => openActionsheet(e.target.dataset.uid, e.target.dataset.userEmail, e.target.dataset.userStatus, e.target.dataset.userRole));
+                    });
+                }
+
+            } catch (error) {
+                console.error("Error fetching all users:", error);
+                showMessage(userManagementMessage, `Error loading users: ${error.message}`, false);
+                if (allUsersList) allUsersList.innerHTML = '<p class="no-records">Error loading users.</p>';
+            }
+        }
+
+        async function updateUserStatusAndRole(uid, newStatus, newRole, actionType, userEmailForMessage) {
+            if (!confirm(`Are you sure you want to ${actionType.toUpperCase()} user ${userEmailForMessage}?`)) return;
+
+            try {
+                const userDocRef = doc(db, 'users', uid);
+                const oldUserDoc = await getDoc(userDocRef);
+                const oldUserData = oldUserDoc.exists() ? oldUserDoc.data() : {};
+
+                await updateDoc(userDocRef, {
+                    role: newRole,
+                    status: newStatus,
+                    updatedAt: serverTimestamp(),
+                    updatedBy: currentUser.uid,
+                });
+                await logChange(actionType, 'user', uid, { oldRole: oldUserData.role, newRole: newRole, oldStatus: oldUserData.status, newStatus: newStatus });
+                showMessage(userManagementMessage, `User ${userEmailForMessage} ${actionType}d successfully!`, true);
+                closeActionsheet(); // Close actionsheet after action
+                fetchAllUsers();
+            } catch (error) {
+                console.error(`Error ${actionType}ing user:`, error);
+                showMessage(userManagementMessage, `Error ${actionType}ing user: ${error.message}`, false);
+            }
+        }
+
+        async function approveUser(uid, userEmail) { await updateUserStatusAndRole(uid, 'approved', 'employee', 'approve', userEmail); }
+        async function denyUser(uid, userEmail) { await updateUserStatusAndRole(uid, 'denied', 'denied', 'deny', userEmail); }
+        async function reactivateUser(uid, userEmail) { await updateUserStatusAndRole(uid, 'approved', 'employee', 'reactivate', userEmail); }
+
+
+        async function toggleUserStatus(uid, isChecked, userEmail) {
+            const newStatus = isChecked ? 'approved' : 'suspended';
+            const actionType = isChecked ? 'reactivate' : 'suspend';
+
+            const confirmationMessage = `Are you sure you want to change user ${userEmail}'s status to '${newStatus.toUpperCase()}'?`;
+            if (!confirm(confirmationMessage)) {
+                fetchAllUsers();
+                return;
+            }
+
+            try {
+                const userDocRef = doc(db, 'users', uid);
+                const oldUserDoc = await getDoc(userDocRef);
+                const oldUserData = oldUserDoc.exists() ? oldUserDoc.data() : {};
+                const oldStatus = oldUserData.status;
+                const oldRole = oldUserData.role;
+
+                await updateDoc(userDocRef, {
+                    status: newStatus,
+                    updatedAt: serverTimestamp(),
+                    updatedBy: currentUser.uid,
+                });
+                await logChange(actionType, 'user_status', uid, { oldStatus: oldStatus, newStatus: newStatus, oldRole: oldRole, newRole: oldRole });
+                showMessage(userManagementMessage, `User ${userEmail} status updated to '${newStatus}'!`, true);
+                closeActionsheet(); // Close actionsheet after action
+                fetchAllUsers();
+            } catch (error) {
+                console.error(`Error toggling user status:`, error);
+                showMessage(userManagementMessage, `Error toggling user status: ${error.message}`, false);
+                fetchAllUsers();
+            }
+        }
+
+        async function editUserRole(uid, newRole, userEmail) {
+            if (!confirm(`Are you sure you want to change user ${userEmail}'s role to '${newRole.toUpperCase()}'?`)) return;
+
+            try {
+                const userDocRef = doc(db, 'users', uid);
+                const oldUserDoc = await getDoc(userDocRef);
+                const oldUserData = oldUserDoc.exists() ? oldUserDoc.data() : {};
+                const oldRole = oldUserData.role;
+                const oldStatus = oldUserData.status;
+
+                const updates = {
+                    role: newRole,
+                    updatedAt: serverTimestamp(),
+                    updatedBy: currentUser.uid,
+                };
+
+                if (oldStatus === 'pending' || oldStatus === 'denied' || oldStatus === 'suspended') {
+                    updates.status = 'approved';
+                }
+                
+                await updateDoc(userDocRef, updates);
+
+                await logChange('update_user_role', 'user', uid, { oldRole: oldRole, newRole: newRole, oldStatus: oldStatus, newStatus: updates.status || oldStatus });
+                showMessage(userManagementMessage, `User ${userEmail} role updated to ${newRole}!`, true);
+                closeActionsheet(); // Close actionsheet after action
+                fetchAllUsers();
+            } catch (error) {
+                console.error("Error editing user role:", error);
+                showMessage(userManagementMessage, `Error editing user role: ${error.message}`, false);
+            }
+        }
+
+        async function deleteUser(uid, userEmail) {
+            if (!confirm(`WARNING: Are you sure you want to permanently DELETE user ${userEmail} and all associated data? This cannot be undone.`)) return;
+
+            try {
+                const userDocRef = doc(db, 'users', uid);
+                const userDoc = await getDoc(userDocRef);
+                const userData = userDoc.exists() ? userDoc.data() : {};
+
+                await deleteDoc(userDocRef);
+                await logChange('delete', 'user', uid, { deletedEmail: userData.email, deletedRole: userData.role });
+                
+                showMessage(userManagementMessage, `User ${userEmail} deleted successfully!`, true);
+                closeActionsheet(); // Close actionsheet after action
+                fetchAllUsers();
+            } catch (error) {
+                console.error("Error deleting user:", error);
+                showMessage(userManagementMessage, `Error deleting user: ${error.message}`, false);
+            }
+        }
+
+        // --- Actionsheet Functions ---
+        function openActionsheet(uid, userEmail, userStatus, userRole) {
+            actionsheetOverlay.classList.add('show');
+            actionsheet.classList.add('show');
+
+            if (actionsheetUserEmail) actionsheetUserEmail.textContent = userEmail;
+            if (actionsheetUserCreatedAt) { // Fetch creation date specifically for actionsheet, or pass it
+                 // This would require passing createdAt from fetchAllUsers, for now it's placeholder
+                 actionsheetUserCreatedAt.textContent = 'Fetching...';
+                 (async () => {
+                     try {
+                         const userDoc = await getDoc(doc(db, 'users', uid));
+                         if (userDoc.exists() && userDoc.data().createdAt) {
+                             actionsheetUserCreatedAt.textContent = new Date(userDoc.data().createdAt.toDate()).toLocaleString();
+                         } else {
+                             actionsheetUserCreatedAt.textContent = 'N/A';
+                         }
+                     } catch (error) {
+                         console.error("Error fetching created at for actionsheet:", error);
+                         actionsheetUserCreatedAt.textContent = 'Error';
+                     }
+                 })();
+            }
+
+            // Status Toggle visibility and state
+            const isApprovedOrSuspended = (userStatus === 'approved' || userStatus === 'suspended');
+            if (actionsheetStatusToggle) {
+                actionsheetStatusToggle.checked = (userStatus === 'approved');
+                actionsheetStatusToggle.dataset.uid = uid;
+                actionsheetStatusToggle.dataset.userEmail = userEmail;
+                // Update text based on toggle state
+                if (actionsheetStatusText) actionsheetStatusText.textContent = actionsheetStatusToggle.checked ? 'Active' : 'Suspended';
+                if (actionsheetStatusToggle.closest('.actionsheet-status-control')) {
+                    actionsheetStatusToggle.closest('.actionsheet-status-control').classList.toggle('hidden', !isApprovedOrSuspended);
+                }
+            }
+            
+            // Role Select visibility and state
+            if (actionsheetRoleSelect) {
+                actionsheetRoleSelect.value = userRole;
+                actionsheetRoleSelect.dataset.uid = uid;
+                actionsheetRoleSelect.dataset.userEmail = userEmail;
+                if (actionsheetRoleSelect.closest('.actionsheet-status-control')) {
+                    actionsheetRoleSelect.closest('.actionsheet-status-control').classList.remove('hidden');
+                }
+            }
+            
+            // Action buttons visibility
+            if (actionsheetApproveBtn) {
+                actionsheetApproveBtn.classList.toggle('hidden', userStatus !== 'pending');
+                actionsheetApproveBtn.dataset.uid = uid;
+                actionsheetApproveBtn.dataset.userEmail = userEmail;
+                actionsheetApproveBtn.onclick = () => approveUser(uid, userEmail).then(closeActionsheet);
+            }
+            if (actionsheetDenyBtn) {
+                actionsheetDenyBtn.classList.toggle('hidden', userStatus === 'denied' || userStatus === 'pending');
+                actionsheetDenyBtn.dataset.uid = uid;
+                actionsheetDenyBtn.dataset.userEmail = userEmail;
+                actionsheetDenyBtn.onclick = () => denyUser(uid, userEmail).then(closeActionsheet);
+            }
+            if (actionsheetReactivateBtn) {
+                 actionsheetReactivateBtn.classList.toggle('hidden', userStatus !== 'denied' && userStatus !== 'suspended');
+                 actionsheetReactivateBtn.dataset.uid = uid;
+                 actionsheetReactivateBtn.dataset.userEmail = userEmail;
+                 actionsheetReactivateBtn.onclick = () => reactivateUser(uid, userEmail).then(closeActionsheet);
+            }
+            if (actionsheetDeleteBtn) {
+                actionsheetDeleteBtn.classList.remove('hidden'); // Always show delete if user can delete
+                actionsheetDeleteBtn.dataset.uid = uid;
+                actionsheetDeleteBtn.dataset.userEmail = userEmail;
+                actionsheetDeleteBtn.onclick = () => deleteUser(uid, userEmail).then(closeActionsheet);
+            }
+
+            // Attach event listeners for elements inside actionsheet
+            if (actionsheetStatusToggle) {
+                actionsheetStatusToggle.onchange = (e) => {
+                    if (actionsheetStatusText) actionsheetStatusText.textContent = e.target.checked ? 'Active' : 'Suspended';
+                    toggleUserStatus(e.target.dataset.uid, e.target.checked, e.target.dataset.userEmail);
+                };
+            }
+            if (actionsheetRoleSelect) {
+                actionsheetRoleSelect.onchange = (e) => {
+                    editUserRole(e.target.dataset.uid, e.target.value, e.target.dataset.userEmail);
+                };
+            }
+        }
+
+        function closeActionsheet() {
+            if (actionsheetOverlay) actionsheetOverlay.classList.remove('show');
+            if (actionsheet) actionsheet.classList.remove('show');
+        }
+    </script>
+</body>
+</html>
