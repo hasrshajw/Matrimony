@@ -225,7 +225,10 @@
         }
 
 
-        /* Responsive Adjustments */
+        /* NEW: Hide mobile view elements by default */
+        .mobile-user-card-view {
+            display: none !important; /* Force hide on desktop */
+        }
         .menu-toggle { display: none; }
         .sidebar-close-btn { display: none; }
         .no-records { text-align: center; color: var(--text-secondary); font-style: italic; margin-top: 1rem; }
@@ -241,32 +244,36 @@
             .overlay {
                 position: fixed; inset: 0; background-color: rgba(0,0,0,0.4); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
                 z-index: 999;
-                opacity: 0; /* Default: transparent */
-                pointer-events: none; /* Default: don't block clicks */
-                transition: opacity 0.3s ease;
+                opacity: 0;
+                visibility: hidden; /* Fix: Hidden by default */
+                pointer-events: none;
+                transition: opacity 0.3s ease, visibility 0.3s ease;
             }
             .overlay.active {
-                opacity: 1; /* Opaque when active */
-                pointer-events: auto; /* Block clicks when active */
+                opacity: 1;
+                visibility: visible; /* Fix: Visible when active */
+                pointer-events: auto;
             }
 
-            /* Mobile-specific: Hide desktop list and headings */
-            .user-list-headings { display: none; }
-            .user-list { display: none; }
-            /* Mobile-specific: Show simplified mobile card view */
-            .mobile-card-view {
-                display: flex; /* Changed from grid to flex for simpler layout */
+            /* Mobile-specific adjustments for user list */
+            .user-list-headings { display: none; } /* Hide desktop headings */
+            #all-users-list { display: none; } /* Hide desktop user list */
+            .mobile-user-card-view { /* Show mobile cards */
+                display: flex !important; /* Force show on mobile */
                 flex-direction: column;
                 gap: 1rem;
                 margin-top: 1rem;
             }
-            .mobile-card-view .user-card {
-                display: flex; /* Ensure flex for internal layout */
-                justify-content: space-between; /* Space email and button */
-                align-items: center;
-                gap: 1rem;
+            .mobile-user-card-view .user-card {
+                grid-template-columns: 1fr auto; /* Email on left, button on right */
                 padding: 1rem;
-                border: 1px solid var(--border-color); /* Default border */
+                align-items: center;
+                border: 1px solid var(--border-color); /* Default border for all mobile cards */
+                flex-direction: row; /* Ensure email and button are side by side */
+                justify-content: space-between; /* Space them out */
+            }
+            .user-card.pending-highlight { /* Green border for pending cards on mobile */
+                border: 2px solid var(--brand-green);
             }
             .mobile-user-card-view .user-email-info {
                 flex-grow: 1; /* Allow email info to take available space */
@@ -274,17 +281,8 @@
                 align-items: flex-start;
                 margin-bottom: 0;
             }
-            .mobile-user-card-view .user-email {
-                font-weight: 600; /* Make email more prominent */
-                font-size: 1.1em;
-            }
             .mobile-user-card-view .user-created-at {
                 margin-top: 0.25rem;
-                font-size: 0.85em;
-            }
-            /* Highlight for pending users */
-            .user-card.pending-highlight {
-                border: 2px solid var(--brand-green);
             }
 
             /* Mobile "Manage" button */
@@ -318,7 +316,7 @@
         .user-card.skeleton .skeleton-line { width: 90%; margin-bottom: 0.5rem; }
         .user-card.skeleton .skeleton-line:last-child { width: 50%; }
 
-        /* Actionsheet Specific Styles */
+        /* Actionsheet Specific Styles (from example) */
         .actionsheet-overlay { position: fixed; inset: 0; background-color: rgba(17, 24, 39, 0.6); z-index: 2000; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; backdrop-filter: blur(4px); }
         .actionsheet-overlay.show { opacity: 1; pointer-events: auto; }
         .actionsheet { position: fixed; bottom: 0; left: 0; right: 0; background-color: var(--widget-bg); border-top-left-radius: 1rem; border-top-right-radius: 1rem; padding: 1rem; z-index: 2001; transform: translateY(100%); transition: transform 0.3s ease-out; }
@@ -330,33 +328,14 @@
         .actionsheet-details { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 1rem; text-align: left; margin-bottom: 1.5rem; }
         .actionsheet-details p { font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 0.25rem; }
         .actionsheet-details strong { display: block; font-size: 1rem; font-weight: 600; color: var(--text-primary); }
+        .actionsheet-status-control { display: flex; justify-content: space-between; align-items: center; padding: 1rem; background-color: var(--hover-bg); border-radius: 12px; }
         
-        .actionsheet-control-group { /* New class for status/role controls */
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 1rem;
-            background-color: var(--hover-bg);
-            border-radius: 12px;
-            margin-bottom: 0.5rem; /* Spacing between groups */
-        }
-        
-        .actionsheet-actions {
-            display: flex; /* Changed to flex for better button wrapping */
-            flex-wrap: wrap; /* Allow buttons to wrap */
-            justify-content: center; /* Center buttons */
-            gap: 0.75rem;
-            padding: 1.5rem 0 0.5rem 0;
-        }
-        .actionsheet-btn {
-            flex: 1 1 calc(50% - 0.375rem); /* Two buttons per row, adjusting for gap */
-            max-width: unset; /* Remove max-width constraint */
-            padding: 0.9rem 1rem; border-radius: 12px; font-weight: 600; font-size: 0.9rem; cursor: pointer; border: none; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
+        .actionsheet-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; padding: 1.5rem 0 0.5rem 0; }
+        .actionsheet-btn { padding: 0.9rem 1rem; border-radius: 12px; font-weight: 600; font-size: 0.9rem; cursor: pointer; border: none; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
         .actionsheet-btn svg { width: 18px; height: 18px; }
         .actionsheet-btn:active { transform: scale(0.97); }
-        .actionsheet-btn.approve { background-color: var(--brand-green); color: white; }
-        .actionsheet-btn.deny { background-color: var(--danger-color); color: white; }
-        .actionsheet-btn.reactivate { background-color: var(--warning-color); color: white; }
+        .actionsheet-btn--edit { background-color: var(--hover-bg); color: var(--text-primary); }
+        .actionsheet-btn--edit:hover { background-color: var(--border-color); }
         .actionsheet-btn--delete { background-color: var(--danger-bg-light); color: var(--danger-text-dark); }
         .actionsheet-btn--delete:hover { background-color: #FECACA; }
         .actionsheet-cancel button { width: 100%; background-color: var(--widget-bg); color: var(--text-secondary); font-weight: 600; padding: 0.9rem; border: none; cursor: pointer; border-radius: 12px; transition: background-color 0.2s ease; }
@@ -434,7 +413,7 @@
                         </div>
 
                         <!-- Mobile View -->
-                        <div id="all-users-mobile-list" class="mobile-card-view">
+                        <div id="all-users-mobile-list" class="mobile-user-card-view">
                              <!-- Skeletons for mobile -->
                             <div class="user-card skeleton"><div class="skeleton-line" style="width: 80%;"></div><div class="skeleton-line" style="width: 50%; height: 12px;"></div></div>
                             <div class="user-card skeleton"><div class="skeleton-line" style="width: 70%;"></div><div class="skeleton-line" style="width: 40%; height: 12px;"></div></div>
@@ -457,9 +436,7 @@
                     <div><p>Email</p><strong id="actionsheet-user-email"></strong></div>
                     <div><p>Created</p><strong id="actionsheet-user-created"></strong></div>
                 </div>
-                
-                <!-- Approved/Suspended Toggle -->
-                <div id="actionsheet-status-approved-group" class="actionsheet-control-group hidden">
+                <div class="actionsheet-status-control">
                     <strong>Status</strong>
                     <div style="display: flex; align-items: center; gap: 5px;">
                         <span class="status-text" id="actionsheet-status-label"></span>
@@ -469,20 +446,7 @@
                         </label>
                     </div>
                 </div>
-
-                <!-- Pending Actions -->
-                <div id="actionsheet-status-pending-group" class="actionsheet-actions hidden">
-                    <button class="actionsheet-btn button-primary approve" id="actionsheet-approve-pending-btn">Approve</button>
-                    <button class="actionsheet-btn button-primary deny" id="actionsheet-deny-pending-btn">Deny</button>
-                </div>
-
-                <!-- Denied/Suspended Reactivate -->
-                <div id="actionsheet-status-denied-suspended-group" class="actionsheet-actions hidden">
-                    <button class="actionsheet-btn button-primary reactivate" id="actionsheet-reactivate-btn">Reactivate</button>
-                </div>
-
-                 <!-- Role Select -->
-                <div id="actionsheet-role-group" class="actionsheet-control-group hidden">
+                 <div class="actionsheet-status-control" style="margin-top: 10px;">
                     <strong>Role</strong>
                     <select id="actionsheet-role-select" class="user-role-select">
                         <option value="admin">Admin</option>
@@ -490,8 +454,10 @@
                     </select>
                 </div>
             </div>
-            
             <div class="actionsheet-actions">
+                <button class="actionsheet-btn button-primary approve hidden" id="actionsheet-approve-btn">Approve</button>
+                <button class="actionsheet-btn button-primary deny hidden" id="actionsheet-deny-btn">Deny</button>
+                <button class="actionsheet-btn button-primary reactivate hidden" id="actionsheet-reactivate-btn">Reactivate</button>
                 <button class="actionsheet-btn actionsheet-btn--delete" id="actionsheet-delete-btn">
                     <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2.99561 7H20.9956" stroke="currentColor" stroke-width="2"></path><path d="M9.99561 11V17M13.9956 11V17" stroke="currentColor" stroke-width="2"></path><path d="M8 6.5L8.68917 4.08792C8.87315 3.44397 9.46173 3 10.1315 3H13.8685C14.5383 3 15.1268 3.44397 15.3108 4.08792L16 6.5" stroke="currentColor" stroke-width="2"></path><path d="M5 7L5.80098 18.2137C5.91312 19.7837 7.21944 21 8.79336 21H15.2066C16.7806 21 18.0869 19.7837 18.199 18.2137L19 7" stroke="currentColor" stroke-width="2"></path></svg>
                     Delete
@@ -532,10 +498,9 @@
         let sidebarUserAvatar, popupUserAvatar, sidebarUserName, sidebarUserRole, popupUserEmail, popupUserRole;
         let logoutBtn, navAdminPanelItem, userManagementMessage, allUsersList, allUsersMobileList;
 
+        // Actionsheet elements
         let actionsheetOverlay, actionsheet, actionsheetTitle, actionsheetUserEmail, actionsheetUserCreated, actionsheetStatusToggle, actionsheetStatusLabel, actionsheetRoleSelect;
         let actionsheetApproveBtn, actionsheetDenyBtn, actionsheetReactivateBtn, actionsheetDeleteBtn, actionsheetCancelBtn;
-        let actionsheetStatusApprovedGroup, actionsheetStatusPendingGroup, actionsheetStatusDeniedSuspendedGroup, actionsheetRoleGroup;
-
 
         document.addEventListener('DOMContentLoaded', function() {
             sidebarUserAvatar = document.getElementById('sidebar-user-avatar');
@@ -551,6 +516,7 @@
             allUsersList = document.getElementById('all-users-list');
             allUsersMobileList = document.getElementById('all-users-mobile-list');
 
+            // Assign actionsheet elements
             actionsheetOverlay = document.getElementById('actionsheet-overlay');
             actionsheet = document.getElementById('actionsheet');
             actionsheetTitle = document.getElementById('actionsheet-title');
@@ -559,17 +525,12 @@
             actionsheetStatusToggle = document.getElementById('actionsheet-status-toggle');
             actionsheetStatusLabel = document.getElementById('actionsheet-status-label');
             actionsheetRoleSelect = document.getElementById('actionsheet-role-select');
-            actionsheetApproveBtn = document.getElementById('actionsheet-approve-pending-btn'); // Correct ID for pending approve
-            actionsheetDenyBtn = document.getElementById('actionsheet-deny-pending-btn');   // Correct ID for pending deny
+            actionsheetApproveBtn = document.getElementById('actionsheet-approve-btn');
+            actionsheetDenyBtn = document.getElementById('actionsheet-deny-btn');
             actionsheetReactivateBtn = document.getElementById('actionsheet-reactivate-btn');
             actionsheetDeleteBtn = document.getElementById('actionsheet-delete-btn');
             actionsheetCancelBtn = document.getElementById('actionsheet-cancel-btn');
 
-            // New control group assignments
-            actionsheetStatusApprovedGroup = document.getElementById('actionsheet-status-approved-group');
-            actionsheetStatusPendingGroup = document.getElementById('actionsheet-status-pending-group');
-            actionsheetStatusDeniedSuspendedGroup = document.getElementById('actionsheet-status-denied-suspended-group');
-            actionsheetRoleGroup = document.getElementById('actionsheet-role-group');
 
             const profileSection = document.getElementById('profile-section');
             const profilePopup = document.getElementById('profile-popup');
@@ -602,17 +563,18 @@
             if (closeBtn) closeBtn.addEventListener('click', toggleMenu);
             if (overlay) overlay.addEventListener('click', toggleMenu);
 
+            // Actionsheet event listeners
             if (actionsheetCancelBtn) actionsheetCancelBtn.addEventListener('click', closeActionsheet);
             if (actionsheetOverlay) actionsheetOverlay.addEventListener('click', closeActionsheet);
             if (actionsheet) actionsheet.addEventListener('click', e => e.stopPropagation());
             
-            // Re-attach listeners for actionsheet buttons here to ensure they are always live
             if (actionsheetApproveBtn) actionsheetApproveBtn.addEventListener('click', (e) => { approveUser(e.target.dataset.uid, e.target.dataset.userEmail); closeActionsheet(); });
             if (actionsheetDenyBtn) actionsheetDenyBtn.addEventListener('click', (e) => { denyUser(e.target.dataset.uid, e.target.dataset.userEmail); closeActionsheet(); });
             if (actionsheetReactivateBtn) actionsheetReactivateBtn.addEventListener('click', (e) => { reactivateUser(e.target.dataset.uid, e.target.dataset.userEmail); closeActionsheet(); });
             if (actionsheetDeleteBtn) actionsheetDeleteBtn.addEventListener('click', (e) => { deleteUser(e.target.dataset.uid, e.target.dataset.userEmail); closeActionsheet(); });
             if (actionsheetStatusToggle) actionsheetStatusToggle.addEventListener('change', (e) => { toggleUserStatus(e.target.dataset.uid, e.target.checked, e.target.dataset.userEmail); });
             if (actionsheetRoleSelect) actionsheetRoleSelect.addEventListener('change', (e) => { editUserRole(e.target.dataset.uid, e.target.value, e.target.dataset.userEmail); });
+
         });
 
         function showMessage(element, message, isSuccess = true) {
@@ -722,17 +684,19 @@
 
         // --- User Management Functions ---
         async function fetchAllUsers() {
-            const skeletonHtml = `
+            const skeletonHtmlDesktop = `
+                <div class="user-card skeleton"><div class="skeleton-line"></div><div class="skeleton-line"></div><div class="skeleton-line"></div><div class="skeleton-line"></div></div>
+                <div class="user-card skeleton"><div class="skeleton-line"></div><div class="skeleton-line"></div><div class="skeleton-line"></div><div class="skeleton-line"></div></div>
+                <div class="user-card skeleton"><div class="skeleton-line"></div><div class="skeleton-line"></div><div class="skeleton-line"></div><div class="skeleton-line"></div></div>
+            `;
+            const skeletonHtmlMobile = `
                 <div class="user-card skeleton"><div class="skeleton-line" style="width: 80%;"></div><div class="skeleton-line" style="width: 50%; height: 12px;"></div></div>
                 <div class="user-card skeleton"><div class="skeleton-line" style="width: 70%;"></div><div class="skeleton-line" style="width: 40%; height: 12px;"></div></div>
                 <div class="user-card skeleton"><div class="skeleton-line" style="width: 90%;"></div><div class="skeleton-line" style="width: 60%; height: 12px;"></div></div>
             `;
-            if (allUsersList) allUsersList.innerHTML = `
-                <div class="user-card skeleton"><div class="skeleton-line"></div><div class="skeleton-line"></div><div class="skeleton-line"></div><div class="skeleton-line"></div></div>
-                <div class="user-card skeleton"><div class="skeleton-line"></div><div class="skeleton-line"></div><div class="skeleton-line"></div><div class="skeleton-line"></div></div>
-                <div class="user-card skeleton"><div class="skeleton-line"></div><div class="skeleton-line"></div><div class="skeleton-line"></div><div class="skeleton-line"></div></div>
-            `; // Desktop skeletons
-            if (allUsersMobileList) allUsersMobileList.innerHTML = skeletonHtml; // Mobile skeletons
+
+            if (allUsersList) allUsersList.innerHTML = skeletonHtmlDesktop;
+            if (allUsersMobileList) allUsersMobileList.innerHTML = skeletonHtmlMobile;
 
             try {
                 const q = query(collection(db, 'users'), orderBy('createdAt', 'desc'));
@@ -853,50 +817,49 @@
             if (actionsheetUserEmail) actionsheetUserEmail.textContent = user.email;
             if (actionsheetUserCreated) actionsheetUserCreated.textContent = createdAt;
 
-            // Hide all conditional groups initially
-            [actionsheetStatusApprovedGroup, actionsheetStatusPendingGroup, actionsheetStatusDeniedSuspendedGroup, actionsheetRoleGroup].forEach(el => {
-                if(el) el.classList.add('hidden');
-            });
-
-            // Status-based controls
-            if (user.status === 'pending') {
-                if (actionsheetStatusPendingGroup) actionsheetStatusPendingGroup.classList.remove('hidden');
-            } else if (user.status === 'denied' || user.status === 'suspended') {
-                if (actionsheetStatusDeniedSuspendedGroup) actionsheetStatusDeniedSuspendedGroup.classList.remove('hidden');
-            } else if (user.status === 'approved') {
-                if (actionsheetStatusApprovedGroup) actionsheetStatusApprovedGroup.classList.remove('hidden');
-                if (actionsheetStatusToggle) {
-                    actionsheetStatusToggle.checked = true; // Approved means active
-                    actionsheetStatusToggle.dataset.uid = uid;
-                    actionsheetStatusToggle.dataset.userEmail = user.email;
+            // Status Toggle
+            if (actionsheetStatusToggle) {
+                actionsheetStatusToggle.checked = (user.status === 'approved');
+                actionsheetStatusToggle.dataset.uid = uid;
+                actionsheetStatusToggle.dataset.userEmail = user.email;
+                
+                const statusControlDiv = actionsheetStatusToggle.closest('.actionsheet-status-control');
+                if (user.status === 'pending' || user.status === 'denied') {
+                    if (statusControlDiv) statusControlDiv.classList.add('hidden');
+                } else {
+                    if (statusControlDiv) statusControlDiv.classList.remove('hidden');
                 }
-                if (actionsheetStatusLabel) actionsheetStatusLabel.textContent = 'Active';
+                if (actionsheetStatusLabel) actionsheetStatusLabel.textContent = user.status === 'approved' ? 'Active' : 'Suspended';
             }
             
-            // Role Select (always shown for non-pending/denied/suspended if status control is present)
-            if (user.status !== 'pending' && user.status !== 'denied' && user.status !== 'suspended') {
-                 if (actionsheetRoleGroup) actionsheetRoleGroup.classList.remove('hidden');
-                 if (actionsheetRoleSelect) {
-                    actionsheetRoleSelect.value = user.role;
-                    actionsheetRoleSelect.dataset.uid = uid;
-                    actionsheetRoleSelect.dataset.userEmail = user.email;
-                }
+            // Role Select
+            if (actionsheetRoleSelect) {
+                actionsheetRoleSelect.value = user.role;
+                actionsheetRoleSelect.dataset.uid = uid;
+                actionsheetRoleSelect.dataset.userEmail = user.email;
             }
 
-
-            // Set attributes for action buttons (always present in actionsheet)
-            [actionsheetApproveBtn, actionsheetDenyBtn, actionsheetReactivateBtn, actionsheetDeleteBtn].forEach(btn => {
-                if (btn) {
-                    btn.dataset.uid = uid;
-                    btn.dataset.userEmail = user.email;
-                }
-            });
-
-            // Show/hide specific buttons within actionsheet-actions
-            if (actionsheetApproveBtn) actionsheetApproveBtn.classList.toggle('hidden', user.status !== 'pending');
-            if (actionsheetDenyBtn) actionsheetDenyBtn.classList.toggle('hidden', user.status === 'denied'); // Deny is not an option if already denied
-            if (actionsheetReactivateBtn) actionsheetReactivateBtn.classList.toggle('hidden', user.status !== 'denied' && user.status !== 'suspended');
-            if (actionsheetDeleteBtn) actionsheetDeleteBtn.classList.toggle('hidden', user.id === currentUser.uid); // Can't delete self
+            // Action Buttons visibility
+            if (actionsheetApproveBtn) {
+                actionsheetApproveBtn.classList.toggle('hidden', user.status !== 'pending');
+                actionsheetApproveBtn.dataset.uid = uid;
+                actionsheetApproveBtn.dataset.userEmail = user.email;
+            }
+            if (actionsheetDenyBtn) {
+                actionsheetDenyBtn.classList.toggle('hidden', user.status === 'denied');
+                actionsheetDenyBtn.dataset.uid = uid;
+                actionsheetDenyBtn.dataset.userEmail = user.email;
+            }
+            if (actionsheetReactivateBtn) {
+                actionsheetReactivateBtn.classList.toggle('hidden', user.status !== 'denied' && user.status !== 'suspended');
+                actionsheetReactivateBtn.dataset.uid = uid;
+                actionsheetReactivateBtn.dataset.userEmail = user.email;
+            }
+            if (actionsheetDeleteBtn) {
+                actionsheetDeleteBtn.classList.toggle('hidden', user.id === currentUser.uid); // Can't delete self
+                actionsheetDeleteBtn.dataset.uid = uid;
+                actionsheetDeleteBtn.dataset.userEmail = user.email;
+            }
 
             if (actionsheetOverlay) actionsheetOverlay.classList.add('show');
             if (actionsheet) actionsheet.classList.add('show');
@@ -926,7 +889,7 @@
                 fetchAllUsers();
             } catch (error) {
                 console.error(`Error ${actionType}ing user:`, error);
-                showMessage(userManagementMessage, `Error ${actionType}ing user: ${error.message}`, false);
+                showMessage(userManagementMessage, `Error ${actionType}ing user: ${error.email}`, false);
             }
         }
 
