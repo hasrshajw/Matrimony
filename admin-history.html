@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Matrimony Portal - Global History</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <script type="module" src="https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js"></script>
+    <script type="module" src="https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js"></script>
+    <script type="module" src="https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js"></script>
+    <script type="module" src="https://www.gstatic.com/firebasejs/12.4.0/firebase-storage.js"></script>
+
+    <style>
+        :root { --body-bg: #F9FAFB; --widget-bg: #FFFFFF; --border-color: #E5E7EB; --text-primary: #002726; --text-secondary: #6B7280; --brand-green: #33C375; --hover-bg: #F3F4F6; --warning-color: #F59E0B; --danger-color: #EF4444; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'IBM Plex Sans', sans-serif; background-color: var(--body-bg); color: var(--text-primary); font-size: 14px; overflow: hidden; }
+        .dashboard-container { display: grid; grid-template-columns: 260px 1fr; height: 100vh; position: relative; }
+
+        .sidebar { background-color: var(--widget-bg); border-right: 1px solid var(--border-color); padding: 2rem 1.5rem; display: flex; flex-direction: column; position: relative; transition: transform 0.3s ease-in-out; }
+        .sidebar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem; }
+        .logo-image { height: 40px; background-color: #f0f0f0; border-radius: 8px; width: 120px; display: flex; align-items: center; justify-content: center; font-weight: bold; color: var(--text-secondary); }
+        .main-nav { flex-grow: 1; }
+        .main-nav ul { list-style: none; display: flex; flex-direction: column; gap: 0.5rem; }
+        .main-nav a { display: flex; align-items: center; gap: 1rem; text-decoration: none; color: var(--text-primary); font-weight: 500; padding: 0.75rem 1rem; border-radius: 8px; transition: background-color 0.2s ease, color 0.2s ease; }
+        .main-nav a i { font-size: 1.5rem; color: var(--text-secondary); transition: color 0.2s ease; }
+        .main-nav a:hover { background-color: var(--hover-bg); }
+        .main-nav a.active { background-color: var(--hover-bg); font-weight: 600; }
+        .main-nav a.active i { color: var(--brand-green); }
+
+        .profile-section { margin-top: auto; padding-top: 1.5rem; border-top: 1px solid var(--border-color); display: flex; align-items: center; gap: 0.75rem; cursor: pointer; }
+        .profile-content-wrapper { display: flex; align-items: center; gap: 0.75rem; width: 100%; }
+        .profile-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; flex-shrink: 0; background-color: #e2e8f0; }
+        .profile-details { flex-grow: 1; min-width: 0; }
+        .profile-name { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+        .profile-email { font-size: 0.8rem; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+        .profile-options i { font-size: 1.5rem; color: var(--text-secondary); transition: transform 0.2s ease; }
+        .profile-section.active .profile-options i { transform: rotate(180deg); }
+        .profile-popup { position: absolute; bottom: 90px; left: 1.5rem; right: 1.5rem; background-color: var(--widget-bg); border-radius: 12px; box-shadow: 0 10px 30px -5px rgba(0,0,0,0.1); border: 1px solid var(--border-color); padding: 0.75rem; z-index: 100; opacity: 0; pointer-events: none; transform: translateY(10px) scale(0.95); transition: opacity 0.2s ease, transform 0.2s ease; }
+        .profile-popup.active { opacity: 1; pointer-events: all; transform: translateY(0) scale(1); }
+        .popup-header { display: flex; align-items: center; gap: 0.75rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border-color); }
+        .popup-list { list-style: none; padding-top: 0.5rem; }
+        .popup-list a { display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem; border-radius: 6px; text-decoration: none; color: var(--text-primary); }
+        .popup-list a:hover { background-color: var(--hover-bg); }
+        .popup-list a i { font-size: 1.2rem; color: var(--text-secondary); }
+        .popup-list a.logout i { color: var(--danger-color); }
+        .popup-list a.logout { color: var(--danger-color); }
+
+        /* Main Content Area */
+        .main-area { display: flex; flex-direction: column; overflow-y: auto; background-color: var(--body-bg); }
+        .main-header { padding: 1.25rem 3rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background-color: var(--widget-bg); position: sticky; top: 0; z-index: 10; }
+        .main-header h1 { font-size: 1.5rem; font-weight: 600; }
+        .content-body { padding: 2rem 3rem; display: grid; grid-template-columns: 1fr; gap: 2rem; align-items: flex-start; margin-top: 0; }
+        .column { display: flex; flex-direction: column; gap: 2rem; }
+
+        /* Widget Styles */
+        .widget { background-color: var(--widget-bg); border-radius: 16px; border: 1px solid var(--border-color); padding: 1.5rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.03), 0 2px 4px -1px rgba(0,0,0,0.02); }
+        .widget-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+        .widget-header h3 { font-size: 1.1rem; font-weight: 600; color: var(--text-primary); }
+        .widget-header a { font-size: 0.9rem; color: var(--brand-green); text-decoration: none; font-weight: 500; }
+        .widget-header a:hover { text-decoration: underline; }
+
+        /* Custom Buttons */
+        .button-primary {
+            display: inline-block;
+            background-color: var(--brand-green);
+            color: white;
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.9rem;
+            transition: background-color 0.2s ease;
+            border: none;
+            cursor: pointer;
+        }
+        .button-primary:hover { background-color: #2fb165; }
+        
+        /* Messages */
+        .error-message { color: var(--danger-color); font-weight: bold; }
+        .success-message { color: var(--brand-green); font-weight: bold; }
+        .hidden { display: none !important; }
+
+        /* Filter Options */
+        .filter-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .filter-options .form-group {
+            flex: 1 1 200px;
+            margin-bottom: 0;
+        }
+        .filter-options label {
+            font-size: 0.8em;
+            margin-bottom: 0.25rem;
+        }
+        .filter-options input, .filter-options select {
+            width: 100%;
+            padding: 0.6rem;
+            font-size: 0.9em;
+            margin: 0;
+        }
+        .filter-buttons {
+            display: flex;
+            align-items: flex-end;
+            gap: 0.5rem;
+        }
+        .filter-buttons button {
+            padding: 0.6rem 1rem;
+            font-size: 0.9em;
+        }
+
+
+        /* Change History List */
+        #change-history-list {
+            margin-top: 1rem;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+        .history-item {
+            padding: 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            background-color: #fff;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+            font-size: 0.9em;
+        }
+        .history-item .summary {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            align-items: center;
+        }
+        .history-item .summary strong { color: var(--text-primary); }
+        .history-item .timestamp {
+            font-size: 0.8em;
+            color: var(--text-secondary);
+            margin-left: auto;
+        }
+        .history-item .details {
+            margin-top: 0.5rem;
+            font-size: 0.8em;
+            color: var(--text-secondary);
+            background: var(--hover-bg);
+            padding: 0.5rem;
+            border-radius: 6px;
+            word-break: break-all;
+        }
+        .no-records { text-align: center; color: #777; font-style: italic; margin-top: 30px; }
+
+        /* Responsive Adjustments */
+        .menu-toggle { display: none; }
+        .sidebar-close-btn { display: none; }
+        
+        @media (max-width: 1024px) {
+            .dashboard-container { grid-template-columns: 1fr; }
+            .sidebar { position: fixed; top: 0; left: 0; height: 100%; width: 80%; max-width: 300px; z-index: 1000; transform: translateX(-100%); box-shadow: 0 0 30px rgba(0,0,0,0.1); }
+            .sidebar.active { transform: translateX(0); }
+            .main-header { padding: 1.25rem 1.5rem; }
+            .content-body { padding: 1.5rem; }
+            .menu-toggle { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; font-size: 1.5rem; color: var(--text-primary); cursor: pointer; background: none; border: none; }
+            .sidebar-close-btn { display: flex; align-items: center; justify-content: center; position: absolute; top: 1.5rem; right: 1.5rem; font-size: 1.75rem; color: var(--danger-color); cursor: pointer; border: none; background: none; }
+            .overlay {
+                position: fixed; inset: 0; background-color: rgba(0,0,0,0.4); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+                z-index: 999;
+                opacity: 0;
+                visibility: hidden;
+                pointer-events: none;
+                transition: opacity 0.3s ease, visibility 0.3s ease;
+            }
+            .overlay.active {
+                opacity: 1;
+                visibility: visible;
+                pointer-events: auto;
+            }
+
+            .filter-options .form-group {
+                flex-basis: 100%;
+            }
+            .filter-buttons {
+                flex-basis: 100%;
+                justify-content: space-between;
+            }
+            .filter-buttons button {
+                flex-grow: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="overlay" id="overlay"></div>
+    <div class="dashboard-container">
+        <aside class="sidebar" id="sidebar">
+            <button class="sidebar-close-btn" id="sidebar-close-btn"><i class='bx bx-x'></i></button>
+            <div class="sidebar-header">
+                <div class="logo-image">Matrimony Admin</div>
+            </div>
+            <nav class="main-nav">
+                <ul>
+                    <li id="nav-dashboard-item"><a href="#" id="nav-dashboard-link"><i class='bx bx-home-alt'></i> Dashboard</a></li>
+                    <li><a href="create-profile.html"><i class='bx bx-user-plus'></i> Create Profile</a></li>
+                    <li><a href="search-profiles.html"><i class='bx bx-search'></i> Search Profiles</a></li>
+                    <li id="nav-manage-users-item"><a href="admin-users.html"><i class='bx bx-group'></i> Manage Users</a></li>
+                    <li id="nav-manage-profiles-item"><a href="admin-profiles.html"><i class='bx bx-id-card'></i> Manage Profiles</a></li>
+                    <li id="nav-global-history-item"><a href="admin-history.html" class="active"><i class='bx bx-history'></i> Global History</a></li>
+                </ul>
+            </nav>
+            <div class="profile-section" id="profile-section">
+                <div class="profile-content-wrapper">
+                    <div class="profile-avatar"><img src="https://via.placeholder.com/40" alt="User Avatar" id="sidebar-user-avatar" style="width: 100%; height: 100%; border-radius: 50%;"></div>
+                    <div class="profile-details">
+                        <span class="profile-name" id="current-user-email">Loading...</span>
+                        <span class="profile-email" id="current-user-role">Role</span>
+                    </div>
+                    <div class="profile-options"><i class='bx bx-chevron-down'></i></div>
+                </div>
+            </div>
+            <div class="profile-popup" id="profile-popup">
+                <div class="popup-header">
+                    <div class="profile-avatar"><img src="https://via.placeholder.com/40" alt="User Avatar" id="popup-user-avatar" style="width: 100%; height: 100%; border-radius: 50%;"></div>
+                    <div class="profile-details">
+                        <span class="profile-name" id="popup-user-email">Loading...</span>
+                        <span class="profile-email" id="popup-user-role">Role</span>
+                    </div>
+                </div>
+                <ul class="popup-list">
+                    <li><a href="#"><i class='bx bx-user'></i> Profile Settings</a></li>
+                    <li><a href="#" class="logout" id="logout-btn"><i class='bx bx-log-out'></i> Logout</a></li>
+                </ul>
+            </div>
+        </aside>
+        <main class="main-area">
+            <header class="main-header">
+                <i class='bx bx-menu menu-toggle' id="menu-toggle"></i>
+                <h1>Global Change History</h1>
+            </header>
+            <section class="content-body">
+                <div class="column">
+                    <div class="widget">
+                        <div class="widget-header">
+                            <h3>Filter History</h3>
+                        </div>
+                        <p id="history-message" class="success-message hidden"></p>
+                        <div class="filter-options">
+                            <div class="form-group">
+                                <label for="history-filter-user">By User Email</label>
+                                <input type="text" id="history-filter-user" placeholder="e.g., admin@example.com">
+                            </div>
+                            <div class="form-group">
+                                <label for="history-filter-action">By Action</label>
+                                <select id="history-filter-action">
+                                    <option value="">Any Action</option>
+                                    <option value="add">Add</option>
+                                    <option value="edit">Edit</option>
+                                    <option value="delete">Delete</option>
+                                    <option value="approve">Approve User</option>
+                                    <option value="deny">Deny User</option>
+                                    <option value="suspend">Suspend User</option>
+                                    <option value="reactivate">Reactivate User</option>
+                                    <option value="update_profile_status">Update Profile Status</option>
+                                    <option value="update_user_role">Update User Role</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="history-filter-entity">By Entity Type</label>
+                                <select id="history-filter-entity">
+                                    <option value="">Any Entity</option>
+                                    <option value="profile">Profile</option>
+                                    <option value="user">User</option>
+                                    <option value="profile_status">Profile Status</option>
+                                    <option value="user_role">User Role</option>
+                                </select>
+                            </div>
+                            <div class="filter-buttons">
+                                <button id="apply-history-filters-btn" class="button-primary">Apply Filters</button>
+                                <button id="reset-history-filters-btn" style="background-color: #7f8c8d;">Reset</button>
+                            </div>
+                        </div>
+                        <div id="change-history-list">
+                            <p class="no-records">Loading change history...</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js';
+        import { getAuth, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js';
+        import { getFirestore, collection, addDoc, getDoc, getDocs, updateDoc, deleteDoc, doc, query, where, orderBy, limit, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js';
+        import { getStorage } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-storage.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAuxA-e71uX_uLDe6oyFU69q-eLfgUzbXA",
+            authDomain: "harsha-jw.firebaseapp.com",
+            projectId: "harsha-jw",
+            storageBucket: "harsha-jw.firebasestorage.app",
+            messagingSenderId: "471408120499",
+            appId: "1:471408120499:web:91e61514ad3703ce3b16c6",
+            measurementId: "G-NBC16X4R1T"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const storage = getStorage(app);
+
+        let currentUser = null;
+        let currentUserRole = null;
+
+        let sidebarUserAvatar, popupUserAvatar, sidebarUserName, sidebarUserRole, popupUserEmail, popupUserRole;
+        let logoutBtn;
+        let menuToggle, sidebar, sidebarCloseBtn, overlay;
+        let navDashboardLink, navManageUsersItem, navManageProfilesItem, navGlobalHistoryItem;
+        let changeHistoryList, historyMessage;
+        let historyFilterUser, historyFilterAction, historyFilterEntity, applyHistoryFiltersBtn, resetHistoryFiltersBtn;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // UI Shell Element Assignments
+            sidebarUserAvatar = document.getElementById('sidebar-user-avatar');
+            popupUserAvatar = document.getElementById('popup-user-avatar');
+            sidebarUserName = document.getElementById('current-user-email');
+            sidebarUserRole = document.getElementById('current-user-role');
+            popupUserEmail = document.getElementById('popup-user-email');
+            popupUserRole = document.getElementById('popup-user-role');
+            logoutBtn = document.getElementById('logout-btn');
+            menuToggle = document.getElementById('menu-toggle');
+            sidebar = document.getElementById('sidebar');
+            sidebarCloseBtn = document.getElementById('sidebar-close-btn');
+            overlay = document.getElementById('overlay');
+
+            navDashboardLink = document.getElementById('nav-dashboard-link');
+            navManageUsersItem = document.getElementById('nav-manage-users-item');
+            navManageProfilesItem = document.getElementById('nav-manage-profiles-item');
+            navGlobalHistoryItem = document.getElementById('nav-global-history-item');
+
+            changeHistoryList = document.getElementById('change-history-list');
+            historyMessage = document.getElementById('history-message');
+            historyFilterUser = document.getElementById('history-filter-user');
+            historyFilterAction = document.getElementById('history-filter-action');
+            historyFilterEntity = document.getElementById('history-filter-entity');
+            applyHistoryFiltersBtn = document.getElementById('apply-history-filters-btn');
+            resetHistoryFiltersBtn = document.getElementById('reset-history-filters-btn');
+
+            // UI Shell Event Listeners
+            const profileSection = document.getElementById('profile-section');
+            const profilePopup = document.getElementById('profile-popup');
+
+            if (profileSection) {
+                profileSection.addEventListener('click', e => {
+                    e.stopPropagation();
+                    if (profilePopup) profilePopup.classList.toggle('active');
+                    if (profileSection) profileSection.classList.toggle('active');
+                });
+            }
+            document.addEventListener('click', e => {
+                if (profileSection && !profileSection.contains(e.target) && profilePopup && !profilePopup.contains(e.target)) {
+                    profilePopup.classList.remove('active');
+                    profileSection.classList.remove('active');
+                }
+            });
+            const toggleMenu = () => {
+                if (sidebar) sidebar.classList.toggle('active');
+                if (overlay) overlay.classList.toggle('active');
+            };
+            if (menuToggle) menuToggle.addEventListener('click', toggleMenu);
+            if (sidebarCloseBtn) sidebarCloseBtn.addEventListener('click', toggleMenu);
+            if (overlay) overlay.addEventListener('click', toggleMenu);
+
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', async () => {
+                    try {
+                        await signOut(auth);
+                        window.location.href = 'index.html';
+                    } catch (error) {
+                        console.error("Error signing out:", error);
+                    }
+                });
+            }
+
+            if (applyHistoryFiltersBtn) applyHistoryFiltersBtn.addEventListener('click', () => fetchChangeHistory());
+            if (resetHistoryFiltersBtn) resetHistoryFiltersBtn.addEventListener('click', () => {
+                if (historyFilterUser) historyFilterUser.value = '';
+                if (historyFilterAction) historyFilterAction.value = '';
+                if (historyFilterEntity) historyFilterEntity.value = '';
+                fetchChangeHistory();
+            });
+
+        });
+
+        function showMessage(element, message, isSuccess = true) {
+            if (element) {
+                element.textContent = message;
+                element.classList.remove('hidden');
+                element.classList.toggle('success-message', isSuccess);
+                element.classList.toggle('error-message', !isSuccess);
+                setTimeout(() => element.classList.add('hidden'), 5000);
+            }
+        }
+        
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUser = user;
+                try {
+                    const userDoc = await getDoc(doc(db, 'users', user.uid));
+                    const userData = userDoc.exists() ? userDoc.data() : {};
+                    currentUserRole = userData.role;
+                    const userStatus = userData.status;
+
+                    if (userStatus === 'pending') {
+                        window.location.href = 'pending.html';
+                        return;
+                    } else if (userStatus === 'denied' || userStatus === 'suspended') {
+                        window.location.href = 'denied.html';
+                        return;
+                    } else if (currentUserRole !== 'admin') {
+                        alert('You do not have sufficient permissions to access this page. Redirecting to employee dashboard.');
+                        window.location.href = 'employee-dashboard.html';
+                        return;
+                    }
+                } catch (error) {
+                    console.error("Error fetching user role/status:", error);
+                    alert('Error verifying user role. Redirecting to login.');
+                    await signOut(auth);
+                    window.location.href = 'index.html';
+                    return;
+                }
+
+                if (sidebarUserName) sidebarUserName.textContent = user.email;
+                if (sidebarUserRole) sidebarUserRole.textContent = currentUserRole ? currentUserRole.charAt(0).toUpperCase() + currentUserRole.slice(1) : 'Admin';
+                if (popupUserEmail) popupUserEmail.textContent = user.email;
+                if (popupUserRole) popupUserRole.textContent = currentUserRole ? currentUserRole.charAt(0).toUpperCase() + currentUserRole.slice(1) : 'Admin';
+
+                const avatarUrl = user.photoURL || 'https://via.placeholder.com/40';
+                if (sidebarUserAvatar) sidebarUserAvatar.src = avatarUrl;
+                if (popupUserAvatar) popupUserAvatar.src = avatarUrl;
+
+                if (logoutBtn) logoutBtn.classList.remove('hidden');
+
+                if (navDashboardLink) navDashboardLink.href = 'admin-dashboard.html';
+                if (navManageUsersItem) navManageUsersItem.classList.remove('hidden');
+                if (navManageProfilesItem) navManageProfilesItem.classList.remove('hidden');
+                if (navGlobalHistoryItem) navGlobalHistoryItem.classList.remove('hidden');
+
+                fetchChangeHistory();
+
+            } else {
+                window.location.href = 'index.html';
+            }
+        });
+        
+        async function fetchChangeHistory() {
+            if (changeHistoryList) changeHistoryList.innerHTML = '<p class="no-records">Loading change history...</p>';
+
+            try {
+                let q = collection(db, 'changeHistory');
+                const filters = [];
+
+                const userFilter = historyFilterUser ? historyFilterUser.value.trim().toLowerCase() : '';
+                if (userFilter) {
+                    filters.push(where('userEmail', '==', userFilter));
+                }
+                const actionFilter = historyFilterAction ? historyFilterAction.value : '';
+                if (actionFilter) {
+                    filters.push(where('action', '==', actionFilter));
+                }
+                const entityFilter = historyFilterEntity ? historyFilterEntity.value : '';
+                if (entityFilter) {
+                    filters.push(where('entityType', '==', entityFilter));
+                }
+
+                q = query(q, ...filters, orderBy('timestamp', 'desc'), limit(50));
+                
+                const snapshot = await getDocs(q);
+
+                if (changeHistoryList) changeHistoryList.innerHTML = '';
+
+                if (snapshot.empty) {
+                    if (changeHistoryList) changeHistoryList.innerHTML = '<p class="no-records">No change history found for the selected filters.</p>';
+                    return;
+                }
+                
+                snapshot.docs.forEach(doc => {
+                    const history = doc.data();
+                    const timestamp = history.timestamp ? new Date(history.timestamp.toDate()).toLocaleString() : 'N/A';
+                    const details = history.details ? JSON.parse(history.details) : {};
+                    const entry = document.createElement('div');
+                    entry.className = 'history-item';
+                    entry.innerHTML = `
+                        <div class="summary">
+                            <strong>${history.userEmail}</strong> performed action <strong>${history.action.toUpperCase()}</strong> on ${history.entityType} (ID: ${history.entityId})
+                            <span class="timestamp">${timestamp}</span>
+                        </div>
+                        <div class="details">
+                            <small>Details: ${JSON.stringify(details).substring(0,250)}...</small>
+                        </div>
+                    `;
+                    if (changeHistoryList) changeHistoryList.appendChild(entry);
+                });
+            } catch (error) {
+                console.error("Error fetching change history:", error);
+                showMessage(historyMessage, `Error loading history: ${error.message}`, false);
+                if (changeHistoryList) changeHistoryList.innerHTML = `<p class="error-message">Error loading change history: ${error.message}</p>`;
+            }
+        }
+    </script>
+</body>
+</html>
