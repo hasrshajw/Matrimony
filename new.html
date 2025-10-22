@@ -22,7 +22,6 @@
         .main-nav ul { list-style: none; display: flex; flex-direction: column; gap: 0.5rem; }
         .main-nav a { display: flex; align-items: center; gap: 1rem; text-decoration: none; color: var(--text-primary); font-weight: 500; padding: 0.75rem 1rem; border-radius: 8px; transition: background-color 0.2s ease, color 0.2s ease; }
         .main-nav a i { font-size: 1.5rem; color: var(--text-secondary); transition: color 0.2s ease; }
-        .main-nav a:hover { background-color: var(--hover-bg); }
         .main-nav a.active { background-color: var(--hover-bg); font-weight: 600; }
         .main-nav a.active i { color: var(--brand-green); }
         .profile-section { margin-top: auto; padding-top: 1.5rem; border-top: 1px solid var(--border-color); display: flex; align-items: center; gap: 0.75rem; cursor: pointer; }
@@ -66,7 +65,8 @@
         .metric-card .value { font-size: 2.2rem; font-weight: 700; color: var(--brand-green); margin-bottom: 5px; }
         .metric-card .label { font-size: 0.9rem; color: var(--text-secondary); }
         .metric-card a { text-decoration: none; color: inherit; display: block; }
-        .metric-card.link-card .value img { height: 40px; width: 40px; margin: 0 auto 5px auto; display: block; }
+        .metric-card.link-card .value img { height: 40px; width: 40px; margin: 0 auto 5px auto; display: block; } /* Reverted to i for boxicons */
+        .metric-card.link-card .value i { font-size: 40px; margin: 0 auto 5px auto; display: block; }
 
 
         .recently-added-profiles-list { list-style: none; display: flex; flex-direction: column; gap: 1rem; }
@@ -343,19 +343,19 @@
                         <div class="widget-header"><h2>Quick Links</h2></div>
                         <div class="metrics-grid">
                              <a href="admin-users.html" class="metric-card link-card">
-                                <div class="value"><i class='bx bx-group' style="font-size: 40px; color: #4facfe;"></i></div>
+                                <div class="value"><i class='bx bx-group' style="color: #4facfe;"></i></div>
                                 <div class="label">Manage Users</div>
                             </a>
                             <a href="admin-profiles.html" class="metric-card link-card">
-                                <div class="value"><i class='bx bx-list-ul' style="font-size: 40px; color: #00f2fe;"></i></div>
+                                <div class="value"><i class='bx bx-list-ul' style="color: #00f2fe;"></i></div>
                                 <div class="label">Manage Profiles</div>
                             </a>
                             <a href="create-profile.html" class="metric-card link-card">
-                                <div class="value"><i class='bx bx-user-plus' style="font-size: 40px; color: #33c375;"></i></div>
+                                <div class="value"><i class='bx bx-user-plus' style="color: #33c375;"></i></div>
                                 <div class="label">Add New Profile</div>
                             </a>
                              <a href="admin-history.html" class="metric-card link-card">
-                                <div class="value"><i class='bx bx-history' style="font-size: 40px; color: #f39c12;"></i></div>
+                                <div class="value"><i class='bx bx-history' style="color: #f39c12;"></i></div>
                                 <div class="label">Global History</div>
                             </a>
                         </div>
@@ -370,6 +370,7 @@
         import { getAuth, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js';
         import { getFirestore, collection, addDoc, getDoc, getDocs, doc, query, where, orderBy, limit, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js';
 
+        // --- Firebase Configuration ---
         const firebaseConfig = {
             apiKey: "AIzaSyAuxA-e71uX_uLDe6oyFU69q-eLfgUzbXA",
             authDomain: "harsha-jw.firebaseapp.com",
@@ -384,8 +385,8 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        const DEFAULT_AVATAR = 'https://i.pravatar.cc/150'; // Default avatar if user has no photo
-
+        // --- Global Variables ---
+        const DEFAULT_AVATAR = 'https://i.pravatar.cc/150';
         let currentUser = null;
         let currentUserRole = null;
         const hardcodedMatrimonyGroups = [
@@ -393,17 +394,15 @@
             { id: 'BY_OTHERS', name: 'BY OTHERS' }
         ];
 
+        // --- DOM Element References ---
         const currentUserEmailSpan = document.getElementById('current-user-email');
         const currentUserRoleSpan = document.getElementById('current-user-role');
         const popupUserEmailSpan = document.getElementById('popup-user-email');
         const popupUserRoleSpan = document.getElementById('popup-user-role');
         const sidebarProfileAvatar = document.getElementById('sidebar-profile-avatar');
         const popupProfileAvatar = document.getElementById('popup-profile-avatar');
-
         const logoutBtnPopup = document.getElementById('logout-btn-popup');
-
         const navAdminPanelItem = document.getElementById('nav-admin-panel-item');
-
         const adminGlobalMessage = document.getElementById('admin-global-message');
 
         const totalProfilesMetric = document.getElementById('total-profiles-metric');
@@ -419,7 +418,6 @@
         const skeletonLoader = document.getElementById('skeleton-loader');
         const realContent = document.getElementById('real-content');
 
-        // --- UI Interactions ---
         const sidebar = document.getElementById('sidebar');
         const menuToggle = document.getElementById('menu-toggle');
         const closeBtn = document.getElementById('sidebar-close-btn');
@@ -427,6 +425,7 @@
         const profileSection = document.getElementById('profile-section');
         const profilePopup = document.getElementById('profile-popup');
 
+        // --- UI Interactions Functions ---
         const toggleMenu = () => {
             sidebar.classList.toggle('active');
             overlay.classList.toggle('active');
@@ -474,7 +473,18 @@
             return age;
         }
 
-        // --- Profile UI Update (for sidebar and popup) ---
+        function showSkeletonLoader() {
+            skeletonLoader.style.display = 'grid';
+            realContent.style.display = 'none';
+        }
+
+        function hideSkeletonLoader() {
+            setTimeout(() => { // Small delay to show animation
+                skeletonLoader.style.display = 'none';
+                realContent.style.display = 'grid';
+            }, 500);
+        }
+
         function updateProfileUIContent(user) {
             if (user) {
                 const avatarUrl = user.photoURL || DEFAULT_AVATAR;
@@ -493,7 +503,6 @@
                 document.querySelector('.profile-content-wrapper').style.display = 'none';
             }
         }
-
 
         // --- Authentication Logic ---
         onAuthStateChanged(auth, async (user) => {
@@ -524,7 +533,7 @@
                     return;
                 }
 
-                updateProfileUIContent(user); // Update UI after role/status is confirmed
+                updateProfileUIContent(user);
                 
                 navAdminPanelItem.classList.remove('hidden');
 
@@ -694,8 +703,6 @@
                 monthlyGrowthChart.appendChild(barWrapper);
             });
         }
-
-        document.addEventListener('DOMContentLoaded', showSkeletonLoader);
     </script>
 </body>
 </html>
