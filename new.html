@@ -101,9 +101,11 @@
             color: var(--brand-green);
             margin-bottom: 0.25rem;
         }
-        .metric-card .value i { /* Style for quick link icons */
-            font-size: 2.2em;
+        .metric-card .value i {
+            font-size: 40px; /* Adjust icon size */
             vertical-align: middle;
+            margin: 0 auto 5px;
+            display: block;
         }
         .metric-card .label {
             font-size: 0.9em;
@@ -217,19 +219,10 @@
         .skeleton-text { height: 1em; width: 80%; }
         .skeleton-small-text { height: 0.8em; width: 60%; }
 
-        .metric-card.is-loading .value { height: 2.5em; width: 60%; margin: 0.25rem auto; background-color: #ccc; }
-        .metric-card.is-loading .label { height: 1em; width: 80%; margin: 0 auto; background-color: #ccc; }
-        .recent-profile-item.is-loading { height: 60px; background-color: #ccc; }
-        .bar-chart-container.is-loading { height: 200px; background-color: #ccc; }
-        .is-loading::after {
-            content: '';
-            position: absolute;
-            top: 0; right: 0; bottom: 0; left: 0;
-            transform: translateX(-100%);
-            background-image: linear-gradient(90deg, rgba(255, 255, 255, 0) 0, rgba(255, 255, 255, 0.2) 20%, rgba(255, 255, 255, 0.5) 60%, rgba(255, 255, 255, 0));
-            animation: shimmer 2s infinite;
-        }
-
+        .metric-card.skeleton .value { height: 2.5em; width: 60%; margin: 0.25rem auto; }
+        .metric-card.skeleton .label { height: 1em; width: 80%; margin: 0 auto; }
+        .recent-profile-item.skeleton { height: 60px; }
+        .bar-chart-container.skeleton { height: 200px; }
     </style>
 </head>
 <body>
@@ -238,7 +231,7 @@
         <aside class="sidebar" id="sidebar">
             <button class="sidebar-close-btn" id="sidebar-close-btn"><i class='bx bx-x'></i></button>
             <div class="sidebar-header">
-                <div class="logo-image">Admin Panel</div>
+                <div class="logo-image">Portal Admin</div>
             </div>
             <nav class="main-nav">
                 <ul>
@@ -285,25 +278,20 @@
                         <div class="widget-header"><h3>Dashboard Metrics</h3></div>
                         <p id="admin-global-message" class="success-message hidden"></p>
                         <div class="metrics-grid" id="dashboard-metrics-grid">
-                            <div class="metric-card is-loading">
-                                <div class="value" id="total-profiles-metric-value"></div>
-                                <div class="label" id="total-profiles-metric-label"></div>
+                            <div class="metric-card" id="metric-total-profiles">
+                                <div class="value" id="total-profiles-metric"></div><div class="label"></div>
                             </div>
-                            <div class="metric-card is-loading">
-                                <div class="value" id="active-profiles-metric-value"></div>
-                                <div class="label" id="active-profiles-metric-label"></div>
+                            <div class="metric-card" id="metric-active-profiles">
+                                <div class="value" id="active-profiles-metric"></div><div class="label"></div>
                             </div>
-                            <div class="metric-card is-loading">
-                                <div class="value" id="married-profiles-metric-value"></div>
-                                <div class="label" id="married-profiles-metric-label"></div>
+                            <div class="metric-card" id="metric-married-profiles">
+                                <div class="value" id="married-profiles-metric"></div><div class="label"></div>
                             </div>
-                            <div class="metric-card is-loading">
-                                <div class="value" id="pending-users-metric-value"></div>
-                                <div class="label" id="pending-users-metric-label"></div>
+                            <div class="metric-card" id="metric-pending-users">
+                                <div class="value" id="pending-users-metric"></div><div class="label"></div>
                             </div>
-                            <div class="metric-card is-loading">
-                                <div class="value" id="total-users-metric-value"></div>
-                                <div class="label" id="total-users-metric-label"></div>
+                            <div class="metric-card" id="metric-total-users">
+                                <div class="value" id="total-users-metric"></div><div class="label"></div>
                             </div>
                         </div>
                     </div>
@@ -311,7 +299,7 @@
                     <div class="widget">
                         <div class="widget-header"><h3>Profile Growth (Last 6 Months)</h3></div>
                         <p id="profile-growth-message" class="error-message hidden"></p>
-                        <div id="monthly-growth-chart" class="bar-chart-container is-loading">
+                        <div id="monthly-growth-chart" class="bar-chart-container">
                             <p class="no-records">Loading growth data...</p>
                         </div>
                     </div>
@@ -324,9 +312,6 @@
                             <a href="admin-profiles.html" class="button-primary">View All &rarr;</a>
                         </div>
                         <div id="recently-added-profiles-list">
-                            <div class="recent-profile-item is-loading"><div class="profile-avatar skeleton"></div><div class="recent-profile-details"><div class="skeleton-line" style="width: 80%;"></div><div class="skeleton-line" style="width: 50%; height: 12px; margin-top: 4px;"></div></div><div class="skeleton-line" style="width: 60px;"></div></div>
-                            <div class="recent-profile-item is-loading"><div class="profile-avatar skeleton"></div><div class="recent-profile-details"><div class="skeleton-line" style="width: 70%;"></div><div class="skeleton-line" style="width: 40%; height: 12px; margin-top: 4px;"></div></div><div class="skeleton-line" style="width: 60px;"></div></div>
-                            <div class="recent-profile-item is-loading"><div class="profile-avatar skeleton"></div><div class="recent-profile-details"><div class="skeleton-line" style="width: 90%;"></div><div class="skeleton-line" style="width: 60%; height: 12px; margin-top: 4px;"></div></div><div class="skeleton-line" style="width: 60px;"></div></div>
                             <p class="no-records hidden">No profiles added yet.</p>
                         </div>
                     </div>
@@ -361,7 +346,7 @@
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js';
         import { getAuth, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js';
         import { getFirestore, collection, addDoc, getDoc, getDocs, updateDoc, doc, query, where, orderBy, limit, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js';
-        import { getStorage, ref, deleteObject } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-storage.js';
+        import { getStorage } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-storage.js';
 
         const firebaseConfig = {
             apiKey: "AIzaSyAuxA-e71uX_uLDe6oyFU69q-eLfgUzbXA",
@@ -376,7 +361,7 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        const storage = getStorage(app);
+        const storage = getStorage(app); // Keep storage initialized for consistency
 
         let currentUser = null;
         let currentUserRole = null;
@@ -385,46 +370,94 @@
             { id: 'BY_OTHERS', name: 'BY OTHERS' }
         ];
 
-        // Sidebar elements
-        const sidebarUserAvatar = document.getElementById('sidebar-user-avatar');
-        const popupUserAvatar = document.getElementById('popup-user-avatar');
-        const sidebarUserName = document.getElementById('current-user-email');
-        const sidebarUserRole = document.getElementById('current-user-role');
-        const popupUserEmail = document.getElementById('popup-user-email');
-        const popupUserRole = document.getElementById('popup-user-role');
+        // Global element variables, assigned in DOMContentLoaded
+        let sidebarUserAvatar, popupUserAvatar, sidebarUserName, sidebarUserRole, popupUserEmail, popupUserRole;
+        let logoutBtn, navAdminPanelItem, adminGlobalMessage;
+        let totalProfilesMetric, activeProfilesMetric, marriedProfilesMetric, pendingUsersMetric, totalUsersMetric;
+        let recentlyAddedProfilesList, monthlyGrowthChart, profileGrowthMessage;
+        let metricCardTotalProfiles, metricCardActiveProfiles, metricCardMarriedProfiles, metricCardPendingUsers, metricCardTotalUsers;
 
 
-        const logoutBtn = document.getElementById('logout-btn');
-        const navAdminPanelItem = document.getElementById('nav-admin-panel-item');
+        // --- UI Interactions from Dashboard Shell ---
+        document.addEventListener('DOMContentLoaded', function() {
+            // Assign DOM elements
+            sidebarUserAvatar = document.getElementById('sidebar-user-avatar');
+            popupUserAvatar = document.getElementById('popup-user-avatar');
+            sidebarUserName = document.getElementById('current-user-email');
+            sidebarUserRole = document.getElementById('current-user-role');
+            popupUserEmail = document.getElementById('popup-user-email');
+            popupUserRole = document.getElementById('popup-user-role');
 
-        const adminGlobalMessage = document.getElementById('admin-global-message');
+            logoutBtn = document.getElementById('logout-btn');
+            navAdminPanelItem = document.getElementById('nav-admin-panel-item');
+            adminGlobalMessage = document.getElementById('admin-global-message');
 
-        // Metric Value Elements
-        const totalProfilesMetricValue = document.getElementById('total-profiles-metric-value');
-        const activeProfilesMetricValue = document.getElementById('active-profiles-metric-value');
-        const marriedProfilesMetricValue = document.getElementById('married-profiles-metric-value');
-        const pendingUsersMetricValue = document.getElementById('pending-users-metric-value');
-        const totalUsersMetricValue = document.getElementById('total-users-metric-value');
+            totalProfilesMetric = document.getElementById('total-profiles-metric');
+            activeProfilesMetric = document.getElementById('active-profiles-metric');
+            marriedProfilesMetric = document.getElementById('married-profiles-metric');
+            pendingUsersMetric = document.getElementById('pending-users-metric');
+            totalUsersMetric = document.getElementById('total-users-metric');
 
-        // Metric Label Elements
-        const totalProfilesMetricLabel = document.getElementById('total-profiles-metric-label');
-        const activeProfilesMetricLabel = document.getElementById('active-profiles-metric-label');
-        const marriedProfilesMetricLabel = document.getElementById('married-profiles-metric-label');
-        const pendingUsersMetricLabel = document.getElementById('pending-users-metric-label');
-        const totalUsersMetricLabel = document.getElementById('total-users-metric-label');
-
-
-        const recentlyAddedProfilesList = document.getElementById('recently-added-profiles-list');
-        const monthlyGrowthChart = document.getElementById('monthly-growth-chart');
-        const profileGrowthMessage = document.getElementById('profile-growth-message');
+            // Metric card containers to remove skeletons
+            metricCardTotalProfiles = document.getElementById('metric-total-profiles');
+            metricCardActiveProfiles = document.getElementById('metric-active-profiles');
+            metricCardMarriedProfiles = document.getElementById('metric-married-profiles');
+            metricCardPendingUsers = document.getElementById('metric-pending-users');
+            metricCardTotalUsers = document.getElementById('metric-total-users');
 
 
+            recentlyAddedProfilesList = document.getElementById('recently-added-profiles-list');
+            monthlyGrowthChart = document.getElementById('monthly-growth-chart');
+            profileGrowthMessage = document.getElementById('profile-growth-message');
+
+
+            const profileSection = document.getElementById('profile-section');
+            const profilePopup = document.getElementById('profile-popup');
+            const sidebar = document.getElementById('sidebar');
+            const menuToggle = document.getElementById('menu-toggle');
+            const closeBtn = document.getElementById('sidebar-close-btn');
+            const overlay = document.getElementById('overlay');
+
+            if (profileSection) {
+                profileSection.addEventListener('click', e => {
+                    e.stopPropagation();
+                    profilePopup.classList.toggle('active');
+                    profileSection.classList.toggle('active');
+                });
+            }
+            
+            document.addEventListener('click', e => {
+                if (profileSection && !profileSection.contains(e.target) && profilePopup && !profilePopup.contains(e.target)) {
+                    profilePopup.classList.remove('active');
+                    profileSection.classList.remove('active');
+                }
+            });
+
+            const toggleMenu = () => {
+                if (sidebar) sidebar.classList.toggle('active');
+                if (overlay) overlay.classList.toggle('active');
+            };
+            
+            if (menuToggle) menuToggle.addEventListener('click', toggleMenu);
+            if (closeBtn) closeBtn.addEventListener('click', toggleMenu);
+            if (overlay) overlay.addEventListener('click', toggleMenu);
+
+            // Initial calls to data fetching functions
+            // These will be called from onAuthStateChanged.
+            // But we can initiate skeleton removal for static parts immediately.
+            // Skeletons for dynamic content are removed after fetch.
+        });
+        // --- End UI Interactions ---
+
+        // Utility functions
         function showMessage(element, message, isSuccess = true) {
-            element.textContent = message;
-            element.classList.remove('hidden');
-            element.classList.toggle('success-message', isSuccess);
-            element.classList.toggle('error-message', !isSuccess);
-            setTimeout(() => element.classList.add('hidden'), 5000);
+            if (element) { // Ensure element exists before manipulating
+                element.textContent = message;
+                element.classList.remove('hidden');
+                element.classList.toggle('success-message', isSuccess);
+                element.classList.toggle('error-message', !isSuccess);
+                setTimeout(() => element.classList.add('hidden'), 5000);
+            }
         }
 
         async function logChange(action, entityType, entityId, details = {}) {
@@ -443,7 +476,7 @@
                 console.error("Error logging global change:", error);
             }
         }
-        
+
         function getMatrimonyGroupName(groupId) {
             if (!groupId) {
                 return 'Not Specified';
@@ -464,43 +497,7 @@
             return age;
         }
 
-        // --- UI Interactions from Dashboard Shell ---
-        document.addEventListener('DOMContentLoaded', function() {
-            const profileSection = document.getElementById('profile-section');
-            const profilePopup = document.getElementById('profile-popup');
-            const sidebar = document.getElementById('sidebar');
-            const menuToggle = document.getElementById('menu-toggle');
-            const closeBtn = document.getElementById('sidebar-close-btn');
-            const overlay = document.getElementById('overlay');
-
-            if (profileSection) {
-                profileSection.addEventListener('click', e => {
-                    e.stopPropagation();
-                    profilePopup.classList.toggle('active');
-                    profileSection.classList.toggle('active');
-                });
-            }
-            
-            document.addEventListener('click', e => {
-                if (profileSection && !profileSection.contains(e.target) && !profilePopup.contains(e.target)) {
-                    profilePopup.classList.remove('active');
-                    profileSection.classList.remove('active');
-                }
-            });
-
-            const toggleMenu = () => {
-                sidebar.classList.toggle('active');
-                overlay.classList.toggle('active');
-            };
-            
-            if (menuToggle) menuToggle.addEventListener('click', toggleMenu);
-            if (closeBtn) closeBtn.addEventListener('click', toggleMenu);
-            if (overlay) overlay.addEventListener('click', toggleMenu);
-
-        });
-        // --- End UI Interactions ---
-
-
+        // --- Authentication State Observer ---
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 currentUser = user;
@@ -529,17 +526,18 @@
                     return;
                 }
 
-                sidebarUserName.textContent = user.email;
-                sidebarUserRole.textContent = currentUserRole ? currentUserRole.charAt(0).toUpperCase() + currentUserRole.slice(1) : 'Admin';
-                popupUserEmail.textContent = user.email;
-                popupUserRole.textContent = currentUserRole ? currentUserRole.charAt(0).toUpperCase() + currentUserRole.slice(1) : 'Admin';
-
+                // Safely update sidebar/popup user info
+                if (sidebarUserName) sidebarUserName.textContent = user.email;
+                if (sidebarUserRole) sidebarUserRole.textContent = currentUserRole ? currentUserRole.charAt(0).toUpperCase() + currentUserRole.slice(1) : 'Admin';
+                if (popupUserEmail) popupUserEmail.textContent = user.email;
+                if (popupUserRole) popupUserRole.textContent = currentUserRole ? currentUserRole.charAt(0).toUpperCase() + currentUserRole.slice(1) : 'Admin';
 
                 const avatarUrl = user.photoURL || 'https://via.placeholder.com/40';
                 if (sidebarUserAvatar) sidebarUserAvatar.src = avatarUrl;
                 if (popupUserAvatar) popupUserAvatar.src = avatarUrl;
 
-                navAdminPanelItem.classList.remove('hidden');
+                if (logoutBtn) logoutBtn.classList.remove('hidden');
+                if (navAdminPanelItem) navAdminPanelItem.classList.remove('hidden');
 
                 // Load all dashboard overview data
                 fetchDashboardMetrics();
@@ -551,21 +549,28 @@
             }
         });
 
-        logoutBtn.addEventListener('click', async () => {
-            try {
-                await signOut(auth);
-                window.location.href = 'index.html';
-            } catch (error) {
-                console.error("Error signing out:", error);
-            }
-        });
+        // --- Logout ---
+        if (logoutBtn) { // Check if logoutBtn exists before adding listener
+            logoutBtn.addEventListener('click', async () => {
+                try {
+                    await signOut(auth);
+                    window.location.href = 'index.html';
+                } catch (error) {
+                    console.error("Error signing out:", error);
+                }
+            });
+        }
 
+        // --- Dashboard Metrics ---
         async function fetchDashboardMetrics() {
-            try {
-                // Get all metric cards
-                const metricCards = document.querySelectorAll('#dashboard-metrics-grid .metric-card');
-                metricCards.forEach(card => card.classList.add('is-loading')); // Add loading state to all cards
+            // Remove skeleton classes from metric cards
+            if (metricCardTotalProfiles) metricCardTotalProfiles.classList.remove('skeleton');
+            if (metricCardActiveProfiles) metricCardActiveProfiles.classList.remove('skeleton');
+            if (metricCardMarriedProfiles) metricCardMarriedProfiles.classList.remove('skeleton');
+            if (metricCardPendingUsers) metricCardPendingUsers.classList.remove('skeleton');
+            if (metricCardTotalUsers) metricCardTotalUsers.classList.remove('skeleton');
 
+            try {
                 const profilesSnapshot = await getDocs(collection(db, 'profiles'));
                 let totalProfiles = 0;
                 let activeProfiles = 0;
@@ -587,48 +592,45 @@
                     if (doc.data().status === 'pending') pendingUsers++;
                 });
 
-                // Update text content
-                if (totalProfilesMetricValue) totalProfilesMetricValue.textContent = totalProfiles;
-                if (activeProfilesMetricValue) activeProfilesMetricValue.textContent = activeProfiles;
-                if (marriedProfilesMetricValue) marriedProfilesMetricValue.textContent = marriedProfiles;
-                if (pendingUsersMetricValue) pendingUsersMetricValue.textContent = pendingUsers;
-                if (totalUsersMetricValue) totalUsersMetricValue.textContent = totalUsers;
+                if (totalProfilesMetric) totalProfilesMetric.textContent = totalProfiles;
+                if (activeProfilesMetric) activeProfilesMetric.textContent = activeProfiles;
+                if (marriedProfilesMetric) marriedProfilesMetric.textContent = marriedProfiles;
+                if (totalUsersMetric) totalUsersMetric.textContent = totalUsers;
+                if (pendingUsersMetric) pendingUsersMetric.textContent = pendingUsers;
 
-                // Update labels
-                if (totalProfilesMetricLabel) totalProfilesMetricLabel.textContent = 'Total Profiles';
-                if (activeProfilesMetricLabel) activeProfilesMetricLabel.textContent = 'Active Profiles';
-                if (marriedProfilesMetricLabel) marriedProfilesMetricLabel.textContent = 'Married Profiles';
-                if (pendingUsersMetricLabel) pendingUsersMetricLabel.textContent = 'Pending Users';
-                if (totalUsersMetricLabel) totalUsersMetricLabel.textContent = 'Total Registered Users';
+                // Set labels explicitly after values are loaded
+                if (totalProfilesMetric && totalProfilesMetric.nextElementSibling) totalProfilesMetric.nextElementSibling.textContent = 'Total Profiles';
+                if (activeProfilesMetric && activeProfilesMetric.nextElementSibling) activeProfilesMetric.nextElementSibling.textContent = 'Active Profiles';
+                if (marriedProfilesMetric && marriedProfilesMetric.nextElementSibling) marriedProfilesMetric.nextElementSibling.textContent = 'Married Profiles';
+                if (totalUsersMetric && totalUsersMetric.nextElementSibling) totalUsersMetric.nextElementSibling.textContent = 'Total Registered Users';
+                if (pendingUsersMetric && pendingUsersMetric.nextElementSibling) pendingUsersMetric.nextElementSibling.textContent = 'Pending Users';
 
             } catch (error) {
                 console.error("Error fetching dashboard metrics:", error);
                 showMessage(adminGlobalMessage, `Error loading metrics: ${error.message}`, false);
-            } finally {
-                // Remove loading state from all cards
-                document.querySelectorAll('#dashboard-metrics-grid .metric-card.is-loading').forEach(card => card.classList.remove('is-loading'));
             }
         }
 
+        // --- Recently Added Profiles ---
         async function fetchRecentlyAddedProfiles() {
-            recentlyAddedProfilesList.innerHTML = ''; // Clear existing skeleton
-            for(let i=0; i<3; i++) { // Show 3 skeleton items
-                 const skeletonItem = document.createElement('div');
-                 skeletonItem.className = 'recent-profile-item is-loading';
-                 skeletonItem.innerHTML = `<div class="profile-avatar skeleton"></div><div class="recent-profile-details"><div class="skeleton-line" style="width: 80%;"></div><div class="skeleton-line" style="width: 50%; height: 12px; margin-top: 4px;"></div></div><div class="skeleton-line" style="width: 60px;"></div>`;
-                 recentlyAddedProfilesList.appendChild(skeletonItem);
-            }
-
+            // Add skeleton placeholders if not already there, or just show loading text
+            if (recentlyAddedProfilesList) recentlyAddedProfilesList.innerHTML = `
+                <div class="recent-profile-item skeleton"><div class="skeleton skeleton-avatar"></div><div style="flex:1;"><div class="skeleton-line" style="width: 80%;"></div><div class="skeleton-line" style="width: 50%; height: 12px; margin-top: 4px;"></div></div><div class="skeleton-line" style="width: 60px;"></div></div>
+                <div class="recent-profile-item skeleton"><div class="skeleton skeleton-avatar"></div><div style="flex:1;"><div class="skeleton-line" style="width: 70%;"></div><div class="skeleton-line" style="width: 40%; height: 12px; margin-top: 4px;"></div></div><div class="skeleton-line" style="width: 60px;"></div></div>
+                <div class="recent-profile-item skeleton"><div class="skeleton skeleton-avatar"></div><div style="flex:1;"><div class="skeleton-line" style="width: 90%;"></div><div class="skeleton-line" style="width: 60%; height: 12px; margin-top: 4px;"></div></div><div class="skeleton-line" style="width: 60px;"></div></div>
+            `;
+            
             try {
                 const q = query(collection(db, 'profiles'), orderBy('createdAt', 'desc'), limit(5));
                 const snapshot = await getDocs(q);
 
+                if (recentlyAddedProfilesList) recentlyAddedProfilesList.innerHTML = ''; // Clear skeletons/loading
+
                 if (snapshot.empty) {
-                    recentlyAddedProfilesList.innerHTML = '<p class="no-records">No profiles added yet.</p>';
+                    if (recentlyAddedProfilesList) recentlyAddedProfilesList.innerHTML = '<p class="no-records">No profiles added yet.</p>';
                     return;
                 }
 
-                recentlyAddedProfilesList.innerHTML = '';
                 snapshot.docs.forEach(doc => {
                     const profile = { id: doc.id, ...doc.data() };
                     const age = calculateAge(profile.dateOfBirth);
@@ -640,29 +642,31 @@
                         <img src="${profile.photoURL || 'https://via.placeholder.com/48'}" alt="${profile.name}">
                         <div class="recent-profile-details">
                             <div class="name">${profile.name}</div>
-                            <div class="info">${age} | ${profile.location}</div>
+                            <div class="info">${age} | ${profile.location} | ${matrimonyGroupName}</div>
                         </div>
                         <div class="actions">
                             <a href="view-profile.html?profileId=${profile.id}" class="button-primary">View</a>
                         </div>
                     `;
-                    recentlyAddedProfilesList.appendChild(profileItem);
+                    if (recentlyAddedProfilesList) recentlyAddedProfilesList.appendChild(profileItem);
                 });
 
             } catch (error) {
                 console.error("Error fetching recently added profiles:", error);
-                recentlyAddedProfilesList.innerHTML = `<p class="error-message">Error loading recent profiles: ${error.message}</p>`;
+                if (recentlyAddedProfilesList) recentlyAddedProfilesList.innerHTML = `<p class="error-message">Error loading recent profiles: ${error.message}</p>`;
             }
         }
 
+        // --- Monthly Profile Growth ---
         async function fetchMonthlyProfileGrowth() {
-            monthlyGrowthChart.classList.add('is-loading');
-            monthlyGrowthChart.innerHTML = '<p class="no-records">Loading growth data...</p>';
+            if (monthlyGrowthChart) monthlyGrowthChart.classList.add('skeleton'); // Add skeleton for chart
+            if (monthlyGrowthChart) monthlyGrowthChart.innerHTML = '<p class="no-records">Loading growth data...</p>';
             try {
                 const profilesSnapshot = await getDocs(collection(db, 'profiles'));
                 const monthlyCounts = {};
                 const today = new Date();
 
+                // Initialize counts for the last 6 months
                 for (let i = 0; i < 6; i++) {
                     const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
                     const monthKey = `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}`;
@@ -685,14 +689,16 @@
 
             } catch (error) {
                 console.error("Error fetching monthly profile growth:", error);
-                showMessage(profileGrowthMessage, `Error loading profile growth data: ${error.message}`, false);
-                monthlyGrowthChart.innerHTML = `<p class="error-message">Error loading growth data: ${error.message}</p>`;
+                if (profileGrowthMessage) showMessage(profileGrowthMessage, `Error loading profile growth data: ${error.message}`, false);
+                if (monthlyGrowthChart) monthlyGrowthChart.innerHTML = `<p class="error-message">Error loading growth data: ${error.message}</p>`;
             } finally {
-                monthlyGrowthChart.classList.remove('is-loading');
+                if (monthlyGrowthChart) monthlyGrowthChart.classList.remove('skeleton');
             }
         }
 
         function renderMonthlyGrowthChart(monthlyCounts) {
+            if (!monthlyGrowthChart) return;
+
             monthlyGrowthChart.innerHTML = '';
             const monthsSortedKeys = Object.keys(monthlyCounts).sort();
             
