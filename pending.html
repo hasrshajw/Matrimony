@@ -26,11 +26,17 @@
             --border-gray: #e0e0e0;
             --color-danger: #dc2626; 
             --color-danger-hover: #b91c1c;
+            --warning-color-bg: #fffbeb; /* Light yellow background */
+            --warning-color-border: #fef3c7; /* Lighter yellow border */
+            --warning-color-text: #b45309; /* Dark yellow/brown text */
+            --warning-color-icon: #f59e0b; /* Amber icon */
         }
 
         *,
         *::before,
         *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        /* --- Mobile First Base Styles --- */
         html, body { height: 100%; overflow: hidden; }
         body { 
             font-family: 'IBM Plex Sans', sans-serif; 
@@ -41,10 +47,9 @@
             color: var(--text-color); 
         }
         
-        /* Container Setup (Mobile First) */
         .container { 
             width: 100%; 
-            height: 100%; /* Full height */
+            height: 100%; 
             background-color: var(--pure-white); 
             border-radius: 0; 
             overflow: hidden; 
@@ -56,63 +61,55 @@
             display: flex; 
             flex-direction: column; 
             overflow-y: auto; 
-            padding: 0; /* Remove padding for edge-to-edge */
-            justify-content: space-between; /* Space out content */
+            padding: 2.5rem 1.5rem; /* Adjusted padding for mobile */
+            justify-content: space-between; /* Space out content and button */
+            align-items: flex-start; /* Align content to the left */
+            text-align: left; /* Ensure text is left-aligned */
         }
         .info-panel { display: none; } /* Hide side panel on mobile */
 
-        /* --- NEW Mobile Structure --- */
-        .mobile-top-section {
-            padding: 3rem 2rem 1rem; /* Padding top, sides, bottom */
-            text-align: center;
-        }
-        .mobile-illustration {
-            font-size: 6rem; /* Large icon */
-            color: var(--accent-green);
-            opacity: 0.8;
-            margin-bottom: 1.5rem;
-        }
+        /* Message Box Styling */
         .message-box {
-            padding: 0 2rem; /* Side padding only */
-            text-align: center;
+            width: 100%; 
         }
-         .mobile-bottom-section {
-            padding: 2rem 2rem 3rem; /* Padding top, sides, bottom */
-            text-align: center;
-            background-color: var(--light-gray); /* Subtle background */
-            border-top: 1px solid var(--border-gray);
-         }
-        /* --- End NEW Mobile Structure --- */
-
+        .message-box .icon {
+            font-size: 3rem; /* Larger icon */
+            color: var(--warning-color-icon); /* Use warning color */
+            margin-bottom: 1.5rem;
+            display: block; /* Make it block for margin */
+        }
         .message-box h2 {
             font-size: 1.8rem;
             font-weight: 600;
             margin-bottom: 1rem; /* Reduced margin */
             color: var(--primary-dark);
+            text-align: left; /* Explicitly left align */
         }
         .message-box p {
             font-size: 1rem;
             color: var(--text-light);
             margin-bottom: 1rem;
             line-height: 1.6;
+            text-align: left; /* Explicitly left align */
         }
         
         /* Status Indicator */
         .status-indicator {
-            margin-bottom: 1.5rem; /* Space before logout */
+            margin-top: 1.5rem; /* Reduced margin */
             padding: 0.75rem 1rem;
-            background-color: var(--pure-white); /* White background on gray */
+            background-color: var(--warning-color-bg); /* Use warning background */
+            border: 1px solid var(--warning-color-border); /* Add border */
             border-radius: 8px;
             display: inline-flex; 
             align-items: center;
             font-size: 0.9rem;
-            color: var(--text-light);
+            color: var(--warning-color-text); /* Use warning text color */
             font-weight: 500;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
         .status-indicator .bx-loader-alt {
             font-size: 1.2em;
             margin-right: 0.5rem;
+            color: var(--warning-color-icon); /* Match icon color */
             animation: spin 1.5s linear infinite;
         }
         @keyframes spin { 
@@ -121,9 +118,11 @@
         }
 
         /* Logout Button */
+        .logout-container {
+            width: 100%;
+            margin-top: 2rem; /* Ensure space above button */
+        }
         .logout-btn {
-            width: 100%; /* Full width in bottom section */
-            max-width: 300px; /* Limit max width */
             background-color: var(--color-danger);
             color: white;
             padding: 0.9rem 1.5rem; /* Consistent padding */
@@ -135,8 +134,9 @@
             transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
             display: inline-flex; 
             align-items: center;
-            justify-content: center; /* Center icon and text */
             gap: 0.5rem;
+            width: 100%; /* Make button full width on mobile */
+            justify-content: center; /* Center text/icon */
         }
         .logout-btn:hover {
             background-color: var(--color-danger-hover);
@@ -156,7 +156,6 @@
                 border-radius: 2rem; 
                 box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.2); 
             }
-            /* Show side panel and adjust main panel */
             .info-panel { 
                 background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('https://images.unsplash.com/photo-1590486804120-11019f18a4a2?auto=format&fit=crop&q=80&w=1887') center center / cover; 
                 display: flex; 
@@ -172,34 +171,26 @@
             .form-panel-wrapper { 
                 flex-basis: 45%; 
                 display: flex; 
-                align-items: center; 
-                justify-content: center; 
+                align-items: center; /* Center vertically again for desktop */
+                justify-content: center; /* Center horizontally */
                 padding: 3rem; 
                 overflow-y: auto; 
                 position: static; 
                 flex-grow: 0; 
-                text-align: center;
-                background-color: var(--pure-white); /* Ensure white background */
+                text-align: center; /* Center text for desktop */
             }
-            /* Hide mobile-specific sections */
-            .mobile-top-section { display: none; }
-            .mobile-bottom-section { 
-                padding: 0; /* Reset padding */
-                background-color: transparent; /* Reset background */
-                border-top: none; /* Reset border */
-                margin-top: 2.5rem; /* Add margin like login page */
+            .message-box {
+                 text-align: center; /* Center inner box content */
+            }
+             .message-box .icon,
+             .message-box h2,
+             .message-box p {
+                 text-align: center; /* Center text within box */
              }
-             .message-box { 
-                 padding: 0; /* Reset padding */
-                 max-width: none; /* Remove max width */
-            }
-            .status-indicator { margin-top: 2rem; } /* Restore margin */
-            .logout-btn { 
-                width: auto; /* Reset width */
-                max-width: none; /* Reset max width */
-                padding: 0.75rem 1.5rem; /* Restore padding */
-                margin-top: 2.5rem; /* Restore margin */
-            }
+             .logout-btn {
+                 width: auto; /* Revert button width */
+                 padding: 0.75rem 1.5rem; /* Reset padding */
+             }
         }
     </style>
 </head>
@@ -215,19 +206,19 @@
         </div>
 
         <div class="form-panel-wrapper">
-            <div class="mobile-top-section">
-                 <i class='bx bx-time-five mobile-illustration'></i> </div>
-            
             <div class="message-box">
+                <i class='bx bx-time-five icon'></i> 
+                
                 <h2>Account Pending Approval</h2>
-                <p>Thank you for signing up!</p>
-                <p>Your account is currently under review. This page will automatically update once your status changes.</p>
-            </div>
-
-            <div class="mobile-bottom-section">
+                <p>Thank you for signing up for the Matrimony Portal!</p>
+                <p>Your account is currently under review by our administrators. This page will automatically update once your status changes.</p>
+                
                 <div class="status-indicator">
                     <i class='bx bx-loader-alt'></i> Checking status...
                 </div>
+            </div>
+            
+            <div class="logout-container">
                 <button class="logout-btn" id="logout-btn">
                     <i class='bx bx-log-out'></i> Logout
                 </button>
@@ -273,7 +264,7 @@
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 if (unsubscribeUserStatus) {
-                    unsubscribeUserStatus(); // Clean up previous listener if exists
+                    unsubscribeUserStatus();
                 }
 
                 const userDocRef = doc(db, 'users', user.uid);
