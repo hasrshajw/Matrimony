@@ -3,440 +3,160 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Matrimony Portal - Manage Users</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <title>Matrimony Portal - Create/Edit Profile</title>
     <script type="module" src="https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js"></script>
     <script type="module" src="https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js"></script>
     <script type="module" src="https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js"></script>
     <script type="module" src="https://www.gstatic.com/firebasejs/12.4.0/firebase-storage.js"></script>
+    <script type="module" src="https://www.gstatic.com/firebasejs/12.4.0/firebase-ai.js"></script>
 
     <style>
-        :root { --body-bg: #F9FAFB; --widget-bg: #FFFFFF; --border-color: #E5E7EB; --text-primary: #002726; --text-secondary: #6B7280; --brand-green: #33C375; --hover-bg: #F3F4F6; --warning-color: #F59E0B; --danger-color: #EF4444; }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'IBM Plex Sans', sans-serif; background-color: var(--body-bg); color: var(--text-primary); font-size: 14px; overflow: hidden; }
-        .dashboard-container { display: grid; grid-template-columns: 260px 1fr; height: 100vh; position: relative; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background: #f4f7f6; color: #333; }
+        .container { max-width: 1200px; margin: 20px auto; background: #fff; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); padding: 30px; }
+        h1, h2, h3 { color: #2c3e50; margin-top: 0; }
+        button { background-color: #3498db; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; transition: background-color 0.2s ease; }
+        button:hover { background-color: #2980b9; }
+        button:disabled { background-color: #cccccc; cursor: not-allowed; }
+        input[type="text"], input[type="email"], input[type="password"], input[type="number"], input[type="date"], textarea, select {
+            width: calc(100% - 22px); padding: 10px; margin: 8px 0; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; font-size: 16px;
+        }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; color: #555; }
+        .error-message { color: #e74c3c; margin-top: 10px; font-weight: bold; }
+        .success-message { color: #2ecc71; margin-top: 10px; font-weight: bold; }
+        .hidden { display: none !important; }
 
-        .sidebar { background-color: var(--widget-bg); border-right: 1px solid var(--border-color); padding: 2rem 1.5rem; display: flex; flex-direction: column; position: relative; transition: transform 0.3s ease-in-out; }
-        .sidebar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem; }
-        .logo-image { height: 40px; background-color: #f0f0f0; border-radius: 8px; width: 120px; display: flex; align-items: center; justify-content: center; font-weight: bold; color: var(--text-secondary); }
-        .main-nav { flex-grow: 1; }
-        .main-nav ul { list-style: none; display: flex; flex-direction: column; gap: 0.5rem; }
-        .main-nav a { display: flex; align-items: center; gap: 1rem; text-decoration: none; color: var(--text-primary); font-weight: 500; padding: 0.75rem 1rem; border-radius: 8px; transition: background-color 0.2s ease, color 0.2s ease; }
-        .main-nav a i { font-size: 1.5rem; color: var(--text-secondary); transition: color 0.2s ease; }
-        .main-nav a:hover { background-color: var(--hover-bg); }
-        .main-nav a.active { background-color: var(--hover-bg); font-weight: 600; }
-        .main-nav a.active i { color: var(--brand-green); }
+        #app-header { background: #34495e; color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #3498db; }
+        #app-header h1 { margin: 0; font-size: 24px; }
+        #app-header nav ul { list-style: none; margin: 0; padding: 0; display: flex; }
+        #app-header nav li { margin-left: 20px; }
+        #app-header nav a { color: white; text-decoration: none; font-weight: bold; font-size: 17px; transition: color 0.2s ease; }
+        #app-header nav a:hover, #app-header nav a.active { color: #3498db; }
+        #user-info { display: flex; align-items: center; }
+        #user-info span { margin-right: 15px; font-size: 15px; }
+        #user-info button { background-color: #e74c3c; }
+        #user-info button:hover { background-color: #c0392b; }
 
-        .profile-section { margin-top: auto; padding-top: 1.5rem; border-top: 1px solid var(--border-color); display: flex; align-items: center; gap: 0.75rem; cursor: pointer; }
-        .profile-content-wrapper { display: flex; align-items: center; gap: 0.75rem; width: 100%; }
-        .profile-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; flex-shrink: 0; background-color: #e2e8f0; }
-        .profile-details { flex-grow: 1; min-width: 0; }
-        .profile-name { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
-        .profile-email { font-size: 0.8rem; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
-        .profile-options i { font-size: 1.5rem; color: var(--text-secondary); transition: transform 0.2s ease; }
-        .profile-section.active .profile-options i { transform: rotate(180deg); }
-        .profile-popup { position: absolute; bottom: 90px; left: 1.5rem; right: 1.5rem; background-color: var(--widget-bg); border-radius: 12px; box-shadow: 0 10px 30px -5px rgba(0,0,0,0.1); border: 1px solid var(--border-color); padding: 0.75rem; z-index: 100; opacity: 0; pointer-events: none; transform: translateY(10px) scale(0.95); transition: opacity 0.2s ease, transform 0.2s ease; }
-        .profile-popup.active { opacity: 1; pointer-events: all; transform: translateY(0) scale(1); }
-        .popup-header { display: flex; align-items: center; gap: 0.75rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border-color); }
-        .popup-list { list-style: none; padding-top: 0.5rem; }
-        .popup-list a { display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem; border-radius: 6px; text-decoration: none; color: var(--text-primary); }
-        .popup-list a:hover { background-color: var(--hover-bg); }
-        .popup-list a i { font-size: 1.2rem; color: var(--text-secondary); }
-        .popup-list a.logout i { color: var(--danger-color); }
-        .popup-list a.logout { color: var(--danger-color); }
+        .form-layout-grid { display: grid; grid-template-columns: 1fr 2fr; gap: 20px; }
+        .profile-fields-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .full-width { grid-column: 1 / -1; }
+        .form-group textarea { min-height: 80px; }
+        #auto-generate-paragraph { min-height: 250px; }
 
-        /* Main Content Area */
-        .main-area { display: flex; flex-direction: column; overflow-y: auto; background-color: var(--body-bg); }
-        .main-header { padding: 1.25rem 3rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background-color: var(--widget-bg); position: sticky; top: 0; z-index: 10; }
-        .main-header h1 { font-size: 1.5rem; font-weight: 600; }
-        .content-body { padding: 2rem 3rem; display: grid; grid-template-columns: 1fr; gap: 2rem; align-items: flex-start; margin-top: 0; }
-        .column { display: flex; flex-direction: column; gap: 2rem; }
-
-        /* Widget Styles */
-        .widget { background-color: var(--widget-bg); border-radius: 16px; border: 1px solid var(--border-color); padding: 1.5rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.03), 0 2px 4px -1px rgba(0,0,0,0.02); }
-        .widget-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
-        .widget-header h3 { font-size: 1.1rem; font-weight: 600; color: var(--text-primary); }
-        .widget-header a { font-size: 0.9rem; color: var(--brand-green); text-decoration: none; font-weight: 500; }
-        .widget-header a:hover { text-decoration: underline; }
-
-        /* Custom Buttons (global) */
-        .button-primary {
-            display: inline-block;
-            background-color: var(--brand-green);
-            color: white;
-            padding: 0.6rem 1.2rem;
-            border-radius: 8px;
-            text-decoration: none;
-            font-weight: 500;
-            font-size: 0.9rem;
-            transition: background-color 0.2s ease;
-            border: none;
-            cursor: pointer;
-        }
-        .button-primary:hover { background-color: #2fb165; }
-
-        /* User List Desktop */
-        .user-list-desktop-wrapper {
-            display: block; /* Show on desktop */
-        }
-        .user-list-headings {
-            display: grid;
-            grid-template-columns: 2fr 1fr 1fr auto; /* Email | Status | Role | Actions */
-            gap: 1rem;
-            padding: 0.75rem 1rem;
-            font-weight: 600;
-            color: var(--text-secondary);
-            background-color: var(--hover-bg);
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-            margin-bottom: 0.5rem;
-        }
-        #all-users-list-desktop .user-card-desktop {
-            background-color: var(--widget-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 12px; /* Consistent with cards */
-            margin-bottom: 0.5rem; /* Gap between cards */
-            padding: 1rem; /* Padding inside the row */
-            display: grid;
-            grid-template-columns: 2fr 1fr 1fr auto;
-            align-items: center;
-            gap: 1rem;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-        }
-        #all-users-list-desktop .user-card-desktop:last-child {
-            margin-bottom: 0;
-        }
-
-
-        /* User List Mobile */
-        .user-list-mobile-wrapper {
-            display: none; /* Hidden by default on desktop */
-            flex-direction: column;
-            gap: 1rem;
-        }
-        .mobile-user-card {
-            background-color: var(--widget-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 1rem;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-        .mobile-card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 1rem;
-        }
-        .mobile-card-header .user-email {
-            font-weight: 600;
-            color: var(--text-primary);
-            flex-grow: 1;
-            min-width: 0;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        .mobile-card-header .status-badge {
-            flex-shrink: 0;
-        }
-        .mobile-card-actions-btn {
-            background: none;
-            border: none;
-            cursor: pointer;
-            padding: 0.5rem;
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
             border-radius: 50%;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            transition: background-color 0.2s ease;
-            flex-shrink: 0;
-        }
-        .mobile-card-actions-btn:hover { background-color: var(--hover-bg); }
-        .mobile-card-actions-btn i { font-size: 1.5rem; color: var(--text-secondary); }
-
-
-        /* Common User Status/Role Styles */
-        .status-badge {
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
             display: inline-block;
-            min-width: 70px;
-            text-align: center;
-            font-weight: bold;
-            color: white;
-            padding: 3px 8px;
-            border-radius: 4px;
-            font-size: 0.85em;
-            text-transform: capitalize;
+            vertical-align: middle;
+            margin-left: 10px;
         }
-        .status-badge.pending { background-color: #f39c12; }
-        .status-badge.approved, .status-badge.employee, .status-badge.active { background-color: #2ecc71; }
-        .status-badge.admin { background-color: #3498db; }
-        .status-badge.denied, .status-badge.suspended { background-color: #e74c3c; }
-
-
-        /* Toggle Switch UI (for desktop) */
-        .toggle-switch {
-            position: relative;
-            display: inline-block;
-            width: 40px;
-            height: 22px;
-            margin: 0 5px;
-            flex-shrink: 0;
-        }
-        .toggle-switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 22px; }
-        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 2px; bottom: 2px; background-color: white; transition: .4s; border-radius: 50%; }
-        input:checked + .slider { background-color: var(--brand-green); }
-        input:focus + .slider { box-shadow: 0 0 1px var(--brand-green); }
-        input:checked + .slider:before { transform: translateX(18px); }
-        .status-text { font-size: 0.85em; font-weight: 500; color: var(--text-secondary); margin-left: 5px; white-space: nowrap; }
-
-        /* Role Select Desktop */
-        .user-role-select-desktop {
-            padding: 0.5rem 0.8rem;
-            font-size: 0.8em;
-            border-radius: 6px;
-            border: 1px solid var(--border-color);
-            background-color: var(--hover-bg);
-            color: var(--text-primary);
-            cursor: pointer;
-            min-width: 90px;
-        }
-        .user-role-select-desktop:focus { outline: none; border-color: var(--brand-green); }
-
-
-        /* Action Buttons Desktop */
-        .desktop-actions {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-            justify-content: flex-end;
-        }
-        .desktop-actions button {
-            padding: 0.5rem 0.8rem;
-            font-size: 0.8em;
-            border-radius: 6px;
-            border: 1px solid var(--border-color);
-            background-color: var(--hover-bg);
-            color: var(--text-primary);
-            cursor: pointer;
-            transition: background-color 0.2s ease;
-            white-space: nowrap;
-        }
-        .desktop-actions button.approve { background-color: var(--brand-green); color: white; border-color: var(--brand-green); }
-        .desktop-actions button.deny { background-color: var(--danger-color); color: white; border-color: var(--danger-color); }
-        .desktop-actions button.delete-user { background-color: var(--danger-color); color: white; border-color: var(--danger-color); }
-        .desktop-actions button:hover { background-color: var(--border-color); }
-        .desktop-actions button.approve:hover { background-color: #2fb165; }
-        .desktop-actions button.deny:hover, .desktop-actions button.delete-user:hover { background-color: #b91c1c; }
-
-        /* Actionsheet Styles (from example, adapted) */
-        .actionsheet-overlay { position: fixed; inset: 0; background-color: rgba(17, 24, 39, 0.6); z-index: 2000; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; backdrop-filter: blur(4px); }
-        .actionsheet-overlay.show { opacity: 1; pointer-events: auto; }
-        .actionsheet { position: fixed; bottom: 0; left: 0; right: 0; background-color: var(--widget-bg); border-top-left-radius: 1rem; border-top-right-radius: 1rem; padding: 1rem; z-index: 2001; transform: translateY(100%); transition: transform 0.3s ease-out; }
-        .actionsheet.show { transform: translateY(0); }
-        .actionsheet-header { text-align: center; padding-bottom: 1rem; }
-        .actionsheet-header::before { content: ''; display: block; width: 40px; height: 4px; background-color: var(--border-color); border-radius: 2px; margin: 0 auto 1rem; }
-        .actionsheet-title { font-size: 1.25rem; font-weight: 700; }
-        .actionsheet-content { padding: 1rem 0; border-top: 1px solid var(--border-color); margin-top: 1rem; }
-        .actionsheet-details { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 1rem; text-align: left; margin-bottom: 1.5rem; }
-        .actionsheet-details p { font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 0.25rem; }
-        .actionsheet-details strong { display: block; font-size: 1rem; font-weight: 600; color: var(--text-primary); }
-        .actionsheet-status-control, .actionsheet-role-control { display: flex; justify-content: space-between; align-items: center; padding: 1rem; background-color: var(--hover-bg); border-radius: 12px; margin-bottom: 1rem; }
-        .actionsheet-status-control:last-of-type, .actionsheet-role-control:last-of-type { margin-bottom: 0; }
-        
-        .actionsheet-actions { display: flex; flex-direction: column; gap: 0.75rem; padding: 1.5rem 0 0.5rem 0; }
-        .actionsheet-btn { padding: 0.9rem 1rem; border-radius: 12px; font-weight: 600; font-size: 0.9rem; cursor: pointer; border: none; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
-        .actionsheet-btn svg { width: 18px; height: 18px; }
-        .actionsheet-btn:active { transform: scale(0.97); }
-        .actionsheet-btn--approve { background-color: var(--brand-green); color: white; }
-        .actionsheet-btn--approve:hover { background-color: #2fb165; }
-        .actionsheet-btn--deny { background-color: var(--danger-color); color: white; }
-        .actionsheet-btn--deny:hover { background-color: #b91c1c; }
-        .actionsheet-btn--reactivate { background-color: var(--brand-green); color: white; }
-        .actionsheet-btn--reactivate:hover { background-color: #2fb165; }
-        .actionsheet-btn--delete { background-color: var(--danger-bg-light); color: var(--danger-text-dark); }
-        .actionsheet-btn--delete:hover { background-color: #FECACA; }
-
-        .actionsheet-cancel button { width: 100%; background-color: var(--widget-bg); color: var(--text-secondary); font-weight: 600; padding: 0.9rem; border: none; cursor: pointer; border-radius: 12px; transition: background-color 0.2s ease; }
-        .actionsheet-cancel button:hover { background-color: var(--hover-bg); }
-
-
-        /* Skeleton Loading Styles */
-        @keyframes shimmer { 100% { transform: translateX(100%); } }
-        .skeleton { background-color: #e2e8f0; position: relative; overflow: hidden; }
-        .skeleton::after { content: ''; position: absolute; top: 0; right: 0; bottom: 0; left: 0; transform: translateX(-100%); background-image: linear-gradient(90deg, rgba(255, 255, 255, 0) 0, rgba(255, 255, 255, 0.2) 20%, rgba(255, 255, 255, 0.5) 60%, rgba(255, 255, 255, 0)); animation: shimmer 2s infinite; }
-        .skeleton-line { height: 14px; border-radius: 4px; }
-
-        /* Specific skeleton states for user cards */
-        .user-card-desktop.skeleton { height: 70px; display: flex; flex-direction: column; justify-content: space-around; }
-        .user-card-desktop.skeleton .skeleton-line { width: 90%; margin-bottom: 0.5rem; }
-        .user-card-desktop.skeleton .skeleton-line:last-child { width: 50%; }
-
-        .mobile-user-card.skeleton { height: 70px; display: flex; flex-direction: column; justify-content: space-around; }
-        .mobile-user-card.skeleton .skeleton-line { width: 90%; margin-bottom: 0.5rem; }
-        .mobile-user-card.skeleton .skeleton-line:last-child { width: 50%; }
-
-
-        @media (max-width: 1024px) {
-            .dashboard-container { grid-template-columns: 1fr; }
-            .sidebar { position: fixed; top: 0; left: 0; height: 100%; width: 80%; max-width: 300px; z-index: 1000; transform: translateX(-100%); box-shadow: 0 0 30px rgba(0,0,0,0.1); }
-            .sidebar.active { transform: translateX(0); }
-            .main-header { padding: 1.25rem 1.5rem; }
-            .content-body { padding: 1.5rem; }
-            .menu-toggle { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; font-size: 1.5rem; color: var(--text-primary); cursor: pointer; background: none; border: none; }
-            .sidebar-close-btn { display: flex; align-items: center; justify-content: center; position: absolute; top: 1.5rem; right: 1.5rem; font-size: 1.75rem; color: var(--danger-color); cursor: pointer; border: none; background: none; }
-            .overlay { position: fixed; inset: 0; background-color: rgba(0,0,0,0.4); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); z-index: 999; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
-            .overlay.active { opacity: 1; pointer-events: auto; }
-
-            .user-list-desktop-wrapper { display: none; } /* Hide desktop table */
-            .user-list-mobile-wrapper { display: flex; } /* Show mobile cards */
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
     </style>
 </head>
 <body>
-    <div class="overlay" id="overlay"></div>
-    <div class="dashboard-container">
-        <aside class="sidebar" id="sidebar">
-            <button class="sidebar-close-btn" id="sidebar-close-btn"><i class='bx bx-x'></i></button>
-            <div class="sidebar-header">
-                <div class="logo-image">Matrimony Admin</div>
-            </div>
-            <nav class="main-nav">
+    <div id="app-content">
+        <header id="app-header">
+            <h1>Matrimony Portal</h1>
+            <nav>
                 <ul>
-                    <li><a href="admin-dashboard.html"><i class='bx bx-home-alt'></i> Dashboard</a></li>
-                    <li><a href="create-profile.html"><i class='bx bx-user-plus'></i> Create Profile</a></li>
-                    <li><a href="search-profiles.html"><i class='bx bx-search'></i> Search Profiles</a></li>
-                    <li><a href="admin-users.html" class="active"><i class='bx bx-group'></i> Manage Users</a></li>
-                    <li><a href="admin-profiles.html"><i class='bx bx-id-card'></i> Manage Profiles</a></li>
-                    <li><a href="admin-history.html"><i class='bx bx-history'></i> Global History</a></li>
+                    <li><a href="create-profile.html" id="nav-create-profile" class="active">Create Profile</a></li>
+                    <li><a href="search-profiles.html" id="nav-search-profile">Search Profiles</a></li>
+                    <li id="nav-admin-panel-item" class="hidden"><a href="admin-dashboard.html" id="nav-admin-panel">Admin Dashboard</a></li>
                 </ul>
             </nav>
-            <div class="profile-section" id="profile-section">
-                <div class="profile-content-wrapper">
-                    <div class="profile-avatar"><img src="https://via.placeholder.com/40" alt="User Avatar" id="sidebar-user-avatar" style="width: 100%; height: 100%; border-radius: 50%;"></div>
-                    <div class="profile-details">
-                        <span class="profile-name" id="current-user-email">Loading...</span>
-                        <span class="profile-email" id="current-user-role">Role</span>
-                    </div>
-                    <div class="profile-options"><i class='bx bx-chevron-down'></i></div>
-                </div>
+            <div id="user-info">
+                <span>Welcome, <strong id="current-user-email"></strong> (<span id="current-user-role"></span>)</span>
+                <button id="logout-btn">Logout</button>
             </div>
-            <div class="profile-popup" id="profile-popup">
-                <div class="popup-header">
-                    <div class="profile-avatar"><img src="https://via.placeholder.com/40" alt="User Avatar" id="popup-user-avatar" style="width: 100%; height: 100%; border-radius: 50%;"></div>
-                    <div class="profile-details">
-                        <span class="profile-name" id="popup-user-email">Loading...</span>
-                        <span class="profile-email" id="popup-user-role">Role</span>
-                    </div>
-                </div>
-                <ul class="popup-list">
-                    <li><a href="#"><i class='bx bx-user'></i> Profile Settings</a></li>
-                    <li><a href="#" class="logout" id="logout-btn"><i class='bx bx-log-out'></i> Logout</a></li>
-                </ul>
-            </div>
-        </aside>
-        <main class="main-area">
-            <header class="main-header">
-                <i class='bx bx-menu menu-toggle' id="menu-toggle"></i>
-                <h1>Manage Users</h1>
-            </header>
-            <section class="content-body">
-                <div class="column">
-                    <div class="widget">
-                        <div class="widget-header">
-                            <h3>All Registered Users</h3>
-                        </div>
-                        <p id="user-management-message" class="success-message hidden"></p>
-                        
-                        <!-- Desktop Table View -->
-                        <div class="user-list-desktop-wrapper">
-                            <div class="user-list-headings">
-                                <div>Email</div>
-                                <div>Status</div>
-                                <div>Role</div>
-                                <div style="text-align: right;">Actions</div>
-                            </div>
-                            <div id="all-users-list-desktop" class="user-list">
-                                <div class="user-card-desktop skeleton"><div class="skeleton-line"></div><div class="skeleton-line"></div><div class="skeleton-line"></div><div class="skeleton-line"></div></div>
-                                <div class="user-card-desktop skeleton"><div class="skeleton-line"></div><div class="skeleton-line"></div><div class="skeleton-line"></div><div class="skeleton-line"></div></div>
-                                <div class="user-card-desktop skeleton"><div class="skeleton-line"></div><div class="skeleton-line"></div><div class="skeleton-line"></div><div class="skeleton-line"></div></div>
-                                <p class="no-records hidden">No registered users.</p>
-                            </div>
-                        </div>
+        </header>
 
-                        <!-- Mobile Card View -->
-                        <div class="user-list-mobile-wrapper" id="all-users-list-mobile">
-                             <div class="mobile-user-card skeleton"><div class="skeleton-line"></div></div>
-                             <div class="mobile-user-card skeleton"><div class="skeleton-line"></div></div>
-                             <div class="mobile-user-card skeleton"><div class="skeleton-line"></div></div>
-                             <p class="no-records hidden">No registered users.</p>
+        <div class="container">
+            <section id="create-profile-section">
+                <h2 id="profile-form-title">Create New Profile</h2>
+                <form id="profile-form">
+                    <input type="hidden" id="profile-id">
+                    <div class="form-layout-grid">
+                        <div class="auto-generate-column">
+                            <div class="form-group">
+                                <label for="auto-generate-paragraph">Auto-generate details from paragraph:</label>
+                                <textarea id="auto-generate-paragraph" placeholder="e.g., John Doe, born 1995-05-15, from New York. Works as a Software Engineer. Looking for a compatible partner." rows="12"></textarea>
+                                <button type="button" id="auto-generate-btn" style="margin-top: 10px;">Auto-generate Fields <span class="loading-spinner hidden" id="auto-generate-spinner"></span></button>
+                            </div>
+                        </div>
+                        <div class="profile-fields-column">
+                            <div class="profile-fields-grid">
+                                <div class="form-group">
+                                    <label for="profile-name">Full Name:</label>
+                                    <input type="text" id="profile-name" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="profile-dob">Date of Birth:</label>
+                                    <input type="date" id="profile-dob" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="profile-location">Location:</label>
+                                    <input type="text" id="profile-location" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="profile-religion">Religion:</label>
+                                    <input type="text" id="profile-religion">
+                                </div>
+                                <div class="form-group">
+                                    <label for="profile-education">Education:</label>
+                                    <input type="text" id="profile-education">
+                                </div>
+                                <div class="form-group">
+                                    <label for="profile-profession">Profession:</label>
+                                    <input type="text" id="profile-profession">
+                                </div>
+                                <div class="form-group">
+                                    <label for="profile-marital-status">Marital Status:</label>
+                                    <select id="profile-marital-status">
+                                        <option value="Single">Single</option>
+                                        <option value="Divorced">Divorced</option>
+                                        <option value="Widowed">Widowed</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="profile-matrimony-group">Matrimony Group:</label>
+                                    <select id="profile-matrimony-group">
+                                    </select>
+                                </div>
+                                <div class="form-group full-width">
+                                    <label for="profile-bio">Bio / Description:</label>
+                                    <textarea id="profile-bio" rows="4"></textarea>
+                                </div>
+                                <div class="form-group full-width">
+                                    <label for="profile-photo">Profile Photo:</label>
+                                    <input type="file" id="profile-photo" accept="image/*">
+                                    <img id="profile-photo-preview" src="#" alt="Profile Photo Preview" style="max-width: 150px; max-height: 150px; margin-top: 10px; border-radius: 8px; display: none;">
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </div>
+                    <div class="form-group full-width" style="margin-top: 20px;">
+                        <p id="profile-form-message" class="success-message hidden"></p>
+                        <button type="submit" id="submit-profile-btn">Create Profile <span class="loading-spinner hidden" id="profile-submit-spinner"></span></button>
+                        <button type="button" id="cancel-edit-btn" class="hidden">Cancel Edit</button>
+                    </div>
+                </form>
             </section>
-        </main>
-    </div>
-
-    <!-- Actionsheet for Mobile User Actions -->
-    <div class="actionsheet-overlay" id="actionsheet-overlay">
-        <div class="actionsheet" id="actionsheet">
-            <div class="actionsheet-header"><h3 id="actionsheet-title">User Actions</h3></div>
-            <div class="actionsheet-content">
-                <div class="actionsheet-details">
-                    <div><p>User Email</p><strong id="actionsheet-user-email"></strong></div>
-                    <div><p>Current Role</p><strong id="actionsheet-current-role"></strong></div>
-                    <div style="grid-column: 1 / -1;"><p>Current Status</p><strong id="actionsheet-current-status"></strong></div>
-                </div>
-
-                <div id="actionsheet-status-section">
-                    <div class="actionsheet-status-control">
-                        <strong>Change Status</strong>
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="actionsheet-status-toggle">
-                            <span class="slider"></span>
-                        </label>
-                        <span class="status-text" id="actionsheet-status-label"></span>
-                    </div>
-                     <button class="actionsheet-btn actionsheet-btn--reactivate" id="actionsheet-reactivate-btn">
-                        <i class='bx bx-check-circle'></i> Reactivate
-                    </button>
-                </div>
-                
-                <div class="actionsheet-role-control">
-                    <strong>Change Role</strong>
-                    <select id="actionsheet-role-select" class="user-role-select-desktop">
-                        <option value="admin">Admin</option>
-                        <option value="employee">Employee</option>
-                    </select>
-                </div>
-            </div>
-            <div class="actionsheet-actions">
-                <button class="actionsheet-btn actionsheet-btn--approve" id="actionsheet-approve-btn">
-                    <i class='bx bx-check'></i> Approve
-                </button>
-                <button class="actionsheet-btn actionsheet-btn--deny" id="actionsheet-deny-btn">
-                    <i class='bx bx-block'></i> Deny
-                </button>
-                <button class="actionsheet-btn actionsheet-btn--delete" id="actionsheet-delete-btn">
-                    <i class='bx bx-trash'></i> Delete Account
-                </button>
-            </div>
-            <div class="actionsheet-cancel"><button id="actionsheet-cancel-btn">Cancel</button></div>
         </div>
     </div>
-
 
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js';
         import { getAuth, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js';
-        import { getFirestore, collection, addDoc, getDoc, getDocs, updateDoc, deleteDoc, doc, query, where, orderBy, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js';
-        import { getStorage } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-storage.js';
+        import { getFirestore, collection, addDoc, getDoc, getDocs, updateDoc, doc, query, orderBy, serverTimestamp, onSnapshot } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js';
+        import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-storage.js';
+        import { getAI, getGenerativeModel } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-ai.js';
 
         const firebaseConfig = {
             apiKey: "AIzaSyAuxA-e71uX_uLDe6oyFU69q-eLfgUzbXA",
@@ -452,6 +172,8 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
         const storage = getStorage(app);
+        const ai = getAI(app);
+        const model = getGenerativeModel(ai, { model: 'gemini-2.5-flash' });
 
         let currentUser = null;
         let currentUserRole = null;
@@ -459,113 +181,51 @@
             { id: 'US', name: 'US' },
             { id: 'BY_OTHERS', name: 'BY OTHERS' }
         ];
+        let editingProfileId = null;
 
-        let sidebarUserAvatar, popupUserAvatar, sidebarUserName, sidebarUserRole, popupUserEmail, popupUserRole;
-        let logoutBtn, navAdminPanelItem, userManagementMessage;
-        let allUsersListDesktop, allUsersListMobile;
+        const currentUserEmailSpan = document.getElementById('current-user-email');
+        const currentUserRoleSpan = document.getElementById('current-user-role');
+        const logoutBtn = document.getElementById('logout-btn');
 
-        // Actionsheet elements
-        let actionsheetOverlay, actionsheet, actionsheetTitle, actionsheetUserEmail, actionsheetCurrentRole, actionsheetCurrentStatus;
-        let actionsheetStatusSection, actionsheetStatusToggle, actionsheetStatusLabel, actionsheetReactivateBtn;
-        let actionsheetRoleSelect;
-        let actionsheetApproveBtn, actionsheetDenyBtn, actionsheetDeleteBtn;
-        let actionsheetCancelBtn;
+        const navAdminPanelItem = document.getElementById('nav-admin-panel-item');
 
-
-        document.addEventListener('DOMContentLoaded', function() {
-            sidebarUserAvatar = document.getElementById('sidebar-user-avatar');
-            popupUserAvatar = document.getElementById('popup-user-avatar');
-            sidebarUserName = document.getElementById('current-user-email');
-            sidebarUserRole = document.getElementById('current-user-role');
-            popupUserEmail = document.getElementById('popup-user-email');
-            popupUserRole = document.getElementById('popup-user-role');
-
-            logoutBtn = document.getElementById('logout-btn');
-            navAdminPanelItem = document.getElementById('nav-admin-panel-item');
-            userManagementMessage = document.getElementById('user-management-message');
-            allUsersListDesktop = document.getElementById('all-users-list-desktop');
-            allUsersListMobile = document.getElementById('all-users-list-mobile');
-
-            // Actionsheet element assignments
-            actionsheetOverlay = document.getElementById('actionsheet-overlay');
-            actionsheet = document.getElementById('actionsheet');
-            actionsheetTitle = document.getElementById('actionsheet-title');
-            actionsheetUserEmail = document.getElementById('actionsheet-user-email');
-            actionsheetCurrentRole = document.getElementById('actionsheet-current-role');
-            actionsheetCurrentStatus = document.getElementById('actionsheet-current-status');
-            actionsheetStatusSection = document.getElementById('actionsheet-status-section');
-            actionsheetStatusToggle = document.getElementById('actionsheet-status-toggle');
-            actionsheetStatusLabel = document.getElementById('actionsheet-status-label');
-            actionsheetReactivateBtn = document.getElementById('actionsheet-reactivate-btn');
-            actionsheetRoleSelect = document.getElementById('actionsheet-role-select');
-            actionsheetApproveBtn = document.getElementById('actionsheet-approve-btn');
-            actionsheetDenyBtn = document.getElementById('actionsheet-deny-btn');
-            actionsheetDeleteBtn = document.getElementById('actionsheet-delete-btn');
-            actionsheetCancelBtn = document.getElementById('actionsheet-cancel-btn');
-
-
-            const profileSection = document.getElementById('profile-section');
-            const profilePopup = document.getElementById('profile-popup');
-            const sidebar = document.getElementById('sidebar');
-            const menuToggle = document.getElementById('menu-toggle');
-            const closeBtn = document.getElementById('sidebar-close-btn');
-            const overlay = document.getElementById('overlay');
-
-            if (profileSection) {
-                profileSection.addEventListener('click', e => {
-                    e.stopPropagation();
-                    if (profilePopup) profilePopup.classList.toggle('active');
-                    if (profileSection) profileSection.classList.toggle('active');
-                });
-            }
-            
-            document.addEventListener('click', e => {
-                if (profileSection && !profileSection.contains(e.target) && profilePopup && !profilePopup.contains(e.target)) {
-                    profilePopup.classList.remove('active');
-                    profileSection.classList.remove('active');
-                }
-            });
-
-            const toggleMenu = () => {
-                if (sidebar) sidebar.classList.toggle('active');
-                if (overlay) overlay.classList.toggle('active');
-            };
-            
-            if (menuToggle) menuToggle.addEventListener('click', toggleMenu);
-            if (closeBtn) closeBtn.addEventListener('click', toggleMenu);
-            if (overlay) overlay.addEventListener('click', toggleMenu);
-
-            // Actionsheet specific event listeners
-            if (actionsheetCancelBtn) actionsheetCancelBtn.addEventListener('click', closeActionsheet);
-            if (actionsheetOverlay) actionsheetOverlay.addEventListener('click', closeActionsheet);
-
-            if (actionsheetStatusToggle) {
-                actionsheetStatusToggle.addEventListener('change', (e) => {
-                    const uid = actionsheetStatusToggle.dataset.uid;
-                    const userEmail = actionsheetStatusToggle.dataset.userEmail;
-                    toggleUserStatus(uid, e.target.checked, userEmail);
-                });
-            }
-            if (actionsheetRoleSelect) {
-                actionsheetRoleSelect.addEventListener('change', (e) => {
-                    const uid = actionsheetRoleSelect.dataset.uid;
-                    const userEmail = actionsheetRoleSelect.dataset.userEmail;
-                    editUserRole(uid, e.target.value, userEmail);
-                });
-            }
-            if (actionsheetApproveBtn) actionsheetApproveBtn.addEventListener('click', (e) => approveUser(e.target.dataset.uid, e.target.dataset.userEmail));
-            if (actionsheetDenyBtn) actionsheetDenyBtn.addEventListener('click', (e) => denyUser(e.target.dataset.uid, e.target.dataset.userEmail));
-            if (actionsheetReactivateBtn) actionsheetReactivateBtn.addEventListener('click', (e) => reactivateUser(e.target.dataset.uid, e.target.dataset.userEmail));
-            if (actionsheetDeleteBtn) actionsheetDeleteBtn.addEventListener('click', (e) => deleteUser(e.target.dataset.uid, e.target.dataset.userEmail));
-        });
+        const profileFormTitle = document.getElementById('profile-form-title');
+        const profileForm = document.getElementById('profile-form');
+        const profileIdInput = document.getElementById('profile-id');
+        const profileNameInput = document.getElementById('profile-name');
+        const profileDobInput = document.getElementById('profile-dob'); // Changed from profileAgeInput
+        const profileLocationInput = document.getElementById('profile-location');
+        const profileReligionInput = document.getElementById('profile-religion');
+        const profileEducationInput = document.getElementById('profile-education');
+        const profileProfessionInput = document.getElementById('profile-profession');
+        const profileMaritalStatusSelect = document.getElementById('profile-marital-status');
+        const profileMatrimonyGroupSelect = document.getElementById('profile-matrimony-group');
+        const profileBioInput = document.getElementById('profile-bio');
+        const profilePhotoInput = document.getElementById('profile-photo');
+        const profilePhotoPreview = document.getElementById('profile-photo-preview');
+        const autoGenerateParagraphInput = document.getElementById('auto-generate-paragraph');
+        const autoGenerateBtn = document.getElementById('auto-generate-btn');
+        const autoGenerateSpinner = document.getElementById('auto-generate-spinner');
+        const submitProfileBtn = document.getElementById('submit-profile-btn');
+        const cancelEditBtn = document.getElementById('cancel-edit-btn');
+        const profileFormMessage = document.getElementById('profile-form-message');
+        const profileSubmitSpinner = document.getElementById('profile-submit-spinner');
 
         function showMessage(element, message, isSuccess = true) {
-            if (element) {
-                element.textContent = message;
-                element.classList.remove('hidden');
-                element.classList.toggle('success-message', isSuccess);
-                element.classList.toggle('error-message', !isSuccess);
-                setTimeout(() => element.classList.add('hidden'), 5000);
+            element.textContent = message;
+            element.classList.remove('hidden');
+            element.classList.toggle('success-message', isSuccess);
+            element.classList.toggle('error-message', !isSuccess);
+            setTimeout(() => element.classList.add('hidden'), 5000);
+        }
+
+        function showSpinner(spinnerElement, buttonElement, show) {
+            if (show) {
+                spinnerElement.classList.remove('hidden');
+                buttonElement.disabled = true;
+            } else {
+                spinnerElement.classList.add('hidden');
+                buttonElement.disabled = false;
             }
         }
 
@@ -582,28 +242,40 @@
                     details: JSON.stringify(details)
                 });
             } catch (error) {
-                console.error("Error logging global change:", error);
+                console.error("Error logging change:", error);
             }
-        }
-        
-        function getMatrimonyGroupName(groupId) {
-            if (!groupId) {
-                return 'Not Specified';
-            }
-            const group = hardcodedMatrimonyGroups.find(g => g.id === groupId);
-            return group ? group.name : 'Unknown Group';
         }
 
-        function calculateAge(dateOfBirthString) {
-            if (!dateOfBirthString) return 'N/A';
-            const dob = new Date(dateOfBirthString);
-            const today = new Date();
-            let age = today.getFullYear() - dob.getFullYear();
-            const monthDiff = today.getMonth() - dob.getMonth();
-            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
-                age--;
+        // Function for field-level audit trail
+        async function logProfileFieldChange(profileId, fieldName, oldValue, newValue) {
+            if (!currentUser || oldValue === newValue) return;
+
+            try {
+                await addDoc(collection(db, 'profiles', profileId, 'history'), {
+                    fieldName,
+                    oldValue,
+                    newValue,
+                    changedByUid: currentUser.uid,
+                    changedByEmail: currentUser.email,
+                    timestamp: serverTimestamp(),
+                });
+            } catch (error) {
+                console.error(`Error logging field change for ${fieldName}:`, error);
             }
-            return age;
+        }
+
+        function populateMatrimonyGroupSelects() {
+            const currentSelectedGroup = profileMatrimonyGroupSelect.value;
+            profileMatrimonyGroupSelect.innerHTML = '<option value="">None (Optional)</option>';
+            hardcodedMatrimonyGroups.forEach(group => {
+                const option1 = document.createElement('option');
+                option1.value = group.id;
+                option1.textContent = group.name;
+                profileMatrimonyGroupSelect.appendChild(option1);
+            });
+            if (currentSelectedGroup) {
+                profileMatrimonyGroupSelect.value = currentSelectedGroup;
+            }
         }
 
         onAuthStateChanged(auth, async (user) => {
@@ -621,11 +293,13 @@
                     } else if (userStatus === 'denied' || userStatus === 'suspended') {
                         window.location.href = 'denied.html';
                         return;
-                    } else if (currentUserRole !== 'admin') {
-                        alert('You do not have sufficient permissions to access this page. Redirecting to employee dashboard.');
-                        window.location.href = 'employee-dashboard.html';
+                    } else if (currentUserRole !== 'admin' && currentUserRole !== 'employee') {
+                        alert('Your account is not approved. Redirecting to login.');
+                        await signOut(auth);
+                        window.location.href = 'index.html';
                         return;
                     }
+
                 } catch (error) {
                     console.error("Error fetching user role/status:", error);
                     alert('Error verifying user role. Redirecting to login.');
@@ -634,346 +308,254 @@
                     return;
                 }
 
-                if (sidebarUserName) sidebarUserName.textContent = user.email;
-                if (sidebarUserRole) sidebarUserRole.textContent = currentUserRole ? currentUserRole.charAt(0).toUpperCase() + currentUserRole.slice(1) : 'Admin';
-                if (popupUserEmail) popupUserEmail.textContent = user.email;
-                if (popupUserRole) popupUserRole.textContent = currentUserRole ? currentUserRole.charAt(0).toUpperCase() + currentUserRole.slice(1) : 'Admin';
+                currentUserEmailSpan.textContent = user.email;
+                currentUserRoleSpan.textContent = currentUserRole;
 
-                const avatarUrl = user.photoURL || 'https://via.placeholder.com/40';
-                if (sidebarUserAvatar) sidebarUserAvatar.src = avatarUrl;
-                if (popupUserAvatar) popupUserAvatar.src = avatarUrl;
+                if (currentUserRole === 'admin') {
+                    navAdminPanelItem.classList.remove('hidden');
+                } else {
+                    navAdminPanelItem.classList.add('hidden');
+                }
 
-                if (logoutBtn) logoutBtn.classList.remove('hidden');
-                if (navAdminPanelItem) navAdminPanelItem.classList.remove('hidden');
+                populateMatrimonyGroupSelects();
 
-                fetchAllUsers();
+                const urlParams = new URLSearchParams(window.location.search);
+                const profileId = urlParams.get('profileId');
+                if (profileId) {
+                    await loadProfileForEdit(profileId);
+                } else {
+                    resetProfileForm();
+                    profileFormTitle.textContent = 'Create New Profile';
+                }
 
             } else {
                 window.location.href = 'index.html';
             }
         });
 
-        if (logoutBtn) {
-            logoutBtn.addEventListener('click', async () => {
-                try {
-                    await signOut(auth);
-                    window.location.href = 'index.html';
-                } catch (error) {
-                    console.error("Error signing out:", error);
-                }
-            });
-        }
-
-        // --- Actionsheet Management ---
-        function openActionsheet(uid, email, role, status) {
-            if (actionsheetUserEmail) actionsheetUserEmail.textContent = email;
-            if (actionsheetCurrentRole) actionsheetCurrentRole.textContent = role ? role.charAt(0).toUpperCase() + role.slice(1) : 'N/A';
-            if (actionsheetCurrentStatus) actionsheetCurrentStatus.textContent = status ? status.charAt(0).toUpperCase() + status.slice(1) : 'N/A';
-
-            // Set data-uid and data-user-email for all action buttons
-            [actionsheetStatusToggle, actionsheetRoleSelect, actionsheetApproveBtn, actionsheetDenyBtn, actionsheetReactivateBtn, actionsheetDeleteBtn].forEach(el => {
-                if (el) {
-                    el.dataset.uid = uid;
-                    el.dataset.userEmail = email;
-                }
-            });
-
-            // Status Toggle visibility and state
-            if (actionsheetStatusSection) {
-                if (status === 'pending' || status === 'denied') {
-                    actionsheetStatusSection.classList.add('hidden');
-                } else {
-                    actionsheetStatusSection.classList.remove('hidden');
-                    if (actionsheetStatusToggle) actionsheetStatusToggle.checked = (status === 'approved');
-                    if (actionsheetStatusLabel) actionsheetStatusLabel.textContent = (status === 'approved' ? 'Active' : 'Suspended');
-                }
-            }
-
-            // Reactivate button visibility (only for denied/suspended)
-            if (actionsheetReactivateBtn) {
-                if (status === 'denied' || status === 'suspended') {
-                    actionsheetReactivateBtn.classList.remove('hidden');
-                } else {
-                    actionsheetReactivateBtn.classList.add('hidden');
-                }
-            }
-            
-            // Role Select State
-            if (actionsheetRoleSelect) {
-                actionsheetRoleSelect.value = role;
-            }
-
-            // Action Buttons visibility
-            if (actionsheetApproveBtn) {
-                if (status === 'pending') {
-                    actionsheetApproveBtn.classList.remove('hidden');
-                } else {
-                    actionsheetApproveBtn.classList.add('hidden');
-                }
-            }
-            if (actionsheetDenyBtn) {
-                if (status !== 'denied' && status !== 'suspended') { // Can deny if not already denied/suspended
-                    actionsheetDenyBtn.classList.remove('hidden');
-                } else {
-                    actionsheetDenyBtn.classList.add('hidden');
-                }
-            }
-            if (actionsheetDeleteBtn) {
-                if (uid !== currentUser.uid) { // Can't delete self
-                    actionsheetDeleteBtn.classList.remove('hidden');
-                } else {
-                    actionsheetDeleteBtn.classList.add('hidden');
-                }
-            }
-
-            if (actionsheetOverlay) actionsheetOverlay.classList.add('show');
-            if (actionsheet) actionsheet.classList.add('show');
-        }
-
-        function closeActionsheet() {
-            if (actionsheetOverlay) actionsheetOverlay.classList.remove('show');
-            if (actionsheet) actionsheet.classList.remove('show');
-        }
-
-
-        // --- User Management Functions ---
-        async function fetchAllUsers() {
-            // Skeleton for desktop
-            if (allUsersListDesktop) allUsersListDesktop.innerHTML = `
-                <div class="user-card-desktop skeleton"><div class="skeleton-line"></div><div class="skeleton-line"></div><div class="skeleton-line"></div><div class="skeleton-line"></div></div>
-                <div class="user-card-desktop skeleton"><div class="skeleton-line"></div><div class="skeleton-line"></div><div class="skeleton-line"></div><div class="skeleton-line"></div></div>
-                <div class="user-card-desktop skeleton"><div class="skeleton-line"></div><div class="skeleton-line"></div><div class="skeleton-line"></div><div class="skeleton-line"></div></div>
-            `;
-            // Skeleton for mobile
-            if (allUsersListMobile) allUsersListMobile.innerHTML = `
-                <div class="mobile-user-card skeleton"><div class="skeleton-line"></div></div>
-                <div class="mobile-user-card skeleton"><div class="skeleton-line"></div></div>
-                <div class="mobile-user-card skeleton"><div class="skeleton-line"></div></div>
-            `;
-
+        logoutBtn.addEventListener('click', async () => {
             try {
-                const q = query(collection(db, 'users'), orderBy('createdAt', 'desc'));
-                const snapshot = await getDocs(q);
-
-                if (allUsersListDesktop) allUsersListDesktop.innerHTML = '';
-                if (allUsersListMobile) allUsersListMobile.innerHTML = '';
-
-                if (snapshot.empty) {
-                    if (allUsersListDesktop) allUsersListDesktop.innerHTML = '<p class="no-records">No registered users.</p>';
-                    if (allUsersListMobile) allUsersListMobile.innerHTML = '<p class="no-records">No registered users.</p>';
-                    return;
-                }
-
-                snapshot.docs.forEach(userDoc => {
-                    const user = { id: userDoc.id, ...userDoc.data() };
-                    const createdAt = user.createdAt ? new Date(user.createdAt.toDate()).toLocaleString() : 'N/A';
-                    
-                    let statusClass = user.status; // Matches CSS classes for badge colors
-                    let roleClass = user.role; // Matches CSS classes for badge colors
-
-                    // --- Desktop Card (Table-like Row) ---
-                    const desktopCard = document.createElement('div');
-                    desktopCard.className = 'user-card-desktop';
-                    desktopCard.innerHTML = `
-                        <div>
-                            <div class="user-email">${user.email}</div>
-                            <div class="user-created-at">${createdAt}</div>
-                        </div>
-                        <div class="user-status-section">
-                            ${user.status === 'pending' || user.status === 'denied' ?
-                                `<span class="status-badge ${statusClass}">${user.status || 'N/A'}</span>` :
-                                `<label class="toggle-switch">
-                                    <input type="checkbox" ${user.status === 'approved' ? 'checked' : ''} data-uid="${user.id}" data-user-email="${user.email}" class="status-toggle">
-                                    <span class="slider"></span>
-                                </label>
-                                <span class="status-text">${user.status === 'approved' ? 'Active' : 'Suspended'}</span>`
-                            }
-                        </div>
-                        <div class="user-role-section">
-                            <select class="user-role-select-desktop" data-uid="${user.id}" data-user-email="${user.email}">
-                                <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Admin</option>
-                                <option value="employee" ${user.role === 'employee' ? 'selected' : ''}>Employee</option>
-                            </select>
-                        </div>
-                        <div class="desktop-actions">
-                            ${user.status === 'pending' ? `<button class="approve button-primary" data-uid="${user.id}" data-user-email="${user.email}">Approve</button>` : ''}
-                            ${user.status !== 'denied' && user.status !== 'suspended' && user.status !== 'pending' ? `<button class="deny button-primary" data-uid="${user.id}" data-user-email="${user.email}">Deny</button>` : ''}
-                            ${(user.status === 'denied' || user.status === 'suspended') ? `<button class="reactivate button-primary" data-uid="${user.id}" data-user-email="${user.email}">Reactivate</button>` : ''}
-                            ${user.id !== currentUser.uid ? `<button class="delete-user button-primary" data-uid="${user.id}" data-user-email="${user.email}">Delete</button>` : ''}
-                        </div>
-                    `;
-                    if (allUsersListDesktop) allUsersListDesktop.appendChild(desktopCard);
-
-
-                    // --- Mobile Card ---
-                    const mobileCard = document.createElement('div');
-                    mobileCard.className = 'mobile-user-card';
-                    mobileCard.innerHTML = `
-                        <div class="mobile-card-header">
-                            <div class="user-email">${user.email}</div>
-                            <span class="status-badge ${statusClass}">${user.status || 'N/A'}</span>
-                            <button class="mobile-card-actions-btn" data-uid="${user.id}" data-user-email="${user.email}" data-user-role="${user.role}" data-user-status="${user.status}"><i class='bx bx-dots-vertical-rounded'></i></button>
-                        </div>
-                        <div class="user-created-at">${createdAt}</div>
-                    `;
-                    if (allUsersListMobile) allUsersListMobile.appendChild(mobileCard);
-                });
-
-                // Attach Event Listeners for Desktop Actions
-                if (allUsersListDesktop) {
-                    allUsersListDesktop.querySelectorAll('.approve').forEach(button => {
-                        button.addEventListener('click', (e) => approveUser(e.target.dataset.uid, e.target.dataset.userEmail));
-                    });
-                    allUsersListDesktop.querySelectorAll('.deny').forEach(button => {
-                        button.addEventListener('click', (e) => denyUser(e.target.dataset.uid, e.target.dataset.userEmail));
-                    });
-                    allUsersListDesktop.querySelectorAll('.reactivate').forEach(button => {
-                        button.addEventListener('click', (e) => reactivateUser(e.target.dataset.uid, e.target.dataset.userEmail));
-                    });
-                    allUsersListDesktop.querySelectorAll('.status-toggle').forEach(toggle => {
-                        toggle.addEventListener('change', (e) => toggleUserStatus(e.target.dataset.uid, e.target.checked, e.target.dataset.userEmail));
-                    });
-                    allUsersListDesktop.querySelectorAll('.user-role-select-desktop').forEach(select => {
-                        select.addEventListener('change', (e) => editUserRole(e.target.dataset.uid, e.target.value, e.target.dataset.userEmail));
-                    });
-                    allUsersListDesktop.querySelectorAll('.delete-user').forEach(button => {
-                        button.addEventListener('click', (e) => deleteUser(e.target.dataset.uid, e.target.dataset.userEmail));
-                    });
-                }
-
-                // Attach Event Listeners for Mobile Actions
-                if (allUsersListMobile) {
-                    allUsersListMobile.querySelectorAll('.mobile-card-actions-btn').forEach(button => {
-                        button.addEventListener('click', (e) => {
-                            const uid = e.target.dataset.uid;
-                            const email = e.target.dataset.userEmail;
-                            const role = e.target.dataset.userRole;
-                            const status = e.target.dataset.userStatus;
-                            openActionsheet(uid, email, role, status);
-                        });
-                    });
-                }
-
+                await signOut(auth);
+                window.location.href = 'index.html';
             } catch (error) {
-                console.error("Error fetching all users:", error);
-                showMessage(userManagementMessage, `Error loading users: ${error.message}`, false);
-                if (allUsersListDesktop) allUsersListDesktop.innerHTML = '<p class="no-records">Error loading users.</p>';
-                if (allUsersListMobile) allUsersListMobile.innerHTML = '<p class="no-records">Error loading users.</p>';
+                console.error("Error signing out:", error);
             }
-        }
+        });
 
-        async function updateUserStatusAndRole(uid, newStatus, newRole, actionType, userEmailForMessage) {
-            if (!confirm(`Are you sure you want to ${actionType.toUpperCase()} user ${userEmailForMessage}?`)) return;
-
-            try {
-                const userDocRef = doc(db, 'users', uid);
-                const oldUserDoc = await getDoc(userDocRef);
-                const oldUserData = oldUserDoc.exists() ? oldUserDoc.data() : {};
-
-                await updateDoc(userDocRef, {
-                    role: newRole,
-                    status: newStatus,
-                    updatedAt: serverTimestamp(),
-                    updatedBy: currentUser.uid,
-                });
-                await logChange(actionType, 'user', uid, { oldRole: oldUserData.role, newRole: newRole, oldStatus: oldUserData.status, newStatus: newStatus });
-                showMessage(userManagementMessage, `User ${userEmailForMessage} ${actionType}d successfully!`, true);
-                fetchAllUsers();
-                closeActionsheet(); // Close actionsheet after action
-            } catch (error) {
-                console.error(`Error ${actionType}ing user:`, error);
-                showMessage(userManagementMessage, `Error ${actionType}ing user: ${error.message}`, false);
+        profilePhotoInput.addEventListener('change', (e) => {
+            if (e.target.files && e.target.files[0]) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    profilePhotoPreview.src = event.target.result;
+                    profilePhotoPreview.style.display = 'block';
+                };
+                reader.readAsDataURL(e.target.files[0]);
+            } else {
+                profilePhotoPreview.src = '#';
+                profilePhotoPreview.style.display = 'none';
             }
-        }
+        });
 
-        async function approveUser(uid, userEmail) { await updateUserStatusAndRole(uid, 'approved', 'employee', 'approve', userEmail); }
-        async function denyUser(uid, userEmail) { await updateUserStatusAndRole(uid, 'denied', 'denied', 'deny', userEmail); }
-        async function reactivateUser(uid, userEmail) { await updateUserStatusAndRole(uid, 'approved', 'employee', 'reactivate', userEmail); }
-
-
-        async function toggleUserStatus(uid, isChecked, userEmail) {
-            const newStatus = isChecked ? 'approved' : 'suspended';
-            const actionType = isChecked ? 'reactivate' : 'suspend';
-
-            const confirmationMessage = `Are you sure you want to change user ${userEmail}'s status to '${newStatus.toUpperCase()}'?`;
-            if (!confirm(confirmationMessage)) {
-                fetchAllUsers();
+        autoGenerateBtn.addEventListener('click', async () => {
+            const paragraph = autoGenerateParagraphInput.value;
+            if (!paragraph) {
+                showMessage(profileFormMessage, 'Please enter a paragraph to auto-generate.', false);
                 return;
             }
 
-            try {
-                const userDocRef = doc(db, 'users', uid);
-                const oldUserDoc = await getDoc(userDocRef);
-                const oldUserData = oldUserDoc.exists() ? oldUserDoc.data() : {};
-                const oldStatus = oldUserData.status;
-                const oldRole = oldUserData.role;
-
-                await updateDoc(userDocRef, {
-                    status: newStatus,
-                    updatedAt: serverTimestamp(),
-                    updatedBy: currentUser.uid,
-                });
-                await logChange(actionType, 'user_status', uid, { oldStatus: oldStatus, newStatus: newStatus, oldRole: oldRole, newRole: oldRole });
-                showMessage(userManagementMessage, `User ${userEmail} status updated to '${newStatus}'!`, true);
-                fetchAllUsers();
-                closeActionsheet(); // Close actionsheet after action
-            } catch (error) {
-                console.error(`Error toggling user status:`, error);
-                showMessage(userManagementMessage, `Error toggling user status: ${error.message}`, false);
-            }
-        }
-
-        async function editUserRole(uid, newRole, userEmail) {
-            if (!confirm(`Are you sure you want to change user ${userEmail}'s role to '${newRole.toUpperCase()}'?`)) return;
+            showSpinner(autoGenerateSpinner, autoGenerateBtn, true);
 
             try {
-                const userDocRef = doc(db, 'users', uid);
-                const oldUserDoc = await getDoc(userDocRef);
-                const oldUserData = oldUserDoc.exists() ? oldUserDoc.data() : {};
-                const oldRole = oldUserData.role;
-                const oldStatus = oldUserData.status;
+                const prompt = `Extract the following details from the paragraph below and return them as a JSON object. If a detail is not found, use an empty string for strings or null for Date of Birth. The marital status should be one of 'Single', 'Divorced', 'Widowed'. Date of Birth should be in YYYY-MM-DD format.\n\nParagraph: "${paragraph}"\n\nExpected JSON format: {"name": "", "dateOfBirth": null, "location": "", "religion": "", "education": "", "profession": "", "maritalStatus": ""}`;
+                const result = await model.generateContent(prompt);
+                let responseText = result.response.text();
 
-                const updates = {
-                    role: newRole,
-                    updatedAt: serverTimestamp(),
-                    updatedBy: currentUser.uid,
-                };
-
-                if (oldStatus === 'pending' || oldStatus === 'denied' || oldStatus === 'suspended') {
-                    updates.status = 'approved';
+                const jsonMatch = responseText.match(/```json\n([\s\S]*?)\n```/);
+                if (jsonMatch && jsonMatch[1]) {
+                    responseText = jsonMatch[1];
                 }
                 
-                await updateDoc(userDocRef, updates);
+                const data = JSON.parse(responseText);
 
-                await logChange('update_user_role', 'user', uid, { oldRole: oldRole, newRole: newRole, oldStatus: oldStatus, newStatus: updates.status || oldStatus });
-                showMessage(userManagementMessage, `User ${userEmail} role updated to ${newRole}!`, true);
-                fetchAllUsers();
-                closeActionsheet(); // Close actionsheet after action
+                profileNameInput.value = data.name || '';
+                profileDobInput.value = data.dateOfBirth || ''; // Assign to DOB input
+                profileLocationInput.value = data.location || '';
+                profileReligionInput.value = data.religion || '';
+                profileEducationInput.value = data.education || '';
+                profileProfessionInput.value = data.profession || '';
+                if (['Single', 'Divorced', 'Widowed'].includes(data.maritalStatus)) {
+                    profileMaritalStatusSelect.value = data.maritalStatus;
+                } else {
+                    profileMaritalStatusSelect.value = 'Single';
+                }
+                // profileBioInput.value is intentionally not set from the paragraph
+
+                showMessage(profileFormMessage, 'Details auto-generated from paragraph using AI!', true);
             } catch (error) {
-                console.error("Error editing user role:", error);
-                showMessage(userManagementMessage, `Error editing user role: ${error.message}`, false);
+                console.error("Error auto-generating content:", error);
+                showMessage(profileFormMessage, `Error auto-generating: ${error.message}. Please try again or enter manually.`, false);
+            } finally {
+                showSpinner(autoGenerateSpinner, autoGenerateBtn, false);
             }
-        }
+        });
 
-        async function deleteUser(uid, userEmail) {
-            if (!confirm(`WARNING: Are you sure you want to permanently DELETE user ${userEmail} and all associated data? This cannot be undone.`)) return;
+        profileForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            showSpinner(profileSubmitSpinner, submitProfileBtn, true);
+
+            const newProfileData = {
+                name: profileNameInput.value,
+                dateOfBirth: profileDobInput.value, // Store DOB
+                location: profileLocationInput.value,
+                religion: profileReligionInput.value,
+                education: profileEducationInput.value,
+                profession: profileProfessionInput.value,
+                maritalStatus: profileMaritalStatusSelect.value,
+                matrimonyGroupId: profileMatrimonyGroupSelect.value,
+                bio: profileBioInput.value,
+                photoURL: profilePhotoPreview.src !== '#' ? profilePhotoPreview.src : '',
+                updatedAt: serverTimestamp(),
+                updatedBy: currentUser.uid,
+                profileStatus: 'active', // Default for new profiles and updates, can be changed later
+            };
+
+            // Prepare fields for auditing
+            const fieldsToAudit = ['name', 'dateOfBirth', 'location', 'religion', 'education', 'profession', 'maritalStatus', 'matrimonyGroupId', 'bio', 'photoURL', 'profileStatus'];
+
+            let oldProfileData = {};
+
+            // Only set createdAt and createdBy for new profiles
+            if (!editingProfileId) {
+                newProfileData.createdAt = serverTimestamp();
+                newProfileData.createdBy = currentUser.uid;
+            } else {
+                // If editing, fetch old data for audit trail
+                const oldProfileDoc = await getDoc(doc(db, 'profiles', editingProfileId));
+                if (oldProfileDoc.exists()) {
+                    oldProfileData = oldProfileDoc.data();
+                }
+            }
+
+            const photoFile = profilePhotoInput.files[0];
+            let oldPhotoURL = oldProfileData.photoURL;
+
 
             try {
-                const userDocRef = doc(db, 'users', uid);
-                const userDoc = await getDoc(userDocRef);
-                const userData = userDoc.exists() ? userDoc.data() : {};
+                if (photoFile) {
+                    // Upload new photo
+                    const storageRef = ref(storage, `profile_photos/${currentUser.uid}/${Date.now()}_${photoFile.name}`);
+                    const uploadTask = await uploadBytes(storageRef, photoFile);
+                    newProfileData.photoURL = await getDownloadURL(uploadTask.ref);
 
-                await deleteDoc(userDocRef);
-                await logChange('delete', 'user', uid, { deletedEmail: userData.email, deletedRole: userData.role });
-                
-                showMessage(userManagementMessage, `User ${userEmail} deleted successfully!`, true);
-                fetchAllUsers();
-                closeActionsheet(); // Close actionsheet after action
+                    // If there was an old photo and a new one is uploaded, delete the old one from storage
+                    if (editingProfileId && oldPhotoURL && oldPhotoURL !== newProfileData.photoURL) {
+                        try {
+                            const oldPhotoRef = ref(storage, oldPhotoURL);
+                            await deleteObject(oldPhotoRef);
+                        } catch (deleteError) {
+                            console.warn("Could not delete old photo from storage:", deleteError);
+                        }
+                    }
+                } else if (editingProfileId && profilePhotoInput.value === '' && oldPhotoURL && profilePhotoPreview.src === '#') {
+                    // If no new file is selected, and previous photo was cleared from preview, remove old photoURL
+                    newProfileData.photoURL = '';
+                    if (oldPhotoURL) {
+                        try {
+                            const oldPhotoRef = ref(storage, oldPhotoURL);
+                            await deleteObject(oldPhotoRef);
+                        } catch (deleteError) {
+                            console.warn("Could not delete old photo from storage when clearing photo:", deleteError);
+                        }
+                    }
+                } else if (editingProfileId && !photoFile && profilePhotoPreview.src !== '#') {
+                    // If editing, no new file, but preview still shows existing photo, retain old photoURL
+                    newProfileData.photoURL = oldPhotoURL;
+                }
+                // If editingProfileId is false (new profile) and no photoFile, photoURL will be empty string as initialized.
+
+
+                if (editingProfileId) {
+                    await updateDoc(doc(db, 'profiles', editingProfileId), newProfileData);
+                    await logChange('edit', 'profile', editingProfileId, { oldData: oldProfileData, newData: newProfileData });
+
+                    // Log field-level changes
+                    for (const field of fieldsToAudit) {
+                        if (oldProfileData[field] !== newProfileData[field]) {
+                            await logProfileFieldChange(editingProfileId, field, oldProfileData[field], newProfileData[field]);
+                        }
+                    }
+
+                    showMessage(profileFormMessage, 'Profile updated successfully!', true);
+                } else {
+                    const docRef = await addDoc(collection(db, 'profiles'), newProfileData);
+                    await logChange('add', 'profile', docRef.id, { newData: newProfileData });
+                    showMessage(profileFormMessage, 'Profile created successfully!', true);
+                }
+                resetProfileForm();
             } catch (error) {
-                console.error("Error deleting user:", error);
-                showMessage(userManagementMessage, `Error deleting user: ${error.message}`, false);
+                console.error("Error saving profile:", error);
+                showMessage(profileFormMessage, `Error saving profile: ${error.message}`, false);
+            } finally {
+                showSpinner(profileSubmitSpinner, submitProfileBtn, false);
+            }
+        });
+
+        async function loadProfileForEdit(profileId) {
+            profileFormTitle.textContent = 'Edit Profile';
+            submitProfileBtn.textContent = 'Update Profile';
+            cancelEditBtn.classList.remove('hidden');
+            editingProfileId = profileId;
+
+            try {
+                const profileDoc = await getDoc(doc(db, 'profiles', profileId));
+                if (!profileDoc.exists()) {
+                    showMessage(profileFormMessage, 'Profile not found for editing.', false);
+                    return;
+                }
+                const profile = { id: profileDoc.id, ...profileDoc.data() };
+
+                profileIdInput.value = profile.id;
+                profileNameInput.value = profile.name;
+                profileDobInput.value = profile.dateOfBirth; // Assign DOB
+                profileLocationInput.value = profile.location;
+                profileReligionInput.value = profile.religion;
+                profileEducationInput.value = profile.education;
+                profileProfessionInput.value = profile.profession;
+                profileMaritalStatusSelect.value = profile.maritalStatus;
+                profileMatrimonyGroupSelect.value = profile.matrimonyGroupId || '';
+                profileBioInput.value = profile.bio;
+                if (profile.photoURL) {
+                    profilePhotoPreview.src = profile.photoURL;
+                    profilePhotoPreview.style.display = 'block';
+                } else {
+                    profilePhotoPreview.src = '#';
+                    profilePhotoPreview.style.display = 'none';
+                }
+                
+                showMessage(profileFormMessage, `Loading profile for edit: ${profile.name}`, true);
+            } catch (error) {
+                console.error("Error loading profile for edit:", error);
+                showMessage(profileFormMessage, `Error loading profile for edit: ${error.message}`, false);
             }
         }
+
+        function resetProfileForm() {
+            profileForm.reset();
+            profileIdInput.value = '';
+            profilePhotoPreview.src = '#';
+            profilePhotoPreview.style.display = 'none';
+            autoGenerateParagraphInput.value = '';
+            profileFormTitle.textContent = 'Create New Profile';
+            submitProfileBtn.textContent = 'Create Profile';
+            cancelEditBtn.classList.add('hidden');
+            editingProfileId = null;
+            profileMatrimonyGroupSelect.value = '';
+            profileFormMessage.classList.add('hidden');
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+
+        cancelEditBtn.addEventListener('click', resetProfileForm);
+
     </script>
 </body>
 </html>
