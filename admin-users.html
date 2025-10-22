@@ -48,18 +48,21 @@
         .popup-list a.logout i { color: var(--danger-color); }
         .popup-list a.logout { color: var(--danger-color); }
 
+        /* Main Content Area */
         .main-area { display: flex; flex-direction: column; overflow-y: auto; background-color: var(--body-bg); }
         .main-header { padding: 1.25rem 3rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background-color: var(--widget-bg); position: sticky; top: 0; z-index: 10; }
         .main-header h1 { font-size: 1.5rem; font-weight: 600; }
         .content-body { padding: 2rem 3rem; display: grid; grid-template-columns: 1fr; gap: 2rem; align-items: flex-start; margin-top: 0; }
         .column { display: flex; flex-direction: column; gap: 2rem; }
 
+        /* Widget Styles */
         .widget { background-color: var(--widget-bg); border-radius: 16px; border: 1px solid var(--border-color); padding: 1.5rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.03), 0 2px 4px -1px rgba(0,0,0,0.02); }
         .widget-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
         .widget-header h3 { font-size: 1.1rem; font-weight: 600; color: var(--text-primary); }
         .widget-header a { font-size: 0.9rem; color: var(--brand-green); text-decoration: none; font-weight: 500; }
         .widget-header a:hover { text-decoration: underline; }
 
+        /* Custom Buttons (global) */
         .button-primary {
             display: inline-block;
             background-color: var(--brand-green);
@@ -75,6 +78,7 @@
         }
         .button-primary:hover { background-color: #2fb165; }
 
+        /* User List as Cards (Desktop View) */
         .user-list {
             display: flex;
             flex-direction: column;
@@ -87,19 +91,19 @@
             border-radius: 12px;
             padding: 1rem;
             display: grid;
-            grid-template-columns: 2fr 1fr 1fr auto;
+            grid-template-columns: 2fr 1fr 1fr auto; /* Email | Status | Role | Actions */
             align-items: center;
             gap: 1rem;
             box-shadow: 0 1px 3px rgba(0,0,0,0.04);
         }
-        .user-card-header {
-            display: none;
+        .user-card-header { /* For mobile view headings */
+            display: none; /* Hidden by default on desktop */
             font-weight: 600;
             color: var(--text-secondary);
             font-size: 0.8em;
         }
         .user-card-content {
-            display: contents;
+            display: contents; /* Allows children to participate in parent grid */
         }
         .user-email-info {
             display: flex;
@@ -226,39 +230,6 @@
         .sidebar-close-btn { display: none; }
         .no-records { text-align: center; color: var(--text-secondary); font-style: italic; margin-top: 1rem; }
         
-        /* Actionsheet Styles - Adapted from provided example */
-        .actionsheet-overlay { position: fixed; inset: 0; background-color: rgba(17, 24, 39, 0.6); z-index: 2000; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; backdrop-filter: blur(4px); }
-        .actionsheet-overlay.show { opacity: 1; pointer-events: auto; }
-        .actionsheet { position: fixed; bottom: 0; left: 0; right: 0; background-color: var(--widget-bg); border-top-left-radius: 1rem; border-top-right-radius: 1rem; padding: 1rem; z-index: 2001; transform: translateY(100%); transition: transform 0.3s ease-out; }
-        .actionsheet.show { transform: translateY(0); }
-        .actionsheet-header { text-align: center; padding-bottom: 1rem; }
-        .actionsheet-header::before { content: ''; display: block; width: 40px; height: 4px; background-color: var(--border-color); border-radius: 2px; margin: 0 auto 1rem; }
-        .actionsheet-title { font-size: 1.25rem; font-weight: 700; }
-        .actionsheet-content { padding: 1rem 0; border-top: 1px solid var(--border-color); margin-top: 1rem; }
-        .actionsheet-details { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 1rem; text-align: left; margin-bottom: 1.5rem; }
-        .actionsheet-details p { font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 0.25rem; }
-        .actionsheet-details strong { display: block; font-size: 1rem; font-weight: 600; color: var(--text-primary); }
-        .actionsheet-status-control { display: flex; justify-content: space-between; align-items: center; padding: 1rem; background-color: var(--hover-bg); border-radius: 12px; }
-        
-        .actionsheet-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; padding: 1.5rem 0 0.5rem 0; }
-        .actionsheet-btn { padding: 0.9rem 1rem; border-radius: 12px; font-weight: 600; font-size: 0.9rem; cursor: pointer; border: none; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
-        .actionsheet-btn svg { width: 18px; height: 18px; }
-        .actionsheet-btn:active { transform: scale(0.97); }
-        .actionsheet-btn--edit { background-color: var(--hover-bg); color: var(--text-primary); }
-        .actionsheet-btn--edit:hover { background-color: var(--border-color); }
-        .actionsheet-btn--delete { background-color: var(--danger-color); color: white; }
-        .actionsheet-btn--delete:hover { background-color: #b91c1c; }
-        .actionsheet-btn--approve { background-color: var(--brand-green); color: white; }
-        .actionsheet-btn--approve:hover { background-color: #2fb165; }
-        .actionsheet-btn--deny { background-color: var(--danger-color); color: white; }
-        .actionsheet-btn--deny:hover { background-color: #b91c1c; }
-        .actionsheet-btn--reactivate { background-color: var(--brand-green); color: white; }
-        .actionsheet-btn--reactivate:hover { background-color: #2fb165; }
-
-        .actionsheet-cancel button { width: 100%; background-color: var(--widget-bg); color: var(--text-secondary); font-weight: 600; padding: 0.9rem; border: none; cursor: pointer; border-radius: 12px; transition: background-color 0.2s ease; }
-        .actionsheet-cancel button:hover { background-color: var(--hover-bg); }
-
-        /* Mobile specific overrides */
         @media (max-width: 1024px) {
             .dashboard-container { grid-template-columns: 1fr; }
             .sidebar { position: fixed; top: 0; left: 0; height: 100%; width: 80%; max-width: 300px; z-index: 1000; transform: translateX(-100%); box-shadow: 0 0 30px rgba(0,0,0,0.1); }
@@ -267,39 +238,70 @@
             .content-body { padding: 1.5rem; }
             .menu-toggle { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; font-size: 1.5rem; color: var(--text-primary); cursor: pointer; background: none; border: none; }
             .sidebar-close-btn { display: flex; align-items: center; justify-content: center; position: absolute; top: 1.5rem; right: 1.5rem; font-size: 1.75rem; color: var(--danger-color); cursor: pointer; border: none; background: none; }
-            .overlay { position: fixed; inset: 0; background-color: rgba(0,0,0,0.4); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); z-index: 999; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
-            .overlay.active { opacity: 1; pointer-events: auto; }
+            .overlay {
+                position: fixed; inset: 0; background-color: rgba(0,0,0,0.4); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+                z-index: 999;
+                opacity: 0; /* Default: transparent */
+                pointer-events: none; /* Default: don't block clicks */
+                transition: opacity 0.3s ease;
+            }
+            .overlay.active {
+                opacity: 1; /* Opaque when active */
+                pointer-events: auto; /* Block clicks when active */
+            }
 
-            /* Mobile-specific adjustments for user list */
-            .user-list-headings { display: none; } /* Hide desktop headings */
-            .user-card {
-                grid-template-columns: 1fr auto; /* Email info on left, Edit button on right */
-                gap: 0.5rem;
-                padding: 1rem;
+            /* Mobile-specific: Hide desktop list and headings */
+            .user-list-headings { display: none; }
+            .user-list { display: none; }
+            /* Mobile-specific: Show simplified mobile card view */
+            .mobile-card-view {
+                display: flex; /* Changed from grid to flex for simpler layout */
+                flex-direction: column;
+                gap: 1rem;
+                margin-top: 1rem;
+            }
+            .mobile-card-view .user-card {
+                display: flex; /* Ensure flex for internal layout */
+                justify-content: space-between; /* Space email and button */
                 align-items: center;
+                gap: 1rem;
+                padding: 1rem;
+                border: 1px solid var(--border-color); /* Default border */
             }
-            .user-card .user-email-info {
-                grid-column: 1 / 2; /* Span first column */
+            .mobile-user-card-view .user-email-info {
+                flex-grow: 1; /* Allow email info to take available space */
+                flex-direction: column;
+                align-items: flex-start;
+                margin-bottom: 0;
             }
-            .user-card .user-status-section,
-            .user-card .user-role-section,
-            .user-card .user-actions {
-                display: none; /* Hide these sections on mobile by default */
+            .mobile-user-card-view .user-email {
+                font-weight: 600; /* Make email more prominent */
+                font-size: 1.1em;
             }
-            .mobile-action-menu-btn {
-                display: flex; /* Show the mobile edit button */
-                background: none;
+            .mobile-user-card-view .user-created-at {
+                margin-top: 0.25rem;
+                font-size: 0.85em;
+            }
+            /* Highlight for pending users */
+            .user-card.pending-highlight {
+                border: 2px solid var(--brand-green);
+            }
+
+            /* Mobile "Manage" button */
+            .mobile-manage-btn {
+                background-color: var(--brand-green);
+                color: white;
+                padding: 0.5rem 1rem;
+                border-radius: 8px;
+                font-weight: 500;
+                font-size: 0.9rem;
+                transition: background-color 0.2s ease;
                 border: none;
                 cursor: pointer;
-                padding: 0.5rem;
-                border-radius: 50%;
-                font-size: 1.5rem;
-                color: var(--text-secondary);
-                transition: background-color 0.2s ease;
-                justify-self: end; /* Align to end of its grid cell */
+                white-space: nowrap;
                 flex-shrink: 0;
             }
-            .mobile-action-menu-btn:hover { background-color: var(--hover-bg); }
+            .mobile-manage-btn:hover { background-color: #2fb165; }
         }
 
         /* Skeleton Loading Styles */
@@ -316,6 +318,49 @@
         .user-card.skeleton .skeleton-line { width: 90%; margin-bottom: 0.5rem; }
         .user-card.skeleton .skeleton-line:last-child { width: 50%; }
 
+        /* Actionsheet Specific Styles */
+        .actionsheet-overlay { position: fixed; inset: 0; background-color: rgba(17, 24, 39, 0.6); z-index: 2000; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; backdrop-filter: blur(4px); }
+        .actionsheet-overlay.show { opacity: 1; pointer-events: auto; }
+        .actionsheet { position: fixed; bottom: 0; left: 0; right: 0; background-color: var(--widget-bg); border-top-left-radius: 1rem; border-top-right-radius: 1rem; padding: 1rem; z-index: 2001; transform: translateY(100%); transition: transform 0.3s ease-out; }
+        .actionsheet.show { transform: translateY(0); }
+        .actionsheet-header { text-align: center; padding-bottom: 1rem; }
+        .actionsheet-header::before { content: ''; display: block; width: 40px; height: 4px; background-color: var(--border-color); border-radius: 2px; margin: 0 auto 1rem; }
+        .actionsheet-title { font-size: 1.25rem; font-weight: 700; }
+        .actionsheet-content { padding: 1rem 0; border-top: 1px solid var(--border-color); margin-top: 1rem; }
+        .actionsheet-details { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 1rem; text-align: left; margin-bottom: 1.5rem; }
+        .actionsheet-details p { font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 0.25rem; }
+        .actionsheet-details strong { display: block; font-size: 1rem; font-weight: 600; color: var(--text-primary); }
+        
+        .actionsheet-control-group { /* New class for status/role controls */
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background-color: var(--hover-bg);
+            border-radius: 12px;
+            margin-bottom: 0.5rem; /* Spacing between groups */
+        }
+        
+        .actionsheet-actions {
+            display: flex; /* Changed to flex for better button wrapping */
+            flex-wrap: wrap; /* Allow buttons to wrap */
+            justify-content: center; /* Center buttons */
+            gap: 0.75rem;
+            padding: 1.5rem 0 0.5rem 0;
+        }
+        .actionsheet-btn {
+            flex: 1 1 calc(50% - 0.375rem); /* Two buttons per row, adjusting for gap */
+            max-width: unset; /* Remove max-width constraint */
+            padding: 0.9rem 1rem; border-radius: 12px; font-weight: 600; font-size: 0.9rem; cursor: pointer; border: none; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
+        .actionsheet-btn svg { width: 18px; height: 18px; }
+        .actionsheet-btn:active { transform: scale(0.97); }
+        .actionsheet-btn.approve { background-color: var(--brand-green); color: white; }
+        .actionsheet-btn.deny { background-color: var(--danger-color); color: white; }
+        .actionsheet-btn.reactivate { background-color: var(--warning-color); color: white; }
+        .actionsheet-btn--delete { background-color: var(--danger-bg-light); color: var(--danger-text-dark); }
+        .actionsheet-btn--delete:hover { background-color: #FECACA; }
+        .actionsheet-cancel button { width: 100%; background-color: var(--widget-bg); color: var(--text-secondary); font-weight: 600; padding: 0.9rem; border: none; cursor: pointer; border-radius: 12px; transition: background-color 0.2s ease; }
+        .actionsheet-cancel button:hover { background-color: var(--hover-bg); }
     </style>
 </head>
 <body>
@@ -372,6 +417,8 @@
                             <h3>All Registered Users</h3>
                         </div>
                         <p id="user-management-message" class="success-message hidden"></p>
+                        
+                        <!-- Desktop View -->
                         <div class="user-list-headings">
                             <div>Email</div>
                             <div>Status</div>
@@ -379,39 +426,63 @@
                             <div style="text-align: right;">Actions</div>
                         </div>
                         <div id="all-users-list" class="user-list">
+                            <!-- Skeletons for desktop -->
                             <div class="user-card skeleton"><div class="skeleton-line"></div><div class="skeleton-line"></div><div class="skeleton-line"></div><div class="skeleton-line"></div></div>
                             <div class="user-card skeleton"><div class="skeleton-line"></div><div class="skeleton-line"></div><div class="skeleton-line"></div><div class="skeleton-line"></div></div>
                             <div class="user-card skeleton"><div class="skeleton-line"></div><div class="skeleton-line"></div><div class="skeleton-line"></div><div class="skeleton-line"></div></div>
                             <p class="no-records hidden">No registered users.</p>
                         </div>
+
+                        <!-- Mobile View -->
+                        <div id="all-users-mobile-list" class="mobile-card-view">
+                             <!-- Skeletons for mobile -->
+                            <div class="user-card skeleton"><div class="skeleton-line" style="width: 80%;"></div><div class="skeleton-line" style="width: 50%; height: 12px;"></div></div>
+                            <div class="user-card skeleton"><div class="skeleton-line" style="width: 70%;"></div><div class="skeleton-line" style="width: 40%; height: 12px;"></div></div>
+                            <div class="user-card skeleton"><div class="skeleton-line" style="width: 90%;"></div><div class="skeleton-line" style="width: 60%; height: 12px;"></div></div>
+                            <p class="no-records hidden">No registered users.</p>
+                        </div>
+
                     </div>
                 </div>
             </section>
         </main>
     </div>
 
-    <!-- Actionsheet Overlay - For Mobile Actions -->
+    <!-- Actionsheet Overlay (for mobile user actions) -->
     <div class="actionsheet-overlay" id="actionsheet-overlay">
         <div class="actionsheet" id="actionsheet">
-            <div class="actionsheet-header"><h3 id="actionsheet-title">Manage User</h3></div>
+            <div class="actionsheet-header"><h3 id="actionsheet-title">User Actions</h3></div>
             <div class="actionsheet-content">
                 <div class="actionsheet-details">
                     <div><p>Email</p><strong id="actionsheet-user-email"></strong></div>
-                    <div><p>Created At</p><strong id="actionsheet-user-created-at"></strong></div>
+                    <div><p>Created</p><strong id="actionsheet-user-created"></strong></div>
                 </div>
-
-                <div class="actionsheet-status-control">
+                
+                <!-- Approved/Suspended Toggle -->
+                <div id="actionsheet-status-approved-group" class="actionsheet-control-group hidden">
                     <strong>Status</strong>
-                    <div class="status-toggle-wrapper">
+                    <div style="display: flex; align-items: center; gap: 5px;">
+                        <span class="status-text" id="actionsheet-status-label"></span>
                         <label class="toggle-switch">
                             <input type="checkbox" id="actionsheet-status-toggle">
                             <span class="slider"></span>
                         </label>
-                        <span class="status-text" id="actionsheet-status-text"></span>
                     </div>
                 </div>
-                
-                <div class="actionsheet-status-control" style="margin-top: 1rem;">
+
+                <!-- Pending Actions -->
+                <div id="actionsheet-status-pending-group" class="actionsheet-actions hidden">
+                    <button class="actionsheet-btn button-primary approve" id="actionsheet-approve-pending-btn">Approve</button>
+                    <button class="actionsheet-btn button-primary deny" id="actionsheet-deny-pending-btn">Deny</button>
+                </div>
+
+                <!-- Denied/Suspended Reactivate -->
+                <div id="actionsheet-status-denied-suspended-group" class="actionsheet-actions hidden">
+                    <button class="actionsheet-btn button-primary reactivate" id="actionsheet-reactivate-btn">Reactivate</button>
+                </div>
+
+                 <!-- Role Select -->
+                <div id="actionsheet-role-group" class="actionsheet-control-group hidden">
                     <strong>Role</strong>
                     <select id="actionsheet-role-select" class="user-role-select">
                         <option value="admin">Admin</option>
@@ -419,24 +490,16 @@
                     </select>
                 </div>
             </div>
+            
             <div class="actionsheet-actions">
-                <button class="actionsheet-btn actionsheet-btn--approve hidden" id="actionsheet-approve-btn">
-                    <i class='bx bx-check-circle'></i> Approve
-                </button>
-                <button class="actionsheet-btn actionsheet-btn--deny hidden" id="actionsheet-deny-btn">
-                    <i class='bx bx-x-circle'></i> Deny
-                </button>
-                <button class="actionsheet-btn actionsheet-btn--reactivate hidden" id="actionsheet-reactivate-btn">
-                    <i class='bx bx-redo'></i> Reactivate
-                </button>
                 <button class="actionsheet-btn actionsheet-btn--delete" id="actionsheet-delete-btn">
-                    <i class='bx bx-trash'></i> Delete Account
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2.99561 7H20.9956" stroke="currentColor" stroke-width="2"></path><path d="M9.99561 11V17M13.9956 11V17" stroke="currentColor" stroke-width="2"></path><path d="M8 6.5L8.68917 4.08792C8.87315 3.44397 9.46173 3 10.1315 3H13.8685C14.5383 3 15.1268 3.44397 15.3108 4.08792L16 6.5" stroke="currentColor" stroke-width="2"></path><path d="M5 7L5.80098 18.2137C5.91312 19.7837 7.21944 21 8.79336 21H15.2066C16.7806 21 18.0869 19.7837 18.199 18.2137L19 7" stroke="currentColor" stroke-width="2"></path></svg>
+                    Delete
                 </button>
             </div>
             <div class="actionsheet-cancel"><button id="actionsheet-cancel-btn">Cancel</button></div>
         </div>
     </div>
-
 
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js';
@@ -467,11 +530,12 @@
         ];
 
         let sidebarUserAvatar, popupUserAvatar, sidebarUserName, sidebarUserRole, popupUserEmail, popupUserRole;
-        let logoutBtn, navAdminPanelItem, userManagementMessage, allUsersList;
+        let logoutBtn, navAdminPanelItem, userManagementMessage, allUsersList, allUsersMobileList;
 
-        // Actionsheet elements
-        let actionsheetOverlay, actionsheet, actionsheetUserEmail, actionsheetUserCreatedAt, actionsheetStatusToggle, actionsheetStatusText, actionsheetRoleSelect;
+        let actionsheetOverlay, actionsheet, actionsheetTitle, actionsheetUserEmail, actionsheetUserCreated, actionsheetStatusToggle, actionsheetStatusLabel, actionsheetRoleSelect;
         let actionsheetApproveBtn, actionsheetDenyBtn, actionsheetReactivateBtn, actionsheetDeleteBtn, actionsheetCancelBtn;
+        let actionsheetStatusApprovedGroup, actionsheetStatusPendingGroup, actionsheetStatusDeniedSuspendedGroup, actionsheetRoleGroup;
+
 
         document.addEventListener('DOMContentLoaded', function() {
             sidebarUserAvatar = document.getElementById('sidebar-user-avatar');
@@ -485,21 +549,27 @@
             navAdminPanelItem = document.getElementById('nav-admin-panel-item');
             userManagementMessage = document.getElementById('user-management-message');
             allUsersList = document.getElementById('all-users-list');
+            allUsersMobileList = document.getElementById('all-users-mobile-list');
 
-            // Actionsheet element assignments
             actionsheetOverlay = document.getElementById('actionsheet-overlay');
             actionsheet = document.getElementById('actionsheet');
+            actionsheetTitle = document.getElementById('actionsheet-title');
             actionsheetUserEmail = document.getElementById('actionsheet-user-email');
-            actionsheetUserCreatedAt = document.getElementById('actionsheet-user-created-at');
+            actionsheetUserCreated = document.getElementById('actionsheet-user-created');
             actionsheetStatusToggle = document.getElementById('actionsheet-status-toggle');
-            actionsheetStatusText = document.getElementById('actionsheet-status-text');
+            actionsheetStatusLabel = document.getElementById('actionsheet-status-label');
             actionsheetRoleSelect = document.getElementById('actionsheet-role-select');
-            actionsheetApproveBtn = document.getElementById('actionsheet-approve-btn');
-            actionsheetDenyBtn = document.getElementById('actionsheet-deny-btn');
+            actionsheetApproveBtn = document.getElementById('actionsheet-approve-pending-btn'); // Correct ID for pending approve
+            actionsheetDenyBtn = document.getElementById('actionsheet-deny-pending-btn');   // Correct ID for pending deny
             actionsheetReactivateBtn = document.getElementById('actionsheet-reactivate-btn');
             actionsheetDeleteBtn = document.getElementById('actionsheet-delete-btn');
             actionsheetCancelBtn = document.getElementById('actionsheet-cancel-btn');
 
+            // New control group assignments
+            actionsheetStatusApprovedGroup = document.getElementById('actionsheet-status-approved-group');
+            actionsheetStatusPendingGroup = document.getElementById('actionsheet-status-pending-group');
+            actionsheetStatusDeniedSuspendedGroup = document.getElementById('actionsheet-status-denied-suspended-group');
+            actionsheetRoleGroup = document.getElementById('actionsheet-role-group');
 
             const profileSection = document.getElementById('profile-section');
             const profilePopup = document.getElementById('profile-popup');
@@ -532,20 +602,17 @@
             if (closeBtn) closeBtn.addEventListener('click', toggleMenu);
             if (overlay) overlay.addEventListener('click', toggleMenu);
 
-            if (logoutBtn) {
-                logoutBtn.addEventListener('click', async () => {
-                    try {
-                        await signOut(auth);
-                        window.location.href = 'index.html';
-                    } catch (error) {
-                        console.error("Error signing out:", error);
-                    }
-                });
-            }
-
-            // Actionsheet event listeners
             if (actionsheetCancelBtn) actionsheetCancelBtn.addEventListener('click', closeActionsheet);
-            if (actionsheetOverlay) actionsheetOverlay.addEventListener('click', closeActionsheet); // Close if click outside
+            if (actionsheetOverlay) actionsheetOverlay.addEventListener('click', closeActionsheet);
+            if (actionsheet) actionsheet.addEventListener('click', e => e.stopPropagation());
+            
+            // Re-attach listeners for actionsheet buttons here to ensure they are always live
+            if (actionsheetApproveBtn) actionsheetApproveBtn.addEventListener('click', (e) => { approveUser(e.target.dataset.uid, e.target.dataset.userEmail); closeActionsheet(); });
+            if (actionsheetDenyBtn) actionsheetDenyBtn.addEventListener('click', (e) => { denyUser(e.target.dataset.uid, e.target.dataset.userEmail); closeActionsheet(); });
+            if (actionsheetReactivateBtn) actionsheetReactivateBtn.addEventListener('click', (e) => { reactivateUser(e.target.dataset.uid, e.target.dataset.userEmail); closeActionsheet(); });
+            if (actionsheetDeleteBtn) actionsheetDeleteBtn.addEventListener('click', (e) => { deleteUser(e.target.dataset.uid, e.target.dataset.userEmail); closeActionsheet(); });
+            if (actionsheetStatusToggle) actionsheetStatusToggle.addEventListener('change', (e) => { toggleUserStatus(e.target.dataset.uid, e.target.checked, e.target.dataset.userEmail); });
+            if (actionsheetRoleSelect) actionsheetRoleSelect.addEventListener('change', (e) => { editUserRole(e.target.dataset.uid, e.target.value, e.target.dataset.userEmail); });
         });
 
         function showMessage(element, message, isSuccess = true) {
@@ -642,21 +709,41 @@
             }
         });
 
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', async () => {
+                try {
+                    await signOut(auth);
+                    window.location.href = 'index.html';
+                } catch (error) {
+                    console.error("Error signing out:", error);
+                }
+            });
+        }
+
         // --- User Management Functions ---
         async function fetchAllUsers() {
+            const skeletonHtml = `
+                <div class="user-card skeleton"><div class="skeleton-line" style="width: 80%;"></div><div class="skeleton-line" style="width: 50%; height: 12px;"></div></div>
+                <div class="user-card skeleton"><div class="skeleton-line" style="width: 70%;"></div><div class="skeleton-line" style="width: 40%; height: 12px;"></div></div>
+                <div class="user-card skeleton"><div class="skeleton-line" style="width: 90%;"></div><div class="skeleton-line" style="width: 60%; height: 12px;"></div></div>
+            `;
             if (allUsersList) allUsersList.innerHTML = `
                 <div class="user-card skeleton"><div class="skeleton-line"></div><div class="skeleton-line"></div><div class="skeleton-line"></div><div class="skeleton-line"></div></div>
                 <div class="user-card skeleton"><div class="skeleton-line"></div><div class="skeleton-line"></div><div class="skeleton-line"></div><div class="skeleton-line"></div></div>
                 <div class="user-card skeleton"><div class="skeleton-line"></div><div class="skeleton-line"></div><div class="skeleton-line"></div><div class="skeleton-line"></div></div>
-            `;
+            `; // Desktop skeletons
+            if (allUsersMobileList) allUsersMobileList.innerHTML = skeletonHtml; // Mobile skeletons
+
             try {
                 const q = query(collection(db, 'users'), orderBy('createdAt', 'desc'));
                 const snapshot = await getDocs(q);
 
                 if (allUsersList) allUsersList.innerHTML = '';
+                if (allUsersMobileList) allUsersMobileList.innerHTML = '';
 
                 if (snapshot.empty) {
                     if (allUsersList) allUsersList.innerHTML = '<p class="no-records">No registered users.</p>';
+                    if (allUsersMobileList) allUsersMobileList.innerHTML = '<p class="no-records">No registered users.</p>';
                     return;
                 }
 
@@ -664,19 +751,17 @@
                     const user = { id: userDoc.id, ...userDoc.data() };
                     const createdAt = user.createdAt ? new Date(user.createdAt.toDate()).toLocaleString() : 'N/A';
                     
-                    const userCard = document.createElement('div');
-                    userCard.className = 'user-card';
-
-                    userCard.innerHTML = `
+                    // Desktop Card
+                    const userCardDesktop = document.createElement('div');
+                    userCardDesktop.className = 'user-card';
+                    userCardDesktop.innerHTML = `
                         <div class="user-card-content">
-                            <div class="user-card-header mobile-only">Email</div>
                             <div class="user-email-info">
                                 <div class="user-email">${user.email}</div>
                                 <div class="user-created-at">${createdAt}</div>
                             </div>
                             
-                            <div class="user-card-header mobile-only">Status</div>
-                            <div class="user-status-section desktop-only">
+                            <div class="user-status-section">
                                 ${user.status === 'pending' || user.status === 'denied' ?
                                     `<span class="status-badge ${user.status}">${user.status || 'N/A'}</span>` :
                                     `<label class="toggle-switch">
@@ -685,28 +770,37 @@
                                     </label>
                                     <span class="status-text">${user.status === 'approved' ? 'Active' : 'Suspended'}</span>`
                                 }
-                                ${user.status === 'denied' || user.status === 'suspended' ? `<button class="reactivate button-primary hidden-on-desktop" data-uid="${user.id}" data-user-email="${user.email}">Reactivate</button>` : ''}
                             </div>
                             
-                            <div class="user-card-header mobile-only">Role</div>
-                            <div class="user-role-section desktop-only">
+                            <div class="user-role-section">
                                 <select class="user-role-select" data-uid="${user.id}" data-user-email="${user.email}">
                                     <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Admin</option>
                                     <option value="employee" ${user.role === 'employee' ? 'selected' : ''}>Employee</option>
                                 </select>
                             </div>
                             
-                            <div class="user-card-header mobile-only">Actions</div>
-                            <div class="user-actions desktop-only">
+                            <div class="user-actions">
                                 ${user.status === 'pending' ? `<button class="approve button-primary" data-uid="${user.id}" data-user-email="${user.email}">Approve</button>` : ''}
                                 ${user.status !== 'denied' && user.status !== 'pending' ? `<button class="deny button-primary" data-uid="${user.id}" data-user-email="${user.email}">Deny</button>` : ''}
                                 ${user.id !== currentUser.uid ? `<button class="delete-user button-primary" data-uid="${user.id}" data-user-email="${user.email}">Delete</button>` : ''}
                             </div>
-                            
-                            <button class="mobile-action-menu-btn" data-uid="${user.id}" data-user-email="${user.email}" data-user-status="${user.status}" data-user-role="${user.role}"><i class='bx bx-dots-vertical-rounded'></i></button>
                         </div>
                     `;
-                    if (allUsersList) allUsersList.appendChild(userCard);
+                    if (allUsersList) allUsersList.appendChild(userCardDesktop);
+
+                    // Mobile Card
+                    const userCardMobile = document.createElement('div');
+                    userCardMobile.className = `user-card ${user.status === 'pending' ? 'pending-highlight' : ''}`;
+                    userCardMobile.innerHTML = `
+                        <div class="user-email-info">
+                            <div class="user-email">${user.email}</div>
+                            <div class="user-created-at">${createdAt}</div>
+                        </div>
+                        <div class="user-actions">
+                            <button class="mobile-manage-btn button-primary" data-uid="${user.id}" data-user-email="${user.email}">Manage</button>
+                        </div>
+                    `;
+                    if (allUsersMobileList) allUsersMobileList.appendChild(userCardMobile);
                 });
 
                 if (allUsersList) {
@@ -716,7 +810,7 @@
                     allUsersList.querySelectorAll('.deny').forEach(button => {
                         button.addEventListener('click', (e) => denyUser(e.target.dataset.uid, e.target.dataset.userEmail));
                     });
-                    allUsersList.querySelectorAll('.reactivate').forEach(button => { // For denied/suspended desktop reactivate
+                    allUsersList.querySelectorAll('.reactivate').forEach(button => {
                         button.addEventListener('click', (e) => reactivateUser(e.target.dataset.uid, e.target.dataset.userEmail));
                     });
                     allUsersList.querySelectorAll('.status-toggle').forEach(toggle => {
@@ -728,16 +822,89 @@
                     allUsersList.querySelectorAll('.delete-user').forEach(button => {
                         button.addEventListener('click', (e) => deleteUser(e.target.dataset.uid, e.target.dataset.userEmail));
                     });
-                    allUsersList.querySelectorAll('.mobile-action-menu-btn').forEach(button => {
-                        button.addEventListener('click', (e) => openActionsheet(e.target.dataset.uid, e.target.dataset.userEmail, e.target.dataset.userStatus, e.target.dataset.userRole));
+                }
+                
+                if (allUsersMobileList) {
+                    allUsersMobileList.querySelectorAll('.mobile-manage-btn').forEach(button => {
+                        button.addEventListener('click', (e) => openActionsheet(e.target.dataset.uid, e.target.dataset.userEmail));
                     });
                 }
+
 
             } catch (error) {
                 console.error("Error fetching all users:", error);
                 showMessage(userManagementMessage, `Error loading users: ${error.message}`, false);
                 if (allUsersList) allUsersList.innerHTML = '<p class="no-records">Error loading users.</p>';
+                if (allUsersMobileList) allUsersMobileList.innerHTML = '<p class="no-records">Error loading users.</p>';
             }
+        }
+
+        // --- Actionsheet Functions ---
+        async function openActionsheet(uid, userEmail) {
+            const userDoc = await getDoc(doc(db, 'users', uid));
+            if (!userDoc.exists()) {
+                showMessage(userManagementMessage, `User ${userEmail} not found.`, false);
+                return;
+            }
+            const user = { id: userDoc.id, ...userDoc.data() };
+            const createdAt = user.createdAt ? new Date(user.createdAt.toDate()).toLocaleString() : 'N/A';
+
+            if (actionsheetTitle) actionsheetTitle.textContent = user.email;
+            if (actionsheetUserEmail) actionsheetUserEmail.textContent = user.email;
+            if (actionsheetUserCreated) actionsheetUserCreated.textContent = createdAt;
+
+            // Hide all conditional groups initially
+            [actionsheetStatusApprovedGroup, actionsheetStatusPendingGroup, actionsheetStatusDeniedSuspendedGroup, actionsheetRoleGroup].forEach(el => {
+                if(el) el.classList.add('hidden');
+            });
+
+            // Status-based controls
+            if (user.status === 'pending') {
+                if (actionsheetStatusPendingGroup) actionsheetStatusPendingGroup.classList.remove('hidden');
+            } else if (user.status === 'denied' || user.status === 'suspended') {
+                if (actionsheetStatusDeniedSuspendedGroup) actionsheetStatusDeniedSuspendedGroup.classList.remove('hidden');
+            } else if (user.status === 'approved') {
+                if (actionsheetStatusApprovedGroup) actionsheetStatusApprovedGroup.classList.remove('hidden');
+                if (actionsheetStatusToggle) {
+                    actionsheetStatusToggle.checked = true; // Approved means active
+                    actionsheetStatusToggle.dataset.uid = uid;
+                    actionsheetStatusToggle.dataset.userEmail = user.email;
+                }
+                if (actionsheetStatusLabel) actionsheetStatusLabel.textContent = 'Active';
+            }
+            
+            // Role Select (always shown for non-pending/denied/suspended if status control is present)
+            if (user.status !== 'pending' && user.status !== 'denied' && user.status !== 'suspended') {
+                 if (actionsheetRoleGroup) actionsheetRoleGroup.classList.remove('hidden');
+                 if (actionsheetRoleSelect) {
+                    actionsheetRoleSelect.value = user.role;
+                    actionsheetRoleSelect.dataset.uid = uid;
+                    actionsheetRoleSelect.dataset.userEmail = user.email;
+                }
+            }
+
+
+            // Set attributes for action buttons (always present in actionsheet)
+            [actionsheetApproveBtn, actionsheetDenyBtn, actionsheetReactivateBtn, actionsheetDeleteBtn].forEach(btn => {
+                if (btn) {
+                    btn.dataset.uid = uid;
+                    btn.dataset.userEmail = user.email;
+                }
+            });
+
+            // Show/hide specific buttons within actionsheet-actions
+            if (actionsheetApproveBtn) actionsheetApproveBtn.classList.toggle('hidden', user.status !== 'pending');
+            if (actionsheetDenyBtn) actionsheetDenyBtn.classList.toggle('hidden', user.status === 'denied'); // Deny is not an option if already denied
+            if (actionsheetReactivateBtn) actionsheetReactivateBtn.classList.toggle('hidden', user.status !== 'denied' && user.status !== 'suspended');
+            if (actionsheetDeleteBtn) actionsheetDeleteBtn.classList.toggle('hidden', user.id === currentUser.uid); // Can't delete self
+
+            if (actionsheetOverlay) actionsheetOverlay.classList.add('show');
+            if (actionsheet) actionsheet.classList.add('show');
+        }
+
+        function closeActionsheet() {
+            if (actionsheetOverlay) actionsheetOverlay.classList.remove('show');
+            if (actionsheet) actionsheet.classList.remove('show');
         }
 
         async function updateUserStatusAndRole(uid, newStatus, newRole, actionType, userEmailForMessage) {
@@ -756,7 +923,6 @@
                 });
                 await logChange(actionType, 'user', uid, { oldRole: oldUserData.role, newRole: newRole, oldStatus: oldUserData.status, newStatus: newStatus });
                 showMessage(userManagementMessage, `User ${userEmailForMessage} ${actionType}d successfully!`, true);
-                closeActionsheet(); // Close actionsheet after action
                 fetchAllUsers();
             } catch (error) {
                 console.error(`Error ${actionType}ing user:`, error);
@@ -793,7 +959,6 @@
                 });
                 await logChange(actionType, 'user_status', uid, { oldStatus: oldStatus, newStatus: newStatus, oldRole: oldRole, newRole: oldRole });
                 showMessage(userManagementMessage, `User ${userEmail} status updated to '${newStatus}'!`, true);
-                closeActionsheet(); // Close actionsheet after action
                 fetchAllUsers();
             } catch (error) {
                 console.error(`Error toggling user status:`, error);
@@ -826,7 +991,6 @@
 
                 await logChange('update_user_role', 'user', uid, { oldRole: oldRole, newRole: newRole, oldStatus: oldStatus, newStatus: updates.status || oldStatus });
                 showMessage(userManagementMessage, `User ${userEmail} role updated to ${newRole}!`, true);
-                closeActionsheet(); // Close actionsheet after action
                 fetchAllUsers();
             } catch (error) {
                 console.error("Error editing user role:", error);
@@ -846,104 +1010,11 @@
                 await logChange('delete', 'user', uid, { deletedEmail: userData.email, deletedRole: userData.role });
                 
                 showMessage(userManagementMessage, `User ${userEmail} deleted successfully!`, true);
-                closeActionsheet(); // Close actionsheet after action
                 fetchAllUsers();
             } catch (error) {
                 console.error("Error deleting user:", error);
                 showMessage(userManagementMessage, `Error deleting user: ${error.message}`, false);
             }
-        }
-
-        // --- Actionsheet Functions ---
-        function openActionsheet(uid, userEmail, userStatus, userRole) {
-            actionsheetOverlay.classList.add('show');
-            actionsheet.classList.add('show');
-
-            if (actionsheetUserEmail) actionsheetUserEmail.textContent = userEmail;
-            if (actionsheetUserCreatedAt) { // Fetch creation date specifically for actionsheet, or pass it
-                 // This would require passing createdAt from fetchAllUsers, for now it's placeholder
-                 actionsheetUserCreatedAt.textContent = 'Fetching...';
-                 (async () => {
-                     try {
-                         const userDoc = await getDoc(doc(db, 'users', uid));
-                         if (userDoc.exists() && userDoc.data().createdAt) {
-                             actionsheetUserCreatedAt.textContent = new Date(userDoc.data().createdAt.toDate()).toLocaleString();
-                         } else {
-                             actionsheetUserCreatedAt.textContent = 'N/A';
-                         }
-                     } catch (error) {
-                         console.error("Error fetching created at for actionsheet:", error);
-                         actionsheetUserCreatedAt.textContent = 'Error';
-                     }
-                 })();
-            }
-
-            // Status Toggle visibility and state
-            const isApprovedOrSuspended = (userStatus === 'approved' || userStatus === 'suspended');
-            if (actionsheetStatusToggle) {
-                actionsheetStatusToggle.checked = (userStatus === 'approved');
-                actionsheetStatusToggle.dataset.uid = uid;
-                actionsheetStatusToggle.dataset.userEmail = userEmail;
-                // Update text based on toggle state
-                if (actionsheetStatusText) actionsheetStatusText.textContent = actionsheetStatusToggle.checked ? 'Active' : 'Suspended';
-                if (actionsheetStatusToggle.closest('.actionsheet-status-control')) {
-                    actionsheetStatusToggle.closest('.actionsheet-status-control').classList.toggle('hidden', !isApprovedOrSuspended);
-                }
-            }
-            
-            // Role Select visibility and state
-            if (actionsheetRoleSelect) {
-                actionsheetRoleSelect.value = userRole;
-                actionsheetRoleSelect.dataset.uid = uid;
-                actionsheetRoleSelect.dataset.userEmail = userEmail;
-                if (actionsheetRoleSelect.closest('.actionsheet-status-control')) {
-                    actionsheetRoleSelect.closest('.actionsheet-status-control').classList.remove('hidden');
-                }
-            }
-            
-            // Action buttons visibility
-            if (actionsheetApproveBtn) {
-                actionsheetApproveBtn.classList.toggle('hidden', userStatus !== 'pending');
-                actionsheetApproveBtn.dataset.uid = uid;
-                actionsheetApproveBtn.dataset.userEmail = userEmail;
-                actionsheetApproveBtn.onclick = () => approveUser(uid, userEmail).then(closeActionsheet);
-            }
-            if (actionsheetDenyBtn) {
-                actionsheetDenyBtn.classList.toggle('hidden', userStatus === 'denied' || userStatus === 'pending');
-                actionsheetDenyBtn.dataset.uid = uid;
-                actionsheetDenyBtn.dataset.userEmail = userEmail;
-                actionsheetDenyBtn.onclick = () => denyUser(uid, userEmail).then(closeActionsheet);
-            }
-            if (actionsheetReactivateBtn) {
-                 actionsheetReactivateBtn.classList.toggle('hidden', userStatus !== 'denied' && userStatus !== 'suspended');
-                 actionsheetReactivateBtn.dataset.uid = uid;
-                 actionsheetReactivateBtn.dataset.userEmail = userEmail;
-                 actionsheetReactivateBtn.onclick = () => reactivateUser(uid, userEmail).then(closeActionsheet);
-            }
-            if (actionsheetDeleteBtn) {
-                actionsheetDeleteBtn.classList.remove('hidden'); // Always show delete if user can delete
-                actionsheetDeleteBtn.dataset.uid = uid;
-                actionsheetDeleteBtn.dataset.userEmail = userEmail;
-                actionsheetDeleteBtn.onclick = () => deleteUser(uid, userEmail).then(closeActionsheet);
-            }
-
-            // Attach event listeners for elements inside actionsheet
-            if (actionsheetStatusToggle) {
-                actionsheetStatusToggle.onchange = (e) => {
-                    if (actionsheetStatusText) actionsheetStatusText.textContent = e.target.checked ? 'Active' : 'Suspended';
-                    toggleUserStatus(e.target.dataset.uid, e.target.checked, e.target.dataset.userEmail);
-                };
-            }
-            if (actionsheetRoleSelect) {
-                actionsheetRoleSelect.onchange = (e) => {
-                    editUserRole(e.target.dataset.uid, e.target.value, e.target.dataset.userEmail);
-                };
-            }
-        }
-
-        function closeActionsheet() {
-            if (actionsheetOverlay) actionsheetOverlay.classList.remove('show');
-            if (actionsheet) actionsheet.classList.remove('show');
         }
     </script>
 </body>
