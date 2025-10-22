@@ -1182,6 +1182,11 @@
                 await logChange('add', 'profile', docRef.id, { newData: newProfileData });
                 showMessage(profileFormMessage, 'Profile created successfully!', true);
             }
+            currentUploadedPhotos.forEach(p => {
+                if (p.status === 'completed') {
+                    p.isPersisted = true;
+                }
+            });
             resetProfileForm();
         } catch (error) {
             console.error("Error saving profile:", error);
