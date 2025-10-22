@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Matrimony Portal - Admin Dashboard</title>
+    <title>Matrimony Portal - Create/Edit Profile</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -12,6 +12,7 @@
     <script type="module" src="https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js"></script>
     <script type="module" src="https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js"></script>
     <script type="module" src="https://www.gstatic.com/firebasejs/12.4.0/firebase-storage.js"></script>
+    <script type="module" src="https://www.gstatic.com/firebasejs/12.4.0/firebase-ai.js"></script>
 
     <style>
         :root { --body-bg: #F9FAFB; --widget-bg: #FFFFFF; --border-color: #E5E7EB; --text-primary: #002726; --text-secondary: #6B7280; --brand-green: #33C375; --hover-bg: #F3F4F6; --warning-color: #F59E0B; --danger-color: #EF4444; }
@@ -48,150 +49,198 @@
         .popup-list a.logout i { color: var(--danger-color); }
         .popup-list a.logout { color: var(--danger-color); }
 
+        /* Main Content Area */
         .main-area { display: flex; flex-direction: column; overflow-y: auto; background-color: var(--body-bg); }
         .main-header { padding: 1.25rem 3rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background-color: var(--widget-bg); position: sticky; top: 0; z-index: 10; }
         .main-header h1 { font-size: 1.5rem; font-weight: 600; }
-        .content-body { padding: 2rem 3rem; display: grid; grid-template-columns: 2fr 1fr; gap: 2rem; align-items: flex-start; }
-        .column { display: flex; flex-direction: column; gap: 2rem; }
-
+        .content-body { padding: 2rem 3rem; margin-top: 0; }
+        
         .widget { background-color: var(--widget-bg); border-radius: 16px; border: 1px solid var(--border-color); padding: 1.5rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.03), 0 2px 4px -1px rgba(0,0,0,0.02); }
         .widget-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
         .widget-header h3 { font-size: 1.1rem; font-weight: 600; color: var(--text-primary); }
-        .widget-header a { font-size: 0.9rem; color: var(--brand-green); text-decoration: none; font-weight: 500; }
-        .widget-header a:hover { text-decoration: underline; }
 
-        .button-primary {
+        /* Form Layout */
+        .form-layout-grid { display: grid; grid-template-columns: 1fr 2fr; gap: 20px; }
+        .profile-fields-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .full-width { grid-column: 1 / -1; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; color: #555; }
+        input[type="text"], input[type="email"], input[type="password"], input[type="number"], input[type="date"], textarea, select {
+            width: calc(100% - 22px); padding: 10px; margin: 0; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; font-size: 16px;
+        }
+        .form-group textarea { min-height: 80px; }
+        #auto-generate-paragraph { min-height: 150px; }
+
+        /* Buttons */
+        button { background-color: var(--brand-green); color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; transition: background-color 0.2s ease; }
+        button:hover { background-color: #2fb165; }
+        button:disabled { background-color: #cccccc; cursor: not-allowed; }
+
+        /* Messages */
+        .error-message { color: var(--danger-color); margin-top: 10px; font-weight: bold; }
+        .success-message { color: var(--brand-green); margin-top: 10px; font-weight: bold; }
+        .hidden { display: none !important; }
+
+        /* Loading Spinner */
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
             display: inline-block;
-            background-color: var(--brand-green);
-            color: white;
-            padding: 0.6rem 1.2rem;
-            border-radius: 8px;
-            text-decoration: none;
-            font-weight: 500;
-            font-size: 0.9rem;
-            transition: background-color 0.2s ease;
-            border: none;
-            cursor: pointer;
-        }
-        .button-primary:hover { background-color: #2fb165; }
-
-        .metrics-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 1rem;
-            margin-top: 1rem;
-        }
-        .metric-card {
-            background: var(--hover-bg);
-            padding: 1rem;
-            border-radius: 8px;
-            text-align: center;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-            text-decoration: none;
-            color: var(--text-primary);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-        .metric-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.08);
-        }
-        .metric-card .value {
-            font-size: 2.2em;
-            font-weight: bold;
-            color: var(--brand-green);
-            margin-bottom: 0.25rem;
-        }
-        .metric-card .value i {
-            font-size: 40px; /* Adjust icon size */
             vertical-align: middle;
-            margin: 0 auto 5px;
-            display: block;
+            margin-left: 10px;
         }
-        .metric-card .label {
-            font-size: 0.9em;
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Skeleton Loading Styles */
+        @keyframes shimmer { 100% { transform: translateX(100%); } }
+        .skeleton { background-color: #e2e8f0; position: relative; overflow: hidden; border-radius: 8px;}
+        .skeleton::after { content: ''; position: absolute; top: 0; right: 0; bottom: 0; left: 0; transform: translateX(-100%); background-image: linear-gradient(90deg, rgba(255, 255, 255, 0) 0, rgba(255, 255, 255, 0.2) 20%, rgba(255, 255, 255, 0.5) 60%, rgba(255, 255, 255, 0)); animation: shimmer 2s infinite; }
+        .skeleton-line { height: 1em; border-radius: 4px; background-color: #cbd5e1; margin-bottom: 0.5rem; }
+        .skeleton-input { height: 40px; width: 100%; }
+        .skeleton-textarea { height: 80px; width: 100%; }
+        .skeleton-photo-preview { width: 150px; height: 150px; border-radius: 8px; }
+        .skeleton-button { height: 40px; width: 100%; }
+
+        /* New Photo Upload Styles */
+        .photo-upload-area {
+            border: 2px dashed var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color 0.3s ease, background-color 0.3s ease;
+            margin-bottom: 15px;
+            background-color: var(--hover-bg);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .photo-upload-area:hover {
+            border-color: var(--brand-green);
+            background-color: #e8f5e9;
+        }
+        .photo-upload-area.drag-over {
+            border-color: var(--brand-green);
+            background-color: #e0f2f1;
+        }
+        .photo-upload-area i {
+            font-size: 3em;
             color: var(--text-secondary);
+            margin-bottom: 10px;
+        }
+        .photo-upload-area p {
+            color: var(--text-secondary);
+            font-size: 0.9em;
+        }
+        .photo-upload-area p strong {
+            color: var(--brand-green);
+        }
+        .hidden-file-input {
+            display: none;
         }
 
-        .recent-profile-item {
+        .image-preview-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 15px;
+            border-top: 1px solid var(--border-color);
+            padding-top: 15px;
+        }
+        .image-preview-card {
+            position: relative;
             display: flex;
             align-items: center;
-            gap: 1rem;
-            padding: 0.75rem;
+            justify-content: space-between; /* Distribute items */
+            padding: 10px;
             border: 1px solid var(--border-color);
             border-radius: 8px;
             background-color: var(--widget-bg);
             box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+            overflow: hidden;
+            height: 80px;
         }
-        .recent-profile-item img {
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 2px solid var(--brand-green);
+        .image-preview-card .image-thumb-wrapper {
+            display: flex;
+            align-items: center;
             flex-shrink: 0;
         }
-        .recent-profile-details {
+        .image-preview-card img {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 4px;
+            margin-right: 10px;
+        }
+        .image-preview-card .file-info {
             flex-grow: 1;
-        }
-        .recent-profile-details .name {
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-        .recent-profile-details .info {
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-        }
-        .recent-profile-item .actions a {
-            font-size: 0.85rem;
-            padding: 5px 10px;
-        }
-
-        .bar-chart-container {
-            position: relative;
-            height: 250px;
-            padding: 1rem;
-            background: var(--hover-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            display: flex;
-            align-items: flex-end;
-            justify-content: space-around;
-            gap: 0.5rem;
-            margin-top: 1rem;
-        }
-        .bar-wrapper {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-end;
-            flex: 1;
-        }
-        .chart-bar {
-            width: 80%;
-            background-color: var(--brand-green);
-            border-radius: 4px 4px 0 0;
-            position: relative;
-            transition: height 0.5s ease-out;
-            display: flex;
-            align-items: flex-start;
-            justify-content: center;
-            color: var(--text-primary);
-        }
-        .chart-bar .value {
-            position: absolute;
-            top: -1.2em;
-            font-size: 0.8em;
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-        .bar-label {
-            margin-top: 0.5rem;
-            font-size: 0.75rem;
-            color: var(--text-secondary);
-            text-align: center;
+            text-align: left;
+            overflow: hidden;
             white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+        .image-preview-card .file-name {
+            font-weight: 500;
+            color: var(--text-primary);
+            font-size: 0.9em;
+        }
+        .image-preview-card .upload-progress-wrapper {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background-color: #e0e0e0;
+        }
+        .image-preview-card .progress-bar {
+            height: 100%;
+            background-color: var(--brand-green);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        .image-preview-card .upload-status-indicator { /* Wrapper for icon + actions */
+            display: flex;
+            align-items: center;
+            gap: 8px; /* Space between icon and delete button */
+            flex-shrink: 0;
+            margin-left: 10px; /* Space from file name */
+        }
+        .image-preview-card .upload-status-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4em; /* Larger icon */
+            color: var(--brand-green);
+        }
+        .image-preview-card .upload-actions button {
+            background: none;
+            color: var(--text-secondary);
+            width: 24px; /* Smaller button */
+            height: 24px;
+            padding: 0;
+            border-radius: 50%;
+            font-size: 1em;
+            border: none;
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+        .image-preview-card .upload-actions button:hover {
+            background-color: var(--hover-bg);
+        }
+        .image-preview-card .upload-actions button.delete-temp {
+            color: var(--danger-color);
+        }
+        .image-preview-card .upload-actions button.delete-temp:hover {
+            background-color: var(--danger-bg-light);
+            color: var(--danger-color);
         }
 
+
+        /* Responsive Adjustments */
         .menu-toggle { display: none; }
         .sidebar-close-btn { display: none; }
         
@@ -200,29 +249,38 @@
             .sidebar { position: fixed; top: 0; left: 0; height: 100%; width: 80%; max-width: 300px; z-index: 1000; transform: translateX(-100%); box-shadow: 0 0 30px rgba(0,0,0,0.1); }
             .sidebar.active { transform: translateX(0); }
             .main-header { padding: 1.25rem 1.5rem; }
-            .content-body { grid-template-columns: 1fr; padding: 1.5rem; }
-            .menu-toggle { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; font-size: 1.5rem; color: var(--text-primary); cursor: pointer; border: 2px solid var(--border-color); border-radius: 8px; transition: background-color 0.2s ease; }
-            .menu-toggle:hover { background-color: var(--hover-bg); }
-            .sidebar-close-btn { display: flex; align-items: center; justify-content: center; position: absolute; top: 1.5rem; right: 1.5rem; font-size: 1.75rem; color: var(--danger-color); cursor: pointer; border: none; background: none; transition: color 0.2s ease; }
-            .sidebar-close-btn:hover { color: #b91c1c; }
-            .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.4); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); z-index: 999; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
-            .overlay.active { opacity: 1; pointer-events: auto; }
+            .content-body { padding: 1.5rem; }
+            .menu-toggle { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; font-size: 1.5rem; color: var(--text-primary); cursor: pointer; background: none; border: none; }
+            .sidebar-close-btn { display: flex; align-items: center; justify-content: center; position: absolute; top: 1.5rem; right: 1.5rem; font-size: 1.75rem; color: var(--danger-color); cursor: pointer; border: none; background: none; }
+            .overlay {
+                position: fixed; inset: 0; background-color: rgba(0,0,0,0.4); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+                z-index: 999;
+                opacity: 0;
+                visibility: hidden;
+                pointer-events: none;
+                transition: opacity 0.3s ease, visibility 0.3s ease;
+            }
+            .overlay.active {
+                opacity: 1;
+                visibility: visible;
+                pointer-events: auto;
+            }
 
-            .metrics-grid { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); }
+            /* Stack columns on mobile */
+            .form-layout-grid {
+                grid-template-columns: 1fr;
+            }
+            .profile-fields-grid {
+                grid-template-columns: 1fr;
+            }
+            /* Order for mobile: Photo Upload -> Auto-generate -> Profile Fields */
+            .photo-upload-column { order: 1; }
+            .profile-fields-column > .form-group:first-child { order: 2; } /* Auto-generate */
+            .profile-fields-column > .profile-fields-grid { order: 3; } /* Profile Fields */
+
+            /* Specific padding for mobile header on widgets to make it look right */
+            .widget .widget-header { padding: 0.5rem 0; }
         }
-
-        @keyframes shimmer { 100% { transform: translateX(100%); } }
-        .skeleton { background-color: #e2e8f0; position: relative; overflow: hidden; }
-        .skeleton::after { content: ''; position: absolute; top: 0; right: 0; bottom: 0; left: 0; transform: translateX(-100%); background-image: linear-gradient(90deg, rgba(255, 255, 255, 0) 0, rgba(255, 255, 255, 0.2) 20%, rgba(255, 255, 255, 0.5) 60%, rgba(255, 255, 255, 0)); animation: shimmer 2s infinite; }
-        .skeleton-avatar { width: 40px; height: 40px; border-radius: 50%; }
-        .skeleton-line { height: 14px; border-radius: 4px; }
-        .skeleton-text { height: 1em; width: 80%; }
-        .skeleton-small-text { height: 0.8em; width: 60%; }
-
-        .metric-card.skeleton .value { height: 2.5em; width: 60%; margin: 0.25rem auto; }
-        .metric-card.skeleton .label { height: 1em; width: 80%; margin: 0 auto; }
-        .recent-profile-item.skeleton { height: 60px; }
-        .bar-chart-container.skeleton { height: 200px; }
     </style>
 </head>
 <body>
@@ -231,16 +289,16 @@
         <aside class="sidebar" id="sidebar">
             <button class="sidebar-close-btn" id="sidebar-close-btn"><i class='bx bx-x'></i></button>
             <div class="sidebar-header">
-                <div class="logo-image">Portal Admin</div>
+                <div class="logo-image">Matrimony Admin</div>
             </div>
             <nav class="main-nav">
                 <ul>
-                    <li><a href="admin-dashboard.html" class="active"><i class='bx bx-home-alt'></i> Dashboard</a></li>
-                    <li><a href="create-profile.html"><i class='bx bx-user-plus'></i> Create Profile</a></li>
+                    <li id="nav-dashboard-item"><a href="#" id="nav-dashboard-link"><i class='bx bx-home-alt'></i> Dashboard</a></li>
+                    <li><a href="create-profile.html" class="active"><i class='bx bx-user-plus'></i> Create Profile</a></li>
                     <li><a href="search-profiles.html"><i class='bx bx-search'></i> Search Profiles</a></li>
-                    <li><a href="admin-users.html"><i class='bx bx-group'></i> Manage Users</a></li>
-                    <li><a href="admin-profiles.html"><i class='bx bx-id-card'></i> Manage Profiles</a></li>
-                    <li><a href="admin-history.html"><i class='bx bx-history'></i> Global History</a></li>
+                    <li id="nav-manage-users-item" class="hidden"><a href="admin-users.html"><i class='bx bx-group'></i> Manage Users</a></li>
+                    <li id="nav-manage-profiles-item" class="hidden"><a href="admin-profiles.html"><i class='bx bx-id-card'></i> Manage Profiles</a></li>
+                    <li id="nav-global-history-item" class="hidden"><a href="admin-history.html"><i class='bx bx-history'></i> Global History</a></li>
                 </ul>
             </nav>
             <div class="profile-section" id="profile-section">
@@ -270,73 +328,124 @@
         <main class="main-area">
             <header class="main-header">
                 <i class='bx bx-menu menu-toggle' id="menu-toggle"></i>
-                <h1>Admin Dashboard Overview</h1>
+                <h1 id="main-header-title">Create New Profile</h1>
             </header>
             <section class="content-body">
-                <div class="column main-col">
-                    <div class="widget">
-                        <div class="widget-header"><h3>Dashboard Metrics</h3></div>
-                        <p id="admin-global-message" class="success-message hidden"></p>
-                        <div class="metrics-grid" id="dashboard-metrics-grid">
-                            <div class="metric-card" id="metric-total-profiles">
-                                <div class="value" id="total-profiles-metric"></div><div class="label"></div>
+                <div class="widget">
+                    <h2 id="profile-form-title" class="widget-header">Create New Profile</h2>
+                    <form id="profile-form">
+                        <input type="hidden" id="profile-id">
+                        <div class="form-layout-grid">
+                            <!-- Left Column: Photo Upload -->
+                            <div class="photo-upload-column">
+                                <div class="form-group">
+                                    <label>Profile Photos (Drag & Drop or Click)</label>
+                                    <div id="drop-area" class="photo-upload-area">
+                                        <input type="file" id="profile-photo-input" class="hidden-file-input" accept="image/*" multiple>
+                                        <i class='bx bx-cloud-upload'></i>
+                                        <p>Drop your images here, or <strong>browse</strong></p>
+                                        <p style="font-size: 0.8em; color: var(--text-secondary);">Supports: JPG, PNG, JPEG</p>
+                                    </div>
+                                    <div id="image-preview-container" class="image-preview-container">
+                                        <p class="no-images-selected" style="color: var(--text-secondary); font-size: 0.9em;">No images selected yet.</p>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="metric-card" id="metric-active-profiles">
-                                <div class="value" id="active-profiles-metric"></div><div class="label"></div>
-                            </div>
-                            <div class="metric-card" id="metric-married-profiles">
-                                <div class="value" id="married-profiles-metric"></div><div class="label"></div>
-                            </div>
-                            <div class="metric-card" id="metric-pending-users">
-                                <div class="value" id="pending-users-metric"></div><div class="label"></div>
-                            </div>
-                            <div class="metric-card" id="metric-total-users">
-                                <div class="value" id="total-users-metric"></div><div class="label"></div>
+                            <!-- Right Column: Profile Fields & Auto-Generate -->
+                            <div class="profile-fields-column">
+                                <!-- Auto-generate details from paragraph (moved to top-right) -->
+                                <div class="form-group">
+                                    <label for="auto-generate-paragraph">Auto-generate details from paragraph:</label>
+                                    <textarea id="auto-generate-paragraph" placeholder="e.g., John Doe, born 1995-05-15, from New York. Works as a Software Engineer. Looking for a compatible partner." rows="6"></textarea>
+                                    <button type="button" id="auto-generate-btn" style="margin-top: 10px;">Auto-generate Fields <span class="loading-spinner hidden" id="auto-generate-spinner"></span></button>
+                                </div>
+                                <div class="profile-fields-grid">
+                                    <div class="form-group">
+                                        <label for="profile-name">Full Name:</label>
+                                        <input type="text" id="profile-name" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="profile-dob">Date of Birth:</label>
+                                        <input type="date" id="profile-dob" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="profile-caste">Caste:</label>
+                                        <input type="text" id="profile-caste">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="profile-subcaste">Subcaste:</label>
+                                        <input type="text" id="profile-subcaste">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="profile-country">Country:</label>
+                                        <input type="text" id="profile-country" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="profile-state">State:</label>
+                                        <input type="text" id="profile-state">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="profile-city">City:</label>
+                                        <input type="text" id="profile-city">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="profile-location">Location:</label>
+                                        <input type="text" id="profile-location">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="profile-religion">Religion:</label>
+                                        <input type="text" id="profile-religion">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="profile-education">Education:</label>
+                                        <input type="text" id="profile-education">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="profile-profession">Profession:</label>
+                                        <input type="text" id="profile-profession">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="profile-mother-tongue">Mother Tongue:</label>
+                                        <input type="text" id="profile-mother-tongue">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="profile-star">Star:</label>
+                                        <input type="text" id="profile-star">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="profile-rasi">Rasi:</label>
+                                        <input type="text" id="profile-rasi">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="profile-annual-income">Annual Income:</label>
+                                        <input type="text" id="profile-annual-income" placeholder="e.g., 5-10 Lakhs">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="profile-marital-status">Marital Status:</label>
+                                        <select id="profile-marital-status">
+                                            <option value="Single">Single</option>
+                                            <option value="Divorced">Divorced</option>
+                                            <option value="Widowed">Widowed</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="profile-matrimony-group">Matrimony Group:</label>
+                                        <select id="profile-matrimony-group">
+                                        </select>
+                                    </div>
+                                    <div class="form-group full-width">
+                                        <label for="profile-bio">Bio / Description:</label>
+                                        <textarea id="profile-bio" rows="4"></textarea>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                    </div>
-
-                    <div class="widget">
-                        <div class="widget-header"><h3>Profile Growth (Last 6 Months)</h3></div>
-                        <p id="profile-growth-message" class="error-message hidden"></p>
-                        <div id="monthly-growth-chart" class="bar-chart-container">
-                            <p class="no-records">Loading growth data...</p>
+                        <div class="form-group full-width" style="margin-top: 20px;">
+                            <p id="profile-form-message" class="success-message hidden"></p>
+                            <button type="submit" id="submit-profile-btn">Create Profile <span class="loading-spinner hidden" id="profile-submit-spinner"></span></button>
+                            <button type="button" id="cancel-edit-btn" class="hidden">Cancel Edit</button>
                         </div>
-                    </div>
-                </div>
-
-                <div class="column side-col">
-                    <div class="widget">
-                        <div class="widget-header">
-                            <h3>Recently Added Profiles</h3>
-                            <a href="admin-profiles.html" class="button-primary">View All &rarr;</a>
-                        </div>
-                        <div id="recently-added-profiles-list">
-                            <p class="no-records hidden">No profiles added yet.</p>
-                        </div>
-                    </div>
-
-                    <div class="widget">
-                        <div class="widget-header"><h3>Quick Links</h3></div>
-                        <div class="metrics-grid">
-                             <a href="admin-users.html" class="metric-card">
-                                <div class="value"><i class='bx bx-group'></i></div>
-                                <div class="label">Manage Users</div>
-                            </a>
-                            <a href="admin-profiles.html" class="metric-card">
-                                <div class="value"><i class='bx bx-id-card'></i></div>
-                                <div class="label">Manage Profiles</div>
-                            </a>
-                            <a href="create-profile.html" class="metric-card">
-                                <div class="value"><i class='bx bx-user-plus'></i></div>
-                                <div class="label">Add New Profile</div>
-                            </a>
-                             <a href="admin-history.html" class="metric-card">
-                                <div class="value"><i class='bx bx-history'></i></div>
-                                <div class="label">Global History</div>
-                            </a>
-                        </div>
-                    </div>
+                    </form>
                 </div>
             </section>
         </main>
@@ -345,8 +454,9 @@
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js';
         import { getAuth, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js';
-        import { getFirestore, collection, addDoc, getDoc, getDocs, updateDoc, doc, query, where, orderBy, limit, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js';
-        import { getStorage } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-storage.js';
+        import { getFirestore, collection, addDoc, getDoc, getDocs, updateDoc, doc, query, orderBy, serverTimestamp, onSnapshot } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js';
+        import { getStorage, ref, uploadBytesResumable, getDownloadURL, deleteObject } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-storage.js';
+        import { getAI, getGenerativeModel } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-ai.js';
 
         const firebaseConfig = {
             apiKey: "AIzaSyAuxA-e71uX_uLDe6oyFU69q-eLfgUzbXA",
@@ -361,7 +471,9 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        const storage = getStorage(app); // Keep storage initialized for consistency
+        const storage = getStorage(app);
+        const ai = getAI(app);
+        const model = getGenerativeModel(ai, { model: 'gemini-2.5-flash' });
 
         let currentUser = null;
         let currentUserRole = null;
@@ -369,95 +481,236 @@
             { id: 'US', name: 'US' },
             { id: 'BY_OTHERS', name: 'BY OTHERS' }
         ];
+        let editingProfileId = null;
+        
+        // --- Photo Upload State Management ---
+        // Array to store {id, file, progress, status, url, storagePath, uploadTask, isPersisted} for each image
+        let currentUploadedPhotos = []; 
+        const LOCAL_STORAGE_KEY_PREFIX = 'matrimony_profile_form_';
 
-        // Global element variables, assigned in DOMContentLoaded
+        // UI Shell Elements
         let sidebarUserAvatar, popupUserAvatar, sidebarUserName, sidebarUserRole, popupUserEmail, popupUserRole;
-        let logoutBtn, navAdminPanelItem, adminGlobalMessage;
-        let totalProfilesMetric, activeProfilesMetric, marriedProfilesMetric, pendingUsersMetric, totalUsersMetric;
-        let recentlyAddedProfilesList, monthlyGrowthChart, profileGrowthMessage;
-        let metricCardTotalProfiles, metricCardActiveProfiles, metricCardMarriedProfiles, metricCardPendingUsers, metricCardTotalUsers;
+        let logoutBtn;
+        let menuToggle, sidebar, sidebarCloseBtn, overlay, mainHeaderTitle;
+        let navDashboardItem, navDashboardLink, navManageUsersItem, navManageProfilesItem, navGlobalHistoryItem;
 
 
-        // --- UI Interactions from Dashboard Shell ---
+        // Page Specific Elements
+        let profileFormTitle, profileForm, profileIdInput, profileNameInput, profileDobInput, profileCasteInput, profileSubcasteInput, profileCountryInput, profileStateInput, profileCityInput, profileLocationInput, profileReligionInput, profileEducationInput, profileProfessionInput, profileMotherTongueInput, profileStarInput, profileRasiInput, profileAnnualIncomeInput, profileMaritalStatusSelect, profileMatrimonyGroupSelect, profileBioInput;
+        let autoGenerateParagraphInput, autoGenerateBtn, autoGenerateSpinner, submitProfileBtn, cancelEditBtn, profileFormMessage, profileSubmitSpinner;
+        
+        // Photo upload specific elements
+        let dropArea, profilePhotoInput, imagePreviewContainer, noImagesSelectedText;
+
+
         document.addEventListener('DOMContentLoaded', function() {
-            // Assign DOM elements
+            // UI Shell Element Assignments
             sidebarUserAvatar = document.getElementById('sidebar-user-avatar');
             popupUserAvatar = document.getElementById('popup-user-avatar');
             sidebarUserName = document.getElementById('current-user-email');
             sidebarUserRole = document.getElementById('current-user-role');
             popupUserEmail = document.getElementById('popup-user-email');
             popupUserRole = document.getElementById('popup-user-role');
-
             logoutBtn = document.getElementById('logout-btn');
-            navAdminPanelItem = document.getElementById('nav-admin-panel-item');
-            adminGlobalMessage = document.getElementById('admin-global-message');
+            menuToggle = document.getElementById('menu-toggle');
+            sidebar = document.getElementById('sidebar');
+            sidebarCloseBtn = document.getElementById('sidebar-close-btn');
+            overlay = document.getElementById('overlay');
+            mainHeaderTitle = document.getElementById('main-header-title');
 
-            totalProfilesMetric = document.getElementById('total-profiles-metric');
-            activeProfilesMetric = document.getElementById('active-profiles-metric');
-            marriedProfilesMetric = document.getElementById('married-profiles-metric');
-            pendingUsersMetric = document.getElementById('pending-users-metric');
-            totalUsersMetric = document.getElementById('total-users-metric');
-
-            // Metric card containers to remove skeletons
-            metricCardTotalProfiles = document.getElementById('metric-total-profiles');
-            metricCardActiveProfiles = document.getElementById('metric-active-profiles');
-            metricCardMarriedProfiles = document.getElementById('metric-married-profiles');
-            metricCardPendingUsers = document.getElementById('metric-pending-users');
-            metricCardTotalUsers = document.getElementById('metric-total-users');
+            // Navigation specific items
+            navDashboardItem = document.getElementById('nav-dashboard-item');
+            navDashboardLink = document.getElementById('nav-dashboard-link');
+            navManageUsersItem = document.getElementById('nav-manage-users-item');
+            navManageProfilesItem = document.getElementById('nav-manage-profiles-item');
+            navGlobalHistoryItem = document.getElementById('nav-global-history-item');
 
 
-            recentlyAddedProfilesList = document.getElementById('recently-added-profiles-list');
-            monthlyGrowthChart = document.getElementById('monthly-growth-chart');
-            profileGrowthMessage = document.getElementById('profile-growth-message');
+            // Page Specific Element Assignments
+            profileFormTitle = document.getElementById('profile-form-title');
+            profileForm = document.getElementById('profile-form');
+            profileIdInput = document.getElementById('profile-id');
+            profileNameInput = document.getElementById('profile-name');
+            profileDobInput = document.getElementById('profile-dob');
+            profileCasteInput = document.getElementById('profile-caste');
+            profileSubcasteInput = document.getElementById('profile-subcaste');
+            profileCountryInput = document.getElementById('profile-country');
+            profileStateInput = document.getElementById('profile-state');
+            profileCityInput = document.getElementById('profile-city');
+            profileLocationInput = document.getElementById('profile-location');
+            profileReligionInput = document.getElementById('profile-religion');
+            profileEducationInput = document.getElementById('profile-education');
+            profileProfessionInput = document.getElementById('profile-profession');
+            profileMotherTongueInput = document.getElementById('profile-mother-tongue');
+            profileStarInput = document.getElementById('profile-star');
+            profileRasiInput = document.getElementById('profile-rasi');
+            profileAnnualIncomeInput = document.getElementById('profile-annual-income');
+            profileMaritalStatusSelect = document.getElementById('profile-marital-status');
+            profileMatrimonyGroupSelect = document.getElementById('profile-matrimony-group');
+            profileBioInput = document.getElementById('profile-bio');
+            autoGenerateParagraphInput = document.getElementById('auto-generate-paragraph');
+            autoGenerateBtn = document.getElementById('auto-generate-btn');
+            autoGenerateSpinner = document.getElementById('auto-generate-spinner');
+            submitProfileBtn = document.getElementById('submit-profile-btn');
+            cancelEditBtn = document.getElementById('cancel-edit-btn');
+            profileFormMessage = document.getElementById('profile-form-message');
+            profileSubmitSpinner = document.getElementById('profile-submit-spinner');
+
+            // Photo upload specific elements
+            dropArea = document.getElementById('drop-area');
+            profilePhotoInput = document.getElementById('profile-photo-input');
+            imagePreviewContainer = document.getElementById('image-preview-container');
+            noImagesSelectedText = imagePreviewContainer ? imagePreviewContainer.querySelector('.no-images-selected') : null;
 
 
+            // UI Shell Event Listeners
             const profileSection = document.getElementById('profile-section');
             const profilePopup = document.getElementById('profile-popup');
-            const sidebar = document.getElementById('sidebar');
-            const menuToggle = document.getElementById('menu-toggle');
-            const closeBtn = document.getElementById('sidebar-close-btn');
-            const overlay = document.getElementById('overlay');
 
             if (profileSection) {
                 profileSection.addEventListener('click', e => {
                     e.stopPropagation();
-                    profilePopup.classList.toggle('active');
-                    profileSection.classList.toggle('active');
+                    if (profilePopup) profilePopup.classList.toggle('active');
+                    if (profileSection) profileSection.classList.toggle('active');
                 });
             }
-            
             document.addEventListener('click', e => {
                 if (profileSection && !profileSection.contains(e.target) && profilePopup && !profilePopup.contains(e.target)) {
                     profilePopup.classList.remove('active');
                     profileSection.classList.remove('active');
                 }
             });
-
             const toggleMenu = () => {
                 if (sidebar) sidebar.classList.toggle('active');
                 if (overlay) overlay.classList.toggle('active');
             };
-            
             if (menuToggle) menuToggle.addEventListener('click', toggleMenu);
-            if (closeBtn) closeBtn.addEventListener('click', toggleMenu);
+            if (sidebarCloseBtn) sidebarCloseBtn.addEventListener('click', toggleMenu);
             if (overlay) overlay.addEventListener('click', toggleMenu);
 
-            // Initial calls to data fetching functions
-            // These will be called from onAuthStateChanged.
-            // But we can initiate skeleton removal for static parts immediately.
-            // Skeletons for dynamic content are removed after fetch.
-        });
-        // --- End UI Interactions ---
 
-        // Utility functions
+            // Page Specific Event Listeners
+            if (autoGenerateBtn) autoGenerateBtn.addEventListener('click', autoGenerateProfileDetails);
+            if (profileForm) {
+                profileForm.addEventListener('submit', submitProfileForm);
+                profileForm.addEventListener('input', saveFormDataToLocalStorage);
+            }
+            if (cancelEditBtn) cancelEditBtn.addEventListener('click', resetProfileForm);
+            if (logoutBtn) logoutBtn.addEventListener('click', async () => {
+                try {
+                    await signOut(auth);
+                    window.location.href = 'index.html';
+                } catch (error) {
+                    console.error("Error signing out:", error);
+                }
+            });
+
+            // Photo Upload Event Listeners
+            if (dropArea) {
+                dropArea.addEventListener('click', () => {
+                    if (profilePhotoInput) profilePhotoInput.click();
+                });
+                if (profilePhotoInput) profilePhotoInput.addEventListener('change', handleFileSelect);
+                dropArea.addEventListener('dragover', (e) => { e.preventDefault(); dropArea.classList.add('drag-over'); });
+                dropArea.addEventListener('dragleave', (e) => { e.preventDefault(); dropArea.classList.remove('drag-over'); });
+                dropArea.addEventListener('drop', handleDrop);
+            }
+
+            loadFormDataFromLocalStorage();
+        });
+
+        // --- Local Storage Functions ---
+        function getLocalStorageKey() {
+            return `${LOCAL_STORAGE_KEY_PREFIX}${currentUser ? currentUser.uid : 'anonymous'}`;
+        }
+
+        function saveFormDataToLocalStorage() {
+            if (!profileForm) return;
+            const formData = {
+                name: profileNameInput ? profileNameInput.value : '',
+                dateOfBirth: profileDobInput ? profileDobInput.value : '',
+                caste: profileCasteInput ? profileCasteInput.value : '',
+                subcaste: profileSubcasteInput ? profileSubcasteInput.value : '',
+                country: profileCountryInput ? profileCountryInput.value : '',
+                state: profileStateInput ? profileStateInput.value : '',
+                city: profileCityInput ? profileCityInput.value : '',
+                location: profileLocationInput ? profileLocationInput.value : '',
+                religion: profileReligionInput ? profileReligionInput.value : '',
+                education: profileEducationInput ? profileEducationInput.value : '',
+                profession: profileProfessionInput ? profileProfessionInput.value : '',
+                motherTongue: profileMotherTongueInput ? profileMotherTongueInput.value : '',
+                star: profileStarInput ? profileStarInput.value : '',
+                rasi: profileRasiInput ? profileRasiInput.value : '',
+                annualIncome: profileAnnualIncomeInput ? profileAnnualIncomeInput.value : '',
+                maritalStatus: profileMaritalStatusSelect ? profileMaritalStatusSelect.value : 'Single',
+                matrimonyGroupId: profileMatrimonyGroupSelect ? profileMatrimonyGroupSelect.value : '',
+                bio: profileBioInput ? profileBioInput.value : '',
+                autoGenerateParagraph: autoGenerateParagraphInput ? autoGenerateParagraphInput.value : '',
+                uploadedPhotos: currentUploadedPhotos.filter(p => p.status === 'completed').map(p => ({
+                    id: p.id,
+                    url: p.url,
+                    storagePath: p.storagePath
+                }))
+            };
+            localStorage.setItem(getLocalStorageKey(), JSON.stringify(formData));
+        }
+
+        function loadFormDataFromLocalStorage() {
+            const savedData = localStorage.getItem(getLocalStorageKey());
+            if (savedData) {
+                const formData = JSON.parse(savedData);
+                if (profileNameInput) profileNameInput.value = formData.name || '';
+                if (profileDobInput) profileDobInput.value = formData.dateOfBirth || '';
+                if (profileCasteInput) profileCasteInput.value = formData.caste || '';
+                if (profileSubcasteInput) profileSubcasteInput.value = formData.subcaste || '';
+                if (profileCountryInput) profileCountryInput.value = formData.country || '';
+                if (profileStateInput) profileStateInput.value = formData.state || '';
+                if (profileCityInput) profileCityInput.value = formData.city || '';
+                if (profileLocationInput) profileLocationInput.value = formData.location || '';
+                if (profileReligionInput) profileReligionInput.value = formData.religion || '';
+                if (profileEducationInput) profileEducationInput.value = formData.education || '';
+                if (profileProfessionInput) profileProfessionInput.value = formData.profession || '';
+                if (profileMotherTongueInput) profileMotherTongueInput.value = formData.motherTongue || '';
+                if (profileStarInput) profileStarInput.value = formData.star || '';
+                if (profileRasiInput) profileRasiInput.value = formData.rasi || '';
+                if (profileAnnualIncomeInput) profileAnnualIncomeInput.value = formData.annualIncome || '';
+                if (profileMaritalStatusSelect) profileMaritalStatusSelect.value = formData.maritalStatus || 'Single';
+                if (profileMatrimonyGroupSelect) profileMatrimonyGroupSelect.value = formData.matrimonyGroupId || '';
+                if (profileBioInput) profileBioInput.value = formData.bio || '';
+                if (autoGenerateParagraphInput) autoGenerateParagraphInput.value = formData.autoGenerateParagraph || '';
+
+                if (formData.uploadedPhotos && formData.uploadedPhotos.length > 0) {
+                    currentUploadedPhotos = formData.uploadedPhotos.map(p => ({
+                        ...p,
+                        progress: 100,
+                        status: 'completed',
+                        uploadTask: null,
+                        isPersisted: true
+                    }));
+                    renderImagePreviews();
+                    showMessage(profileFormMessage, 'Loaded unsaved data from local storage.', false);
+                }
+            }
+        }
+
+        function clearLocalStorage() {
+            localStorage.removeItem(getLocalStorageKey());
+        }
+
+        // --- Utility Functions ---
         function showMessage(element, message, isSuccess = true) {
-            if (element) { // Ensure element exists before manipulating
+            if (element) {
                 element.textContent = message;
                 element.classList.remove('hidden');
                 element.classList.toggle('success-message', isSuccess);
                 element.classList.toggle('error-message', !isSuccess);
                 setTimeout(() => element.classList.add('hidden'), 5000);
             }
+        }
+
+        function showSpinner(spinnerElement, buttonElement, show) {
+            if (spinnerElement) spinnerElement.classList.toggle('hidden', !show);
+            if (buttonElement) buttonElement.disabled = show;
         }
 
         async function logChange(action, entityType, entityId, details = {}) {
@@ -473,31 +726,41 @@
                     details: JSON.stringify(details)
                 });
             } catch (error) {
-                console.error("Error logging global change:", error);
+                console.error("Error logging change:", error);
             }
         }
 
-        function getMatrimonyGroupName(groupId) {
-            if (!groupId) {
-                return 'Not Specified';
+        async function logProfileFieldChange(profileId, fieldName, oldValue, newValue) {
+            if (!currentUser || oldValue === newValue) return;
+
+            try {
+                await addDoc(collection(db, 'profiles', profileId, 'history'), {
+                    fieldName,
+                    oldValue,
+                    newValue,
+                    changedByUid: currentUser.uid,
+                    changedByEmail: currentUser.email,
+                    timestamp: serverTimestamp(),
+                });
+            } catch (error) {
+                console.error(`Error logging field change for ${fieldName}:`, error);
             }
-            const group = hardcodedMatrimonyGroups.find(g => g.id === groupId);
-            return group ? group.name : 'Unknown Group';
         }
 
-        function calculateAge(dateOfBirthString) {
-            if (!dateOfBirthString) return 'N/A';
-            const dob = new Date(dateOfBirthString);
-            const today = new Date();
-            let age = today.getFullYear() - dob.getFullYear();
-            const monthDiff = today.getMonth() - dob.getMonth();
-            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
-                age--;
+        function populateMatrimonyGroupSelects() {
+            const currentSelectedGroup = profileMatrimonyGroupSelect ? profileMatrimonyGroupSelect.value : '';
+            if (profileMatrimonyGroupSelect) {
+                profileMatrimonyGroupSelect.innerHTML = '<option value="">None (Optional)</option>';
+                hardcodedMatrimonyGroups.forEach(group => {
+                    const option1 = document.createElement('option');
+                    option1.value = group.id;
+                    option1.textContent = group.name;
+                    profileMatrimonyGroupSelect.appendChild(option1);
+                });
+                profileMatrimonyGroupSelect.value = currentSelectedGroup;
             }
-            return age;
         }
 
-        // --- Authentication State Observer ---
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 currentUser = user;
@@ -513,11 +776,13 @@
                     } else if (userStatus === 'denied' || userStatus === 'suspended') {
                         window.location.href = 'denied.html';
                         return;
-                    } else if (currentUserRole !== 'admin') {
-                        alert('You do not have sufficient permissions to access the Admin Dashboard. Redirecting to employee dashboard.');
-                        window.location.href = 'employee-dashboard.html';
+                    } else if (currentUserRole !== 'admin' && currentUserRole !== 'employee') {
+                        alert('Your account is not approved. Redirecting to login.');
+                        await signOut(auth);
+                        window.location.href = 'index.html';
                         return;
                     }
+
                 } catch (error) {
                     console.error("Error fetching user role/status:", error);
                     alert('Error verifying user role. Redirecting to login.');
@@ -526,7 +791,6 @@
                     return;
                 }
 
-                // Safely update sidebar/popup user info
                 if (sidebarUserName) sidebarUserName.textContent = user.email;
                 if (sidebarUserRole) sidebarUserRole.textContent = currentUserRole ? currentUserRole.charAt(0).toUpperCase() + currentUserRole.slice(1) : 'Admin';
                 if (popupUserEmail) popupUserEmail.textContent = user.email;
@@ -537,195 +801,440 @@
                 if (popupUserAvatar) popupUserAvatar.src = avatarUrl;
 
                 if (logoutBtn) logoutBtn.classList.remove('hidden');
-                if (navAdminPanelItem) navAdminPanelItem.classList.remove('hidden');
 
-                // Load all dashboard overview data
-                fetchDashboardMetrics();
-                fetchRecentlyAddedProfiles();
-                fetchMonthlyProfileGrowth();
+                if (navDashboardLink) {
+                    navDashboardLink.href = (currentUserRole === 'admin') ? 'admin-dashboard.html' : 'employee-dashboard.html';
+                }
+                if (navManageUsersItem) navManageUsersItem.classList.toggle('hidden', currentUserRole !== 'admin');
+                if (navManageProfilesItem) navManageProfilesItem.classList.toggle('hidden', currentUserRole !== 'admin');
+                if (navGlobalHistoryItem) navGlobalHistoryItem.classList.toggle('hidden', currentUserRole !== 'admin');
+
+
+                populateMatrimonyGroupSelects();
+
+                const urlParams = new URLSearchParams(window.location.search);
+                const profileId = urlParams.get('profileId');
+                if (profileId) {
+                    if (mainHeaderTitle) mainHeaderTitle.textContent = 'Edit Profile';
+                    if (profileFormTitle) profileFormTitle.textContent = 'Edit Profile';
+                    await loadProfileForEdit(profileId);
+                } else {
+                    if (mainHeaderTitle) mainHeaderTitle.textContent = 'Create New Profile';
+                    if (profileFormTitle) profileFormTitle.textContent = 'Create New Profile';
+                    resetProfileForm();
+                }
 
             } else {
                 window.location.href = 'index.html';
             }
         });
 
-        // --- Logout ---
-        if (logoutBtn) { // Check if logoutBtn exists before adding listener
-            logoutBtn.addEventListener('click', async () => {
-                try {
-                    await signOut(auth);
-                    window.location.href = 'index.html';
-                } catch (error) {
-                    console.error("Error signing out:", error);
-                }
-            });
-        }
 
-        // --- Dashboard Metrics ---
-        async function fetchDashboardMetrics() {
-            // Remove skeleton classes from metric cards
-            if (metricCardTotalProfiles) metricCardTotalProfiles.classList.remove('skeleton');
-            if (metricCardActiveProfiles) metricCardActiveProfiles.classList.remove('skeleton');
-            if (metricCardMarriedProfiles) metricCardMarriedProfiles.classList.remove('skeleton');
-            if (metricCardPendingUsers) metricCardPendingUsers.classList.remove('skeleton');
-            if (metricCardTotalUsers) metricCardTotalUsers.classList.remove('skeleton');
-
-            try {
-                const profilesSnapshot = await getDocs(collection(db, 'profiles'));
-                let totalProfiles = 0;
-                let activeProfiles = 0;
-                let marriedProfiles = 0;
-
-                profilesSnapshot.forEach(doc => {
-                    totalProfiles++;
-                    const status = doc.data().profileStatus;
-                    if (status === 'active') activeProfiles++;
-                    if (status === 'married') marriedProfiles++;
-                });
-
-                const usersSnapshot = await getDocs(collection(db, 'users'));
-                let totalUsers = 0;
-                let pendingUsers = 0;
-
-                usersSnapshot.forEach(doc => {
-                    totalUsers++;
-                    if (doc.data().status === 'pending') pendingUsers++;
-                });
-
-                if (totalProfilesMetric) totalProfilesMetric.textContent = totalProfiles;
-                if (activeProfilesMetric) activeProfilesMetric.textContent = activeProfiles;
-                if (marriedProfilesMetric) marriedProfilesMetric.textContent = marriedProfiles;
-                if (totalUsersMetric) totalUsersMetric.textContent = totalUsers;
-                if (pendingUsersMetric) pendingUsersMetric.textContent = pendingUsers;
-
-                // Set labels explicitly after values are loaded
-                if (totalProfilesMetric && totalProfilesMetric.nextElementSibling) totalProfilesMetric.nextElementSibling.textContent = 'Total Profiles';
-                if (activeProfilesMetric && activeProfilesMetric.nextElementSibling) activeProfilesMetric.nextElementSibling.textContent = 'Active Profiles';
-                if (marriedProfilesMetric && marriedProfilesMetric.nextElementSibling) marriedProfilesMetric.nextElementSibling.textContent = 'Married Profiles';
-                if (totalUsersMetric && totalUsersMetric.nextElementSibling) totalUsersMetric.nextElementSibling.textContent = 'Total Registered Users';
-                if (pendingUsersMetric && pendingUsersMetric.nextElementSibling) pendingUsersMetric.nextElementSibling.textContent = 'Pending Users';
-
-            } catch (error) {
-                console.error("Error fetching dashboard metrics:", error);
-                showMessage(adminGlobalMessage, `Error loading metrics: ${error.message}`, false);
-            }
-        }
-
-        // --- Recently Added Profiles ---
-        async function fetchRecentlyAddedProfiles() {
-            // Add skeleton placeholders if not already there, or just show loading text
-            if (recentlyAddedProfilesList) recentlyAddedProfilesList.innerHTML = `
-                <div class="recent-profile-item skeleton"><div class="skeleton skeleton-avatar"></div><div style="flex:1;"><div class="skeleton-line" style="width: 80%;"></div><div class="skeleton-line" style="width: 50%; height: 12px; margin-top: 4px;"></div></div><div class="skeleton-line" style="width: 60px;"></div></div>
-                <div class="recent-profile-item skeleton"><div class="skeleton skeleton-avatar"></div><div style="flex:1;"><div class="skeleton-line" style="width: 70%;"></div><div class="skeleton-line" style="width: 40%; height: 12px; margin-top: 4px;"></div></div><div class="skeleton-line" style="width: 60px;"></div></div>
-                <div class="recent-profile-item skeleton"><div class="skeleton skeleton-avatar"></div><div style="flex:1;"><div class="skeleton-line" style="width: 90%;"></div><div class="skeleton-line" style="width: 60%; height: 12px; margin-top: 4px;"></div></div><div class="skeleton-line" style="width: 60px;"></div></div>
-            `;
-            
-            try {
-                const q = query(collection(db, 'profiles'), orderBy('createdAt', 'desc'), limit(5));
-                const snapshot = await getDocs(q);
-
-                if (recentlyAddedProfilesList) recentlyAddedProfilesList.innerHTML = ''; // Clear skeletons/loading
-
-                if (snapshot.empty) {
-                    if (recentlyAddedProfilesList) recentlyAddedProfilesList.innerHTML = '<p class="no-records">No profiles added yet.</p>';
-                    return;
-                }
-
-                snapshot.docs.forEach(doc => {
-                    const profile = { id: doc.id, ...doc.data() };
-                    const age = calculateAge(profile.dateOfBirth);
-                    const matrimonyGroupName = getMatrimonyGroupName(profile.matrimonyGroupId);
-
-                    const profileItem = document.createElement('div');
-                    profileItem.className = 'recent-profile-item';
-                    profileItem.innerHTML = `
-                        <img src="${profile.photoURL || 'https://via.placeholder.com/48'}" alt="${profile.name}">
-                        <div class="recent-profile-details">
-                            <div class="name">${profile.name}</div>
-                            <div class="info">${age} | ${profile.location} | ${matrimonyGroupName}</div>
-                        </div>
-                        <div class="actions">
-                            <a href="view-profile.html?profileId=${profile.id}" class="button-primary">View</a>
-                        </div>
-                    `;
-                    if (recentlyAddedProfilesList) recentlyAddedProfilesList.appendChild(profileItem);
-                });
-
-            } catch (error) {
-                console.error("Error fetching recently added profiles:", error);
-                if (recentlyAddedProfilesList) recentlyAddedProfilesList.innerHTML = `<p class="error-message">Error loading recent profiles: ${error.message}</p>`;
-            }
-        }
-
-        // --- Monthly Profile Growth ---
-        async function fetchMonthlyProfileGrowth() {
-            if (monthlyGrowthChart) monthlyGrowthChart.classList.add('skeleton'); // Add skeleton for chart
-            if (monthlyGrowthChart) monthlyGrowthChart.innerHTML = '<p class="no-records">Loading growth data...</p>';
-            try {
-                const profilesSnapshot = await getDocs(collection(db, 'profiles'));
-                const monthlyCounts = {};
-                const today = new Date();
-
-                // Initialize counts for the last 6 months
-                for (let i = 0; i < 6; i++) {
-                    const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
-                    const monthKey = `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}`;
-                    const monthLabel = d.toLocaleString('en-us', { month: 'short' });
-                    monthlyCounts[monthKey] = { count: 0, label: monthLabel };
-                }
-
-                profilesSnapshot.forEach(doc => {
-                    const createdAt = doc.data().createdAt;
-                    if (createdAt) {
-                        const date = createdAt.toDate();
-                        const monthKey = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}`;
-                        if (monthlyCounts.hasOwnProperty(monthKey)) {
-                            monthlyCounts[monthKey].count++;
-                        }
+        // --- Photo Upload Functions ---
+        function handleFileSelect(event) {
+            const files = event.target.files;
+            if (files.length > 0) {
+                if (profilePhotoInput) profilePhotoInput.value = ''; // Clear input to allow re-selecting same files
+                Array.from(files).forEach(file => {
+                    if (file.type.startsWith('image/')) {
+                        uploadFile(file);
+                    } else {
+                        showMessage(profileFormMessage, `File '${file.name}' is not an image.`, false);
                     }
                 });
-
-                renderMonthlyGrowthChart(monthlyCounts);
-
-            } catch (error) {
-                console.error("Error fetching monthly profile growth:", error);
-                if (profileGrowthMessage) showMessage(profileGrowthMessage, `Error loading profile growth data: ${error.message}`, false);
-                if (monthlyGrowthChart) monthlyGrowthChart.innerHTML = `<p class="error-message">Error loading growth data: ${error.message}</p>`;
-            } finally {
-                if (monthlyGrowthChart) monthlyGrowthChart.classList.remove('skeleton');
             }
         }
 
-        function renderMonthlyGrowthChart(monthlyCounts) {
-            if (!monthlyGrowthChart) return;
+        function handleDrop(event) {
+            event.preventDefault();
+            if (dropArea) dropArea.classList.remove('drag-over');
+            const files = event.dataTransfer.files;
+            if (files.length > 0) {
+                Array.from(files).forEach(file => {
+                    if (file.type.startsWith('image/')) {
+                        uploadFile(file);
+                    } else {
+                        showMessage(profileFormMessage, `File '${file.name}' is not an image.`, false);
+                    }
+                });
+            }
+        }
 
-            monthlyGrowthChart.innerHTML = '';
-            const monthsSortedKeys = Object.keys(monthlyCounts).sort();
-            
-            if (monthsSortedKeys.length === 0 || Object.values(monthlyCounts).every(m => m.count === 0)) {
-                 monthlyGrowthChart.innerHTML = '<p class="no-records">No profile growth data available for the last 6 months.</p>';
-                 return;
+        async function uploadFile(file) {
+            if (!currentUser) {
+                showMessage(profileFormMessage, 'Please log in to upload photos.', false);
+                return;
             }
 
-            const allCounts = monthsSortedKeys.map(key => monthlyCounts[key].count);
-            const maxCount = Math.max(...allCounts, 1);
+            const uniqueId = Date.now() + '-' + Math.random().toString(36).substring(2, 9);
+            const storagePath = `profile_photos/${currentUser.uid}/${uniqueId}_${file.name}`;
+            const storageRef = ref(storage, storagePath);
+            const uploadTask = uploadBytesResumable(storageRef, file);
 
-            monthsSortedKeys.forEach(monthKey => {
-                const data = monthlyCounts[monthKey];
-                const count = data.count;
-                const label = data.label;
-                const barHeight = (count / maxCount) * 100;
+            const fileMetadata = {
+                id: uniqueId,
+                file: file,
+                progress: 0,
+                status: 'uploading', // uploading, completed, failed
+                url: '',
+                storagePath: storagePath,
+                uploadTask: uploadTask,
+                isPersisted: false // New flag: is this image already saved to the profile in Firestore?
+            };
+            currentUploadedPhotos.push(fileMetadata);
+            renderImagePreviews(); // Update UI to show new file
 
-                const barWrapper = document.createElement('div');
-                barWrapper.className = 'bar-wrapper';
-                barWrapper.innerHTML = `
-                    <div class="chart-bar" style="height: ${barHeight > 0 ? barHeight : 5}%;">
-                        <span class="value">${count}</span>
+            uploadTask.on('state_changed',
+                (snapshot) => {
+                    const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                    const metadataIndex = currentUploadedPhotos.findIndex(f => f.id === uniqueId);
+                    if (metadataIndex > -1) {
+                        currentUploadedPhotos[metadataIndex].progress = progress;
+                    }
+                    renderImagePreviews(); // Update progress in UI
+                },
+                (error) => {
+                    console.error("Upload failed:", error);
+                    const metadataIndex = currentUploadedPhotos.findIndex(f => f.id === uniqueId);
+                    if (metadataIndex > -1) {
+                        currentUploadedPhotos[metadataIndex].status = 'failed';
+                    }
+                    showMessage(profileFormMessage, `Upload for ${file.name} failed: ${error.message}`, false);
+                    renderImagePreviews();
+                },
+                async () => {
+                    const url = await getDownloadURL(uploadTask.snapshot.ref);
+                    const metadataIndex = currentUploadedPhotos.findIndex(f => f.id === uniqueId);
+                    if (metadataIndex > -1) {
+                        currentUploadedPhotos[metadataIndex].url = url;
+                        currentUploadedPhotos[metadataIndex].status = 'completed';
+                    }
+                    renderImagePreviews();
+                    saveFormDataToLocalStorage(); // Auto-save form and photo urls after successful individual upload
+                }
+            );
+        }
+
+        function renderImagePreviews() {
+            if (!imagePreviewContainer) return;
+
+            imagePreviewContainer.innerHTML = ''; // Clear existing previews
+            if (currentUploadedPhotos.length === 0) {
+                if (noImagesSelectedText) noImagesSelectedText.classList.remove('hidden');
+                return;
+            } else {
+                if (noImagesSelectedText) noImagesSelectedText.classList.add('hidden');
+            }
+            
+            currentUploadedPhotos.forEach(fileMetadata => {
+                const previewCard = document.createElement('div');
+                previewCard.className = 'image-preview-card';
+                previewCard.dataset.id = fileMetadata.id;
+
+                let imageSrc = fileMetadata.url || (fileMetadata.file ? URL.createObjectURL(fileMetadata.file) : 'https://via.placeholder.com/60');
+                if (fileMetadata.status === 'failed') imageSrc = 'https://via.placeholder.com/60?text=Error';
+
+
+                previewCard.innerHTML = `
+                    <div class="image-thumb-wrapper">
+                        <img src="${imageSrc}" alt="Preview">
+                        <div class="file-info">
+                            <div class="file-name">${fileMetadata.file ? fileMetadata.file.name : 'Existing Image'}</div>
+                        </div>
                     </div>
-                    <span class="bar-label">${label}</span>
+                    <div class="upload-status-indicator">
+                        ${fileMetadata.status === 'uploading' ? 
+                            `<div class="upload-progress-wrapper" style="width: 50px;"><div class="progress-bar" style="width: ${fileMetadata.progress}%;"></div></div>` : ''}
+                        <div class="upload-status-icon ${fileMetadata.status === 'completed' ? '' : 'hidden'}">
+                            <i class='bx bx-check-circle'></i>
+                        </div>
+                        <div class="upload-actions">
+                            <button type="button" class="delete-temp" data-id="${fileMetadata.id}"><i class='bx bx-x'></i></button>
+                        </div>
+                    </div>
                 `;
-                monthlyGrowthChart.appendChild(barWrapper);
+                imagePreviewContainer.appendChild(previewCard);
+
+                previewCard.querySelector('.delete-temp').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    deleteTemporaryImage(e.target.dataset.id);
+                });
             });
+        }
+
+        async function deleteTemporaryImage(idToDelete) {
+            const index = currentUploadedPhotos.findIndex(f => f.id === idToDelete);
+            if (index > -1) {
+                const fileMetadata = currentUploadedPhotos[index];
+                
+                if (fileMetadata.url && !fileMetadata.isPersisted) {
+                    try {
+                        if (fileMetadata.uploadTask && fileMetadata.uploadTask.cancel) {
+                           fileMetadata.uploadTask.cancel();
+                           console.log("Upload task cancelled for:", fileMetadata.file ? fileMetadata.file.name : fileMetadata.id);
+                        }
+                        const storageRefToDelete = ref(storage, fileMetadata.storagePath);
+                        await deleteObject(storageRefToDelete);
+                        showMessage(profileFormMessage, `Deleted temporary image '${fileMetadata.file ? fileMetadata.file.name : fileMetadata.id}' from storage.`, true);
+                    } catch (error) {
+                        console.error("Error deleting temp image from storage:", error);
+                        if (error.code !== 'storage/object-not-found') {
+                            showMessage(profileFormMessage, `Could not delete temporary image '${fileMetadata.file ? fileMetadata.file.name : fileMetadata.id}' from storage: ${error.message}`, false);
+                        }
+                    }
+                }
+                currentUploadedPhotos.splice(index, 1);
+                renderImagePreviews();
+                saveFormDataToLocalStorage();
+            }
+        }
+
+        async function cleanupCurrentUploadedPhotos() {
+            const photosToDeleteFromStorage = currentUploadedPhotos.filter(p => !p.isPersisted && (p.status === 'completed' || p.status === 'uploading'));
+
+            for (const fileMetadata of photosToDeleteFromStorage) {
+                try {
+                    if (fileMetadata.uploadTask && fileMetadata.uploadTask.cancel) {
+                        fileMetadata.uploadTask.cancel();
+                    }
+                    const storageRefToDelete = ref(storage, fileMetadata.storagePath);
+                    await deleteObject(storageRefToDelete);
+                    console.log(`Cleaned up temp photo: ${fileMetadata.storagePath}`);
+                } catch (error) {
+                    console.warn(`Failed to clean up temp file ${fileMetadata.storagePath} from storage:`, error);
+                }
+            }
+            currentUploadedPhotos = [];
+            renderImagePreviews();
+            clearLocalStorage();
+        }
+
+        // --- Core Profile Form Functions ---
+        async function autoGenerateProfileDetails() {
+            const paragraph = autoGenerateParagraphInput ? autoGenerateParagraphInput.value : '';
+            if (!paragraph) {
+                showMessage(profileFormMessage, 'Please enter a paragraph to auto-generate.', false);
+                return;
+            }
+
+            showSpinner(autoGenerateSpinner, autoGenerateBtn, true);
+
+            try {
+                const prompt = `Extract the following details from the paragraph below and return them as a JSON object. If a detail is not found, use an empty string for strings or null for Date of Birth. The marital status should be one of 'Single', 'Divorced', 'Widowed'. Date of Birth should be in YYYY-MM-DD format.\n\nParagraph: "${paragraph}"\n\nExpected JSON format: {"name": "", "dateOfBirth": null, "location": "", "religion": "", "education": "", "profession": "", "maritalStatus": "", "caste": "", "subcaste": "", "country": "", "state": "", "city": "", "motherTongue": "", "star": "", "rasi": "", "annualIncome": ""}`;
+                const result = await model.generateContent(prompt);
+                let responseText = result.response.text();
+
+                const jsonMatch = responseText.match(/```json\n([\s\S]*?)\n```/);
+                if (jsonMatch && jsonMatch[1]) {
+                    responseText = jsonMatch[1];
+                }
+                
+                const data = JSON.parse(responseText);
+
+                if (profileNameInput) profileNameInput.value = data.name || '';
+                if (profileDobInput) profileDobInput.value = data.dateOfBirth || '';
+                if (profileCasteInput) profileCasteInput.value = data.caste || '';
+                if (profileSubcasteInput) profileSubcasteInput.value = data.subcaste || '';
+                if (profileCountryInput) profileCountryInput.value = data.country || '';
+                if (profileStateInput) profileStateInput.value = data.state || '';
+                if (profileCityInput) profileCityInput.value = data.city || '';
+                if (profileLocationInput) profileLocationInput.value = data.location || '';
+                if (profileReligionInput) profileReligionInput.value = data.religion || '';
+                if (profileEducationInput) profileEducationInput.value = data.education || '';
+                if (profileProfessionInput) profileProfessionInput.value = data.profession || '';
+                if (profileMotherTongueInput) profileMotherTongueInput.value = data.motherTongue || '';
+                if (profileStarInput) profileStarInput.value = data.star || '';
+                if (profileRasiInput) profileRasiInput.value = data.rasi || '';
+                if (profileAnnualIncomeInput) profileAnnualIncomeInput.value = data.annualIncome || '';
+                if (profileMaritalStatusSelect && ['Single', 'Divorced', 'Widowed'].includes(data.maritalStatus)) {
+                    profileMaritalStatusSelect.value = data.maritalStatus;
+                } else if (profileMaritalStatusSelect) {
+                    profileMaritalStatusSelect.value = 'Single';
+                }
+
+                showMessage(profileFormMessage, 'Details auto-generated from paragraph using AI!', true);
+                saveFormDataToLocalStorage();
+            } catch (error) {
+                console.error("Error auto-generating content:", error);
+                showMessage(profileFormMessage, `Error auto-generating: ${error.message}. Please try again or enter manually.`, false);
+            } finally {
+                showSpinner(autoGenerateSpinner, autoGenerateBtn, false);
+            }
+        }
+
+        async function submitProfileForm(e) {
+            e.preventDefault();
+            showSpinner(profileSubmitSpinner, submitProfileBtn, true);
+
+            const pendingUploads = currentUploadedPhotos.filter(p => p.status === 'uploading');
+            if (pendingUploads.length > 0) {
+                showMessage(profileFormMessage, `Please wait for ${pendingUploads.length} images to finish uploading.`, false);
+                showSpinner(profileSubmitSpinner, submitProfileBtn, false);
+                return;
+            }
+
+            const photoURLs = currentUploadedPhotos.filter(p => p.status === 'completed' && p.url).map(p => p.url);
+
+            const newProfileData = {
+                name: profileNameInput ? profileNameInput.value : '',
+                dateOfBirth: profileDobInput ? profileDobInput.value : '',
+                caste: profileCasteInput ? profileCasteInput.value : '',
+                subcaste: profileSubcasteInput ? profileSubcasteInput.value : '',
+                country: profileCountryInput ? profileCountryInput.value : '',
+                state: profileStateInput ? profileStateInput.value : '',
+                city: profileCityInput ? profileCityInput.value : '',
+                location: profileLocationInput ? profileLocationInput.value : '',
+                presentAddress: profileLocationInput ? profileLocationInput.value : '',
+                religion: profileReligionInput ? profileReligionInput.value : '',
+                education: profileEducationInput ? profileEducationInput.value : '',
+                profession: profileProfessionInput ? profileProfessionInput.value : '',
+                motherTongue: profileMotherTongueInput ? profileMotherTongueInput.value : '',
+                star: profileStarInput ? profileStarInput.value : '',
+                rasi: profileRasiInput ? profileRasiInput.value : '',
+                annualIncome: profileAnnualIncomeInput ? profileAnnualIncomeInput.value : '',
+                maritalStatus: profileMaritalStatusSelect ? profileMaritalStatusSelect.value : 'Single',
+                matrimonyGroupId: profileMatrimonyGroupSelect ? profileMatrimonyGroupSelect.value : '',
+                bio: profileBioInput ? profileBioInput.value : '',
+                photoURLs: photoURLs,
+                updatedAt: serverTimestamp(),
+                updatedBy: currentUser.uid,
+                profileStatus: 'active',
+            };
+
+            const fieldsToAudit = ['name', 'dateOfBirth', 'caste', 'subcaste', 'country', 'state', 'city', 'location', 'religion', 'education', 'profession', 'motherTongue', 'star', 'rasi', 'annualIncome', 'maritalStatus', 'matrimonyGroupId', 'bio', 'photoURLs', 'profileStatus'];
+
+            let oldProfileData = {};
+            let profileRef;
+
+            if (editingProfileId) {
+                profileRef = doc(db, 'profiles', editingProfileId);
+                const oldProfileDoc = await getDoc(profileRef);
+                if (oldProfileDoc.exists()) {
+                    oldProfileData = oldProfileDoc.data();
+                }
+            }
+            
+            try {
+                const oldPhotoURLs = oldProfileData.photoURLs || [];
+                const photosToDeleteFromStorage = oldPhotoURLs.filter(oldUrl => !photoURLs.includes(oldUrl));
+
+                for (const urlToDelete of photosToDeleteFromStorage) {
+                    try {
+                        const photoRefToDelete = ref(storage, urlToDelete);
+                        await deleteObject(photoRefToDelete);
+                        console.log(`Deleted old photo from storage: ${urlToDelete}`);
+                    } catch (deleteError) {
+                        console.warn(`Failed to delete old photo ${urlToDelete} from storage:`, deleteError);
+                    }
+                }
+
+                if (editingProfileId) {
+                    await updateDoc(profileRef, newProfileData);
+                    await logChange('edit', 'profile', editingProfileId, { oldData: oldProfileData, newData: newProfileData });
+
+                    for (const field of fieldsToAudit) {
+                        const oldValue = JSON.stringify(oldProfileData[field] || '');
+                        const newValue = JSON.stringify(newProfileData[field] || '');
+                        if (oldValue !== newValue) {
+                            await logProfileFieldChange(editingProfileId, field, oldProfileData[field], newProfileData[field]);
+                        }
+                    }
+
+                    showMessage(profileFormMessage, 'Profile updated successfully!', true);
+                } else {
+                    newProfileData.createdAt = serverTimestamp();
+                    newProfileData.createdBy = currentUser.uid;
+                    const docRef = await addDoc(collection(db, 'profiles'), newProfileData);
+                    await logChange('add', 'profile', docRef.id, { newData: newProfileData });
+                    showMessage(profileFormMessage, 'Profile created successfully!', true);
+                }
+                resetProfileForm();
+            } catch (error) {
+                console.error("Error saving profile:", error);
+                showMessage(profileFormMessage, `Error saving profile: ${error.message}`, false);
+            } finally {
+                showSpinner(profileSubmitSpinner, submitProfileBtn, false);
+            }
+        }
+
+        async function loadProfileForEdit(profileId) {
+            if (profileFormTitle) profileFormTitle.textContent = 'Edit Profile';
+            if (submitProfileBtn) submitProfileBtn.textContent = 'Update Profile';
+            if (cancelEditBtn) cancelEditBtn.classList.remove('hidden');
+            editingProfileId = profileId;
+
+            await cleanupCurrentUploadedPhotos();
+            clearLocalStorage();
+
+            try {
+                const profileDoc = await getDoc(doc(db, 'profiles', profileId));
+                if (!profileDoc.exists()) {
+                    showMessage(profileFormMessage, 'Profile not found for editing.', false);
+                    return;
+                }
+                const profile = { id: profileDoc.id, ...profileDoc.data() };
+
+                if (profileIdInput) profileIdInput.value = profile.id;
+                if (profileNameInput) profileNameInput.value = profile.name;
+                if (profileDobInput) profileDobInput.value = profile.dateOfBirth;
+                if (profileCasteInput) profileCasteInput.value = profile.caste || '';
+                if (profileSubcasteInput) profileSubcasteInput.value = profile.subcaste || '';
+                if (profileCountryInput) profileCountryInput.value = profile.country || '';
+                if (profileStateInput) profileStateInput.value = profile.state || '';
+                if (profileCityInput) profileCityInput.value = profile.city || '';
+                if (profileLocationInput) profileLocationInput.value = profile.location;
+                if (profileReligionInput) profileReligionInput.value = profile.religion;
+                if (profileEducationInput) profileEducationInput.value = profile.education;
+                if (profileProfessionInput) profileProfessionInput.value = profile.profession;
+                if (profileMotherTongueInput) profileMotherTongueInput.value = profile.motherTongue || '';
+                if (profileStarInput) profileStarInput.value = profile.star || '';
+                if (profileRasiInput) profileRasiInput.value = profile.rasi || '';
+                if (profileAnnualIncomeInput) profileAnnualIncomeInput.value = profile.annualIncome || '';
+                if (profileMaritalStatusSelect) profileMaritalStatusSelect.value = profile.maritalStatus;
+                if (profileMatrimonyGroupSelect) profileMatrimonyGroupSelect.value = profile.matrimonyGroupId || '';
+                if (profileBioInput) profileBioInput.value = profile.bio;
+                if (autoGenerateParagraphInput) autoGenerateParagraphInput.value = '';
+
+                currentUploadedPhotos = (profile.photoURLs || []).map(url => {
+                    const storagePathMatch = url.match(/https:\/\/firebasestorage\.googleapis\.com\/v0\/b\/[^/]+\/o\/(.+)\?alt=media/);
+                    const storagePath = storagePathMatch ? decodeURIComponent(storagePathMatch[1]) : url;
+                    return {
+                        id: 'existing-' + Math.random().toString(36).substring(2, 9),
+                        file: null,
+                        progress: 100,
+                        status: 'completed',
+                        url: url,
+                        storagePath: storagePath,
+                        uploadTask: null,
+                        isPersisted: true
+                    };
+                });
+                renderImagePreviews();
+                saveFormDataToLocalStorage();
+
+                showMessage(profileFormMessage, `Loading profile for edit: ${profile.name}`, true);
+            } catch (error) {
+                console.error("Error loading profile for edit:", error);
+                showMessage(profileFormMessage, `Error loading profile for edit: ${error.message}`, false);
+            }
+        }
+
+        async function resetProfileForm() {
+            if (profileForm) profileForm.reset();
+            if (profileIdInput) profileIdInput.value = '';
+            
+            await cleanupCurrentUploadedPhotos();
+
+            if (autoGenerateParagraphInput) autoGenerateParagraphInput.value = '';
+            if (profileFormTitle) profileFormTitle.textContent = 'Create New Profile';
+            if (submitProfileBtn) submitProfileBtn.textContent = 'Create Profile';
+            if (cancelEditBtn) cancelEditBtn.classList.add('hidden');
+            editingProfileId = null;
+            if (profileMatrimonyGroupSelect) profileMatrimonyGroupSelect.value = '';
+            if (profileFormMessage) profileFormMessage.classList.add('hidden');
+            
+            clearLocalStorage();
+            window.history.replaceState({}, document.title, window.location.pathname);
         }
     </script>
 </body>
