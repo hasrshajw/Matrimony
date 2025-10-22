@@ -14,7 +14,7 @@
     <script type="module" src="https://www.gstatic.com/firebasejs/12.4.0/firebase-storage.js"></script>
 
     <style>
-        :root { --body-bg: #F9FAFB; --widget-bg: #FFFFFF; --border-color: #E5E7EB; --text-primary: #002726; --text-secondary: #6B7280; --brand-green: #33C375; --hover-bg: #F3F4F6; --warning-color: #F59E0B; --danger-color: #EF4444; --info-color: #3498db;}
+        :root { --body-bg: #F9FAFB; --widget-bg: #FFFFFF; --border-color: #E5E7EB; --text-primary: #002726; --text-secondary: #6B7280; --brand-green: #33C375; --hover-bg: #F3F4F6; --warning-color: #F59E0B; --danger-color: #EF4444; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'IBM Plex Sans', sans-serif; background-color: var(--body-bg); color: var(--text-primary); font-size: 14px; overflow: hidden; }
         .dashboard-container { display: grid; grid-template-columns: 260px 1fr; height: 100vh; position: relative; }
@@ -27,7 +27,7 @@
         .main-nav a i { font-size: 1.5rem; color: var(--text-secondary); transition: color 0.2s ease; }
         .main-nav a:hover { background-color: var(--hover-bg); }
         .main-nav a.active { background-color: var(--hover-bg); font-weight: 600; }
-        .main-nav a.active i { color: var(--info-color); } /* Changed to info-color */
+        .main-nav a.active i { color: var(--brand-green); }
         .profile-section { margin-top: auto; padding-top: 1.5rem; border-top: 1px solid var(--border-color); display: flex; align-items: center; gap: 0.75rem; cursor: pointer; }
         .profile-content-wrapper { display: flex; align-items: center; gap: 0.75rem; width: 100%; }
         .profile-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
@@ -48,152 +48,176 @@
         .main-area { display: flex; flex-direction: column; overflow-y: auto; background-color: var(--body-bg); }
         .main-header { padding: 1.25rem 3rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background-color: var(--widget-bg); position: sticky; top: 0; z-index: 10; }
         .main-header h1 { font-size: 1.5rem; font-weight: 600; }
-        .content-body { padding: 2rem 3rem; display: grid; grid-template-columns: 1fr; gap: 2rem; align-items: flex-start; } /* Changed to 1 column for overview */
+        .content-body { padding: 2rem 3rem; display: grid; grid-template-columns: 2fr 1fr; gap: 2rem; align-items: flex-start; }
         .column { display: flex; flex-direction: column; gap: 2rem; }
         .widget { background-color: var(--widget-bg); border-radius: 16px; border: 1px solid var(--border-color); padding: 1.5rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.03), 0 2px 4px -1px rgba(0,0,0,0.02); }
         .widget-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
         .widget-header h2 { font-size: 1.125rem; font-weight: 600; }
-        .widget-header a { font-size: 0.9rem; color: var(--info-color); text-decoration: none; font-weight: 500; cursor: pointer; }
+        .widget-header a { font-size: 0.9rem; color: var(--brand-green); text-decoration: none; font-weight: 500; cursor: pointer; }
         
-        /* Specific Styles for Matrimony Portal Widgets */
+        .no-records { text-align: center; color: var(--text-secondary); padding: 1rem; }
+
         .metrics-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-top: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); /* Adjusted min-width for better fit */
+            gap: 15px;
+            margin-top: 15px;
         }
         .metric-card {
             background: #ecf0f1;
-            padding: 20px;
+            padding: 15px;
             border-radius: 8px;
             text-align: center;
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
             text-decoration: none; /* For quick links */
-            color: var(--text-primary); /* For quick links */
-        }
-        .metric-card .value {
-            font-size: 2.5em;
-            font-weight: bold;
-            color: var(--info-color);
-            margin-bottom: 5px;
-        }
-        .metric-card .label {
-            font-size: 1em;
-            color: var(--text-secondary);
-        }
-        .metric-card img {
-            height: 40px;
-            width: 40px;
-            margin-bottom: 10px;
-        }
-        .profile-list-dashboard { /* Renamed to avoid conflict with generic .profile-list */
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 15px;
-            margin-top: 15px;
-        }
-        .profile-list-dashboard .profile-card {
-            background: #fdfdfd;
-            border: 1px solid #e0e0e0;
-            border-radius: 8px;
-            padding: 15px;
-            text-align: center;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-        }
-        .profile-list-dashboard .profile-card img {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            object-fit: cover;
-            margin-bottom: 10px;
-            border: 2px solid var(--info-color);
-        }
-        .profile-list-dashboard .profile-card h3 {
-            margin-top: 0;
-            margin-bottom: 5px;
-            font-size: 1.1em;
             color: var(--text-primary);
         }
-        .profile-list-dashboard .profile-card p {
-            margin: 3px 0;
-            font-size: 0.9em;
+        .metric-card .value {
+            font-size: 2em; /* Slightly smaller to fit */
+            font-weight: bold;
+            color: #3498db;
+            margin-bottom: 5px;
+        }
+        .metric-card .value img { /* Style for icon images in quick links */
+            width: 32px;
+            height: 32px;
+            margin-bottom: 5px;
+            vertical-align: middle;
+        }
+        .metric-card .label {
+            font-size: 0.9em; /* Slightly smaller */
+            color: #555;
+        }
+
+        /* Recently Added Profiles List */
+        .profile-list-widget {
+            list-style: none;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .profile-list-widget .profile-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.75rem;
+            background-color: var(--hover-bg);
+            border-radius: 8px;
+        }
+        .profile-list-widget .profile-item img {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+            flex-shrink: 0;
+            border: 2px solid var(--brand-green);
+        }
+        .profile-list-widget .profile-item .profile-info {
+            flex-grow: 1;
+            min-width: 0;
+            text-align: left;
+        }
+        .profile-list-widget .profile-item .profile-info .name {
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: block;
+        }
+        .profile-list-widget .profile-item .profile-info .details {
+            font-size: 0.85em;
             color: var(--text-secondary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
-        .profile-list-dashboard .profile-card .actions {
-            margin-top: 10px;
-        }
-        .profile-list-dashboard .profile-card .actions a.button {
-            padding: 6px 12px;
-            font-size: 0.8em;
-            background-color: var(--info-color);
-            border-radius: 4px;
-            text-decoration: none;
+        .profile-list-widget .profile-item .view-btn {
+            background-color: #3498db;
             color: white;
-            transition: background-color 0.2s ease;
+            padding: 5px 10px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-size: 0.8em;
+            white-space: nowrap;
         }
-        .profile-list-dashboard .profile-card .actions a.button:hover {
+        .profile-list-widget .profile-item .view-btn:hover {
             background-color: #2980b9;
         }
 
         /* Monthly Growth Chart Styles */
-        .bar-chart {
+        .bar-chart-container {
+            width: 100%;
+            height: 200px;
+            position: relative;
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 10px;
             display: flex;
             align-items: flex-end;
             justify-content: space-around;
-            height: 200px;
-            background: #f9f9f9;
-            border: 1px solid var(--border-color);
-            border-radius: 5px;
-            padding: 10px;
             gap: 5px;
-            margin-top: 15px;
+            overflow: hidden; /* Hide overflow of labels */
         }
-        .bar-container {
-            flex: 1;
+        .bar-wrapper {
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: flex-end;
+            flex: 1;
             position: relative;
-            margin: 0 2px;
+            height: 100%;
+            padding-bottom: 20px; /* Space for labels below bars */
         }
-        .bar {
-            width: 80%; /* Adjust bar width within its container */
-            background-color: var(--info-color);
-            border-radius: 3px;
-            position: relative;
-            transition: height 0.5s ease;
-        }
-        .bar .value {
-            padding: 3px 0;
+        .bar-wrapper .bar-value {
             position: absolute;
-            top: -1.8em; /* Position above the bar */
-            color: var(--text-primary);
-            font-size: 0.9em;
+            top: -20px; /* Position above the bar */
+            font-size: 0.85em;
             font-weight: bold;
+            color: var(--text-primary);
             white-space: nowrap;
-            width: 100%;
-            text-align: center;
         }
-        .bar .label {
-            margin-top: 5px;
+        .bar-actual {
+            width: 80%;
+            background-color: #3498db;
+            border-radius: 4px;
+            transition: height 0.5s ease-out;
+            margin-bottom: 5px;
+        }
+        .bar-wrapper .bar-label {
+            position: absolute;
+            bottom: 0;
             font-size: 0.75em;
             color: var(--text-secondary);
             text-align: center;
             width: 100%;
+            transform: rotate(-45deg);
+            transform-origin: bottom center;
+            margin-bottom: -15px; /* Adjust to prevent overlap */
         }
         
-        .no-records { color: var(--text-secondary); text-align: center; padding: 2rem; }
-
-        /* SKELETON LOADER SPECIFIC STYLES */
-        @keyframes shimmer { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
-        .skeleton { background-color: #e2e8f0; position: relative; overflow: hidden; border-radius: 4px; }
+        @keyframes shimmer { 100% { transform: translateX(100%); } }
+        .skeleton { background-color: #e2e8f0; position: relative; overflow: hidden; }
         .skeleton::after { content: ''; position: absolute; top: 0; right: 0; bottom: 0; left: 0; transform: translateX(-100%); background-image: linear-gradient(90deg, rgba(255, 255, 255, 0) 0, rgba(255, 255, 255, 0.2) 20%, rgba(255, 255, 255, 0.5) 60%, rgba(255, 255, 255, 0)); animation: shimmer 2s infinite; }
         .skeleton-avatar { width: 40px; height: 40px; border-radius: 50%; }
         .skeleton-line { height: 14px; border-radius: 4px; }
-        .skeleton-text { background-color: #cbd5e0; } /* Slightly darker for text lines */
+        .skeleton-loader-content { /* Main content skeleton container */
+            display: grid; grid-template-columns: 1fr; gap: 2rem;
+        }
+        .skeleton-metric-card {
+            background: #e2e8f0; border-radius: 8px; padding: 15px; text-align: center;
+            height: 100px;
+        }
+        .skeleton-profile-item {
+            display: flex; align-items: center; gap: 1rem; padding: 0.75rem; background-color: #e2e8f0; border-radius: 8px;
+            height: 70px;
+        }
+        .skeleton-bar-chart {
+            height: 200px; background-color: #e2e8f0; border-radius: 8px;
+        }
 
-        /* Responsive adjustments */
+
         @media (max-width: 1024px) {
             .dashboard-container { grid-template-columns: 1fr; }
             .sidebar { position: fixed; top: 0; left: 0; height: 100%; width: 80%; max-width: 300px; z-index: 1000; transform: translateX(-100%); box-shadow: 0 0 30px rgba(0,0,0,0.1); }
@@ -206,19 +230,23 @@
             .sidebar-close-btn:hover { color: #b91c1c; }
             .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.4); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); z-index: 999; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
             .overlay.active { opacity: 1; pointer-events: auto; }
-        }
-         @media (max-width: 600px) {
-            .bar-chart {
-                flex-wrap: wrap;
-                height: auto;
+            .bar-wrapper .bar-label {
+                transform: none; /* No rotation on smaller screens for readability */
+                position: static; /* Let it flow with the content */
             }
-            .bar-container {
+            .bar-chart-container {
+                flex-wrap: wrap; /* Allow bars to wrap */
+                height: auto;
+                min-height: 200px;
+                padding-bottom: 10px; /* Adjust padding if labels move */
+            }
+            .bar-wrapper {
                 flex-basis: 45%; /* Two bars per row */
                 margin-bottom: 30px;
             }
-            .bar .label {
-                transform: none; /* No rotation */
-                margin-bottom: 0;
+            .bar-wrapper .bar-value {
+                position: static; /* Let value flow above the bar */
+                margin-bottom: 5px;
             }
         }
     </style>
@@ -228,29 +256,32 @@
     <div class="dashboard-container">
         <aside class="sidebar" id="sidebar">
             <button class="sidebar-close-btn" id="sidebar-close-btn"><i class='bx bx-x'></i></button>
-            <div class="sidebar-header"><img src="https://i.ibb.co/689jL0w/logo.png" alt="Matrimony Portal Logo" class="logo-image"></div>
+            <div class="sidebar-header">
+                <!-- Replace with your actual logo -->
+                <img src="https://via.placeholder.com/100x40?text=Matrimony" alt="Matrimony Logo" class="logo-image">
+            </div>
             <nav class="main-nav">
                 <ul>
                     <li><a href="admin-dashboard.html" class="active"><i class='bx bx-home-alt'></i> Dashboard</a></li>
                     <li><a href="create-profile.html"><i class='bx bx-plus-circle'></i> Create Profile</a></li>
-                    <li><a href="admin-profiles.html"><i class='bx bx-user-circle'></i> Manage Profiles</a></li>
+                    <li><a href="search-profiles.html"><i class='bx bx-search'></i> Search Profiles</a></li>
+                    <li><a href="admin-profiles.html"><i class='bx bx-list-ul'></i> All Profiles</a></li>
                     <li><a href="admin-users.html"><i class='bx bx-group'></i> Manage Users</a></li>
-                    <li><a href="search-profiles.html"><i class='bx bx-search-alt'></i> Search Profiles</a></li>
                     <li><a href="admin-history.html"><i class='bx bx-history'></i> Global History</a></li>
                 </ul>
             </nav>
             <div class="profile-section" id="profile-section">
-                <div class="profile-skeleton" id="sidebar-profile-skeleton" style="display: flex; align-items: center; gap: 0.75rem; width: 100%;">
+                <div class="profile-skeleton" style="display: flex; align-items: center; gap: 0.75rem; width: 100%;">
                     <div class="skeleton skeleton-avatar"></div>
                     <div style="flex-grow: 1; min-width: 0;">
                         <div class="skeleton skeleton-line" style="width: 70%; height: 14px; margin-bottom: 0.5rem;"></div>
                         <div class="skeleton skeleton-line" style="width: 90%; height: 12px;"></div>
                     </div>
                 </div>
-                <div class="profile-content-wrapper" id="sidebar-profile-content" style="display: none;">
+                <div class="profile-content-wrapper" style="display: none;">
                     <img src="https://i.pravatar.cc/150?img=68" alt="Profile Picture" class="profile-avatar" id="sidebar-profile-avatar">
                     <div class="profile-details">
-                        <span class="profile-name" id="sidebar-profile-name"></span>
+                        <span class="profile-name" id="sidebar-profile-name">Loading...</span>
                         <span class="profile-email" id="sidebar-profile-email"></span>
                     </div>
                     <div class="profile-options"><i class='bx bx-chevron-down'></i></div>
@@ -260,17 +291,16 @@
                 <div class="popup-header">
                     <img src="https://i.pravatar.cc/150?img=68" alt="Profile Picture" class="profile-avatar" id="popup-profile-avatar">
                     <div class="profile-details">
-                        <span class="profile-name" id="popup-profile-name"></span>
+                        <span class="profile-name" id="popup-profile-name">Loading...</span>
                         <span class="profile-email" id="popup-profile-email"></span>
                     </div>
                 </div>
                 <ul class="popup-list">
-                    <li><a href="#"><i class='bx bx-user'></i> My Profile</a></li>
-                    <li><a href="index.html" class="logout" id="logout-btn-popup"><i class='bx bx-log-out'></i> Logout</a></li>
+                    <li><a href="#"><i class='bx bx-user'></i> Profile Settings</a></li>
+                    <li><a href="#" class="logout" id="logout-btn-popup"><i class='bx bx-log-out'></i> Logout</a></li>
                 </ul>
             </div>
         </aside>
-
         <main class="main-area">
             <header class="main-header">
                 <i class='bx bx-menu menu-toggle' id="menu-toggle"></i>
@@ -278,55 +308,24 @@
             </header>
             
             <!-- SKELETON LOADER -->
-            <section class="content-body" id="skeleton-loader">
-                <div class="column main-col">
-                    <div class="widget">
-                         <div class="widget-header"><div class="skeleton skeleton-line" style="width: 40%; height: 20px;"></div></div>
-                        <div class="metrics-grid">
-                            <div class="metric-card skeleton" style="height: 120px;"></div>
-                            <div class="metric-card skeleton" style="height: 120px;"></div>
-                            <div class="metric-card skeleton" style="height: 120px;"></div>
-                            <div class="metric-card skeleton" style="height: 120px;"></div>
-                            <div class="metric-card skeleton" style="height: 120px;"></div>
-                        </div>
-                    </div>
-
-                    <div class="widget">
-                        <div class="widget-header">
-                            <div class="skeleton skeleton-line" style="width: 60%; height: 20px;"></div>
-                            <div class="skeleton skeleton-line" style="width: 20%; height: 16px;"></div>
-                        </div>
-                        <div class="profile-list-dashboard">
-                            <div class="profile-card skeleton" style="height: 180px;"></div>
-                            <div class="profile-card skeleton" style="height: 180px;"></div>
-                            <div class="profile-card skeleton" style="height: 180px;"></div>
-                        </div>
-                    </div>
-
-                    <div class="widget">
-                        <div class="widget-header">
-                            <div class="skeleton skeleton-line" style="width: 70%; height: 20px;"></div>
-                        </div>
-                        <div class="bar-chart skeleton" style="height: 200px;"></div>
-                    </div>
-
-                    <div class="widget">
-                         <div class="widget-header"><div class="skeleton skeleton-line" style="width: 40%; height: 20px;"></div></div>
-                        <div class="metrics-grid">
-                            <div class="metric-card skeleton" style="height: 100px;"></div>
-                            <div class="metric-card skeleton" style="height: 100px;"></div>
-                            <div class="metric-card skeleton" style="height: 100px;"></div>
-                            <div class="metric-card skeleton" style="height: 100px;"></div>
-                        </div>
-                    </div>
+            <section class="content-body" id="skeleton-loader-section">
+                <div class="column">
+                    <div class="widget skeleton skeleton-loader-content" style="height: 180px;"></div>
+                    <div class="widget skeleton skeleton-loader-content" style="height: 250px;"></div>
+                    <div class="widget skeleton skeleton-loader-content" style="height: 250px;"></div>
+                </div>
+                <div class="column">
+                     <div class="widget skeleton skeleton-loader-content" style="height: 200px;"></div>
+                     <div class="widget skeleton skeleton-loader-content" style="height: 250px;"></div>
                 </div>
             </section>
 
             <!-- REAL CONTENT (Initially hidden) -->
-            <section class="content-body" id="real-content" style="display: none;">
+            <section class="content-body" id="real-content-section" style="display: none;">
                 <div class="column">
                     <div class="widget">
-                        <div class="widget-header"><h2>Dashboard Metrics</h2></div>
+                        <h3>Dashboard Metrics</h3>
+                        <p id="admin-global-message" class="success-message hidden"></p>
                         <div class="metrics-grid">
                             <div class="metric-card">
                                 <div class="value" id="total-profiles-metric">0</div>
@@ -354,45 +353,44 @@
                     <div class="widget">
                         <div class="widget-header">
                             <h2>Recently Added Profiles</h2>
-                            <a href="admin-profiles.html">View All Profiles &rarr;</a>
+                            <a href="admin-profiles.html" class="widget-header-link">View All &rarr;</a>
                         </div>
-                        <div id="recently-added-profiles-list" class="profile-list-dashboard">
-                            <p class="no-records">No profiles added yet.</p>
-                        </div>
+                        <ul id="recently-added-profiles-list" class="profile-list-widget">
+                            <p class="no-records">Loading recent profiles...</p>
+                        </ul>
                     </div>
 
                     <div class="widget">
-                        <div class="widget-header">
-                            <h2>Profile Growth (Last 6 Months)</h2>
-                            <p id="profile-growth-message" class="error-message hidden"></p>
-                        </div>
-                        <div id="monthly-growth-chart" class="bar-chart">
+                        <h2>Profile Growth (Last 6 Months)</h2>
+                        <p id="profile-growth-message" class="error-message hidden"></p>
+                        <div id="monthly-growth-chart" class="bar-chart-container">
                             <p class="no-records">Loading growth data...</p>
                         </div>
                     </div>
+                </div>
 
+                <div class="column">
                     <div class="widget">
-                        <div class="widget-header"><h2>Quick Links</h2></div>
+                        <h2>Quick Links</h2>
                         <div class="metrics-grid">
-                             <a href="admin-users.html" class="metric-card">
-                                <div class="value"><i class='bx bx-group' style="color: var(--info-color);"></i></div>
+                            <a href="admin-users.html" class="metric-card">
+                                <div class="value"><img src="https://via.placeholder.com/40?text=👥" alt="Users"></div>
                                 <div class="label">Manage Users</div>
                             </a>
                             <a href="admin-profiles.html" class="metric-card">
-                                <div class="value"><i class='bx bx-user-circle' style="color: var(--info-color);"></i></div>
+                                <div class="value"><img src="https://via.placeholder.com/40?text=📜" alt="Profiles"></div>
                                 <div class="label">Manage Profiles</div>
                             </a>
                             <a href="create-profile.html" class="metric-card">
-                                <div class="value"><i class='bx bx-plus-circle' style="color: var(--info-color);"></i></div>
+                                <div class="value"><img src="https://via.placeholder.com/40?text=➕" alt="Add Profile"></div>
                                 <div class="label">Add New Profile</div>
                             </a>
-                             <a href="admin-history.html" class="metric-card">
-                                <div class="value"><i class='bx bx-history' style="color: var(--info-color);"></i></div>
-                                <div class="label">Global History</div>
+                            <a href="admin-history.html" class="metric-card">
+                                <div class="value"><img src="https://via.placeholder.com/40?text=⏱️" alt="History"></div>
+                                <div class="label">View Global History</div>
                             </a>
                         </div>
                     </div>
-
                 </div>
             </section>
         </main>
@@ -401,8 +399,8 @@
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js';
         import { getAuth, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js';
-        import { getFirestore, collection, addDoc, getDoc, getDocs, doc, query, orderBy, limit, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js';
-        import { getStorage } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-storage.js';
+        import { getFirestore, collection, addDoc, getDoc, getDocs, updateDoc, doc, query, where, orderBy, limit, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js';
+        import { getStorage, ref, deleteObject } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-storage.js';
 
         const firebaseConfig = {
             apiKey: "AIzaSyAuxA-e71uX_uLDe6oyFU69q-eLfgUzbXA",
@@ -417,7 +415,7 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        const storage = getStorage(app); // Keep storage initialized for consistency
+        const storage = getStorage(app);
 
         let currentUser = null;
         let currentUserRole = null;
@@ -425,13 +423,11 @@
             { id: 'US', name: 'US' },
             { id: 'BY_OTHERS', name: 'BY OTHERS' }
         ];
+        const DEFAULT_AVATAR_PLACEHOLDER = 'https://i.pravatar.cc/150?img=68'; // Consistent avatar
 
-        const sidebarProfileSkeleton = document.getElementById('sidebar-profile-skeleton');
-        const sidebarProfileContent = document.getElementById('sidebar-profile-content');
         const sidebarProfileAvatar = document.getElementById('sidebar-profile-avatar');
         const sidebarProfileName = document.getElementById('sidebar-profile-name');
         const sidebarProfileEmail = document.getElementById('sidebar-profile-email');
-
         const popupProfileAvatar = document.getElementById('popup-profile-avatar');
         const popupProfileName = document.getElementById('popup-profile-name');
         const popupProfileEmail = document.getElementById('popup-profile-email');
@@ -450,10 +446,9 @@
         const recentlyAddedProfilesList = document.getElementById('recently-added-profiles-list');
         const monthlyGrowthChart = document.getElementById('monthly-growth-chart');
         const profileGrowthMessage = document.getElementById('profile-growth-message');
-        
-        const skeletonLoader = document.getElementById('skeleton-loader');
-        const realContent = document.getElementById('real-content');
 
+        const skeletonLoaderSection = document.getElementById('skeleton-loader-section');
+        const realContentSection = document.getElementById('real-content-section');
 
         function showMessage(element, message, isSuccess = true) {
             element.textContent = message;
@@ -500,70 +495,33 @@
             return age;
         }
 
-        // --- UI Event Listeners for new Dashboard Structure ---
-        const setupEventListeners = () => {
-            const profileSection = document.getElementById('profile-section');
-            const profilePopup = document.getElementById('profile-popup');
-            profileSection.addEventListener('click', e => { 
-                e.stopPropagation(); 
-                profilePopup.classList.toggle('active'); 
-                profileSection.classList.toggle('active'); 
-            });
-            document.addEventListener('click', e => { 
-                if (!profileSection.contains(e.target)) { 
-                    profilePopup.classList.remove('active'); 
-                    profileSection.classList.remove('active'); 
-                } 
-            });
-            
-            const sidebar = document.getElementById('sidebar');
-            const menuToggle = document.getElementById('menu-toggle');
-            const closeBtn = document.getElementById('sidebar-close-btn');
-            const overlay = document.getElementById('overlay');
-            const toggleMenu = () => { 
-                sidebar.classList.toggle('active'); 
-                overlay.classList.toggle('active'); 
-            };
-            menuToggle.addEventListener('click', toggleMenu);
-            closeBtn.addEventListener('click', toggleMenu);
-            overlay.addEventListener('click', toggleMenu);
-
-            logoutBtnPopup.addEventListener('click', async () => {
-                try {
-                    await signOut(auth);
-                    window.location.href = 'index.html'; // Redirect to login page
-                } catch (error) {
-                    console.error("Error signing out:", error);
-                }
-            });
-        };
-
         const updateProfileUI = (user) => {
             if (user) {
-                const avatarUrl = user.photoURL || `https://ui-avatars.com/api/?name=${user.email.split('@')[0]}&background=random&color=fff&size=150`;
-                
-                sidebarProfileAvatar.src = avatarUrl;
-                sidebarProfileName.textContent = user.email.split('@')[0];
-                sidebarProfileEmail.textContent = user.email;
-
-                popupProfileAvatar.src = avatarUrl;
-                popupProfileName.textContent = user.email.split('@')[0];
-                popupProfileEmail.textContent = user.email;
-
-                sidebarProfileSkeleton.style.display = 'none';
-                sidebarProfileContent.style.display = 'flex';
+                const photoURL = user.photoURL || DEFAULT_AVATAR_PLACEHOLDER;
+                sidebarProfileAvatar.src = photoURL;
+                popupProfileAvatar.src = photoURL;
+                sidebarProfileName.textContent = user.email; // Use email as name
+                popupProfileName.textContent = user.email;
+                sidebarProfileEmail.textContent = `(${currentUserRole})`;
+                popupProfileEmail.textContent = `(${currentUserRole})`;
+                document.querySelector('.profile-skeleton').style.display = 'none';
+                document.querySelector('.profile-content-wrapper').style.display = 'flex';
+                logoutBtnPopup.classList.remove('hidden'); // Ensure logout button is visible in popup
             } else {
-                sidebarProfileSkeleton.style.display = 'flex';
-                sidebarProfileContent.style.display = 'none';
+                // Not logged in or error, reset to skeleton/default
+                document.querySelector('.profile-skeleton').style.display = 'flex';
+                document.querySelector('.profile-content-wrapper').style.display = 'none';
+                logoutBtnPopup.classList.add('hidden');
+                sidebarProfileName.textContent = 'Guest';
+                sidebarProfileEmail.textContent = '';
+                popupProfileName.textContent = 'Guest';
+                popupProfileEmail.textContent = '';
             }
         };
 
-        // --- Authentication State Observer ---
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 currentUser = user;
-                updateProfileUI(user); // Update sidebar profile immediately
-
                 try {
                     const userDoc = await getDoc(doc(db, 'users', user.uid));
                     const userData = userDoc.exists() ? userDoc.data() : {};
@@ -589,28 +547,35 @@
                     return;
                 }
 
-                currentUserEmailSpan.textContent = user.email;
-                currentUserRoleSpan.textContent = currentUserRole;
-
+                updateProfileUI(user);
                 navAdminPanelItem.classList.remove('hidden');
 
-                // Start loading dashboard data
+                // Fetch all data for the dashboard
                 await Promise.all([
                     fetchDashboardMetrics(),
                     fetchRecentlyAddedProfiles(),
                     fetchMonthlyProfileGrowth()
                 ]);
-                
-                // Hide skeleton and show real content after all data loads
-                skeletonLoader.style.display = 'none';
-                realContent.style.display = 'grid';
+
+                // Hide skeleton and show real content
+                skeletonLoaderSection.style.display = 'none';
+                realContentSection.style.display = 'grid';
 
             } else {
                 window.location.href = 'index.html';
             }
         });
 
-        // --- Dashboard Metrics ---
+        logoutBtnPopup.addEventListener('click', async () => {
+            try {
+                await signOut(auth);
+                window.location.href = 'index.html';
+            } catch (error) {
+                console.error("Error signing out:", error);
+            }
+        });
+
+
         async function fetchDashboardMetrics() {
             try {
                 const profilesSnapshot = await getDocs(collection(db, 'profiles'));
@@ -646,7 +611,6 @@
             }
         }
 
-        // --- Recently Added Profiles ---
         async function fetchRecentlyAddedProfiles() {
             recentlyAddedProfilesList.innerHTML = '<p class="no-records">Loading recent profiles...</p>';
             try {
@@ -664,19 +628,17 @@
                     const age = calculateAge(profile.dateOfBirth);
                     const matrimonyGroupName = getMatrimonyGroupName(profile.matrimonyGroupId);
 
-                    const profileCard = document.createElement('div');
-                    profileCard.className = 'profile-card';
-                    profileCard.innerHTML = `
-                        <img src="${profile.photoURL || `https://ui-avatars.com/api/?name=${profile.name}&background=random&color=fff&size=120`}" alt="${profile.name}">
-                        <h3>${profile.name}</h3>
-                        <p><strong>Age:</strong> ${age}</p>
-                        <p><strong>Location:</strong> ${profile.location}</p>
-                        <p><strong>Group:</strong> ${matrimonyGroupName}</p>
-                        <div class="actions">
-                            <a href="view-profile.html?profileId=${profile.id}" class="button">View Details</a>
+                    const profileItem = document.createElement('li');
+                    profileItem.className = 'profile-item';
+                    profileItem.innerHTML = `
+                        <img src="${profile.photoURL || 'https://via.placeholder.com/50'}" alt="${profile.name}">
+                        <div class="profile-info">
+                            <span class="name">${profile.name}</span>
+                            <span class="details">${age} | ${profile.location} | ${matrimonyGroupName}</span>
                         </div>
+                        <a href="view-profile.html?profileId=${profile.id}" class="view-btn">View</a>
                     `;
-                    recentlyAddedProfilesList.appendChild(profileCard);
+                    recentlyAddedProfilesList.appendChild(profileItem);
                 });
 
             } catch (error) {
@@ -685,7 +647,6 @@
             }
         }
 
-        // --- Monthly Profile Growth ---
         async function fetchMonthlyProfileGrowth() {
             monthlyGrowthChart.innerHTML = '<p class="no-records">Loading growth data...</p>';
             try {
@@ -693,8 +654,7 @@
                 const monthlyCounts = {};
                 const today = new Date();
 
-                // Initialize counts for the last 6 months
-                for (let i = 0; i < 6; i++) {
+                for (let i = 0; i < 6; i++) { // Last 6 months
                     const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
                     const monthYear = `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}`;
                     monthlyCounts[monthYear] = 0;
@@ -722,7 +682,7 @@
 
         function renderMonthlyGrowthChart(monthlyCounts) {
             monthlyGrowthChart.innerHTML = '';
-            const months = Object.keys(monthlyCounts).sort((a,b) => new Date(a) - new Date(b)); // Sort chronologically
+            const months = Object.keys(monthlyCounts).sort();
             
             if (months.length === 0) {
                  monthlyGrowthChart.innerHTML = '<p class="no-records">No growth data available.</p>';
@@ -737,26 +697,40 @@
 
             months.forEach(monthYear => {
                 const count = monthlyCounts[monthYear];
-                // Scale bar height: ensure minimum height for visibility if count is 0 but maxCount > 0
-                const barHeight = maxCount > 0 ? Math.max(5, (count / maxCount) * 100) : 0; 
+                const barHeight = (count / maxCount) * 100;
                 const monthLabel = new Date(monthYear).toLocaleString('en-us', { month: 'short', year: 'numeric' });
 
-                const barContainer = document.createElement('div');
-                barContainer.className = 'bar-container';
-                barContainer.innerHTML = `
-                    <div class="bar" style="height: ${barHeight}%;">
-                        <span class="value">${count}</span>
-                    </div>
-                    <span class="label">${monthLabel}</span>
+                const barWrapper = document.createElement('div');
+                barWrapper.className = 'bar-wrapper';
+                barWrapper.innerHTML = `
+                    <span class="bar-value">${count}</span>
+                    <div class="bar-actual" style="height: ${barHeight}%;"></div>
+                    <span class="bar-label">${monthLabel}</span>
                 `;
-                monthlyGrowthChart.appendChild(barContainer);
+                monthlyGrowthChart.appendChild(barWrapper);
             });
         }
-        // --- Main Execution Logic ---
+
+        // --- UI EVENT LISTENERS for the new dashboard design ---
+        const setupEventListeners = () => {
+            const profileSection = document.getElementById('profile-section');
+            const profilePopup = document.getElementById('profile-popup');
+            profileSection.addEventListener('click', e => { e.stopPropagation(); profilePopup.classList.toggle('active'); profileSection.classList.toggle('active'); });
+            document.addEventListener('click', e => { if (!profileSection.contains(e.target)) { profilePopup.classList.remove('active'); profileSection.classList.remove('active'); } });
+            
+            const sidebar = document.getElementById('sidebar');
+            const menuToggle = document.getElementById('menu-toggle');
+            const closeBtn = document.getElementById('sidebar-close-btn');
+            const overlay = document.getElementById('overlay');
+            const toggleMenu = () => { sidebar.classList.toggle('active'); overlay.classList.toggle('active'); };
+            menuToggle.addEventListener('click', toggleMenu);
+            closeBtn.addEventListener('click', toggleMenu);
+            overlay.addEventListener('click', toggleMenu);
+        };
+
         document.addEventListener('DOMContentLoaded', function() {
             setupEventListeners();
-            // The loading of dashboard data is now handled within onAuthStateChanged
-            // to ensure user context is available before making Firebase calls.
+            // Auth state listener handles initial data loading and content display
         });
     </script>
 </body>
