@@ -125,10 +125,18 @@
         padding: 20px; 
         box-shadow: 0 2px 5px rgba(0,0,0,0.05); 
         transition: box-shadow 0.2s ease;
+        /* --- NEW: Dim profiles that are not 100% match --- */
+        opacity: 1;
+        transition: opacity 0.3s ease;
     }
-    .profile-card:hover {
-        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    .profile-card.partial-match {
+        opacity: 0.85;
+        border-style: dashed;
     }
+    .profile-card.partial-match:hover {
+        opacity: 1;
+    }
+
     .profile-card img { 
         width: 100%;
         height: 200px;
@@ -186,12 +194,24 @@
         padding-bottom: 10px;
         margin-bottom: 15px;
     }
-
+    
+    /* --- NEW: Changed grid to 2 columns for better layout --- */
     .filter-grid {
         display: grid;
-        grid-template-columns: 1fr 1fr 1fr;
+        grid-template-columns: 1fr 1fr;
         gap: 15px;
     }
+    .filter-grid .form-group {
+        margin-bottom: 0; /* Remove double margin */
+    }
+    .filter-block h4 {
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+        font-weight: 600;
+        margin-top: 15px;
+        margin-bottom: 5px;
+    }
+
     .smart-search-block .form-group textarea {
         min-height: 150px;
         resize: vertical;
@@ -228,6 +248,39 @@
             grid-template-columns: 1fr;
         }
     }
+    
+    /* --- NEW: Styles for match details on cards --- */
+    .profile-card del {
+        color: var(--danger-color);
+        opacity: 0.8;
+        text-decoration-thickness: 1.5px;
+    }
+    .profile-card .match-details {
+        border-top: 1px dashed var(--border-color);
+        padding-top: 10px;
+        margin-top: 10px;
+    }
+    .profile-card .match-details p {
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+    }
+    .profile-card .bx-check-circle {
+        vertical-align: middle;
+        color: var(--brand-green);
+        font-size: 1.1em;
+    }
+    .profile-card .match-percentage {
+        font-weight: 600;
+        font-size: 1.1rem;
+        margin-bottom: 10px !important; /* Override default p margin */
+    }
+    .profile-card .match-percentage.full-match {
+        color: var(--brand-green);
+    }
+    .profile-card .match-percentage.partial-match {
+        color: var(--warning-color);
+    }
+    
     </style>
 </head>
 <body>
@@ -285,6 +338,8 @@
                 <div class="search-filters-container">
                     <div class="filter-block">
                         <h3>Standard Filters</h3>
+                        
+                        <h4>Must-Have Filters (Age & Income)</h4>
                         <div class="filter-grid">
                             <div class="form-group">
                                 <label for="search-age-min">Min Age:</label>
@@ -295,8 +350,24 @@
                                 <input type="number" id="search-age-max" min="18" value="99">
                             </div>
                             <div class="form-group">
+                                <label for="search-income-min">Min Annual Income:</label>
+                                <input type="number" id="search-income-min" min="0" placeholder="e.g., 500000">
+                            </div>
+                            <div class="form-group">
+                                <label for="search-income-max">Max Annual Income:</label>
+                                <input type="number" id="search-income-max" min="0" placeholder="e.g., 1000000">
+                            </div>
+                        </div>
+
+                        <h4>Nice-to-Have Filters (Preferences)</h4>
+                        <div class="filter-grid">
+                            <div class="form-group">
                                 <label for="search-location">Location:</label>
                                 <input type="text" id="search-location" placeholder="e.g., Chennai">
+                            </div>
+                             <div class="form-group">
+                                <label for="search-cast">Cast:</label>
+                                <input type="text" id="search-cast" placeholder="e.g., Brahmin">
                             </div>
                             <div class="form-group">
                                 <label for="search-religion">Religion:</label>
@@ -310,19 +381,6 @@
                                 <label for="search-matrimony-group">Matrimony Group:</label>
                                 <select id="search-matrimony-group">
                                 </select>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="search-cast">Cast:</label>
-                                <input type="text" id="search-cast" placeholder="e.g., Brahmin">
-                            </div>
-                            <div class="form-group">
-                                <label for="search-income-min">Min Annual Income:</label>
-                                <input type="number" id="search-income-min" min="0" placeholder="e.g., 500000">
-                            </div>
-                            <div class="form-group">
-                                <label for="search-income-max">Max Annual Income:</label>
-                                <input type="number" id="search-income-max" min="0" placeholder="e.g., 1000000">
                             </div>
                         </div>
                     </div>
@@ -359,9 +417,7 @@
             apiKey: "AIzaSyAuxA-e71uX_uLDe6oyFU69q-eLfgUzbXA",
             authDomain: "harsha-jw.firebaseapp.com",
             projectId: "harsha-jw",
-            // --- THIS IS THE FIX ---
-            storageBucket: "harsha-jw.appspot.com", 
-            // ---------------------
+            storageBucket: "harsha-jw.firebasestorage.app",
             messagingSenderId: "471408120499",
             appId: "1:471408120499:web:91e61514ad3703ce3b16c6",
             measurementId: "G-NBC16X4R1T"
@@ -481,7 +537,6 @@
                 if (searchMatrimonyGroupSelect) searchMatrimonyGroupSelect.value = '';
                 if (smartSearchParagraphInput) smartSearchParagraphInput.value = '';
                 
-                // Reset new filters
                 if (searchCastInput) searchCastInput.value = '';
                 if (searchIncomeMinInput) searchIncomeMinInput.value = '';
                 if (searchIncomeMaxInput) searchIncomeMaxInput.value = '';
@@ -613,14 +668,67 @@
             }
         });
 
-        // --- Search & Render Logic ---
+        // --- NEW: Scoring Function ---
+        /**
+         * Scores and sorts profiles based on soft filters.
+         * @param {Array} profiles - The array of profiles from Firestore.
+         * @param {Object} filters - The "soft" filters to score against.
+         * @returns {Array} A new, sorted array of profiles with score data.
+         */
+        function scoreAndSortProfiles(profiles, filters) {
+            const filterKeys = Object.keys(filters);
+            
+            // If no soft filters are specified, all are 100% matches
+            if (filterKeys.length === 0) {
+                return profiles.map(p => ({
+                    ...p,
+                    matchPercentage: 100,
+                    unmatchedFields: []
+                }));
+            }
+
+            const scoredProfiles = profiles.map(profile => {
+                let matchedCount = 0;
+                let unmatchedFields = [];
+                
+                filterKeys.forEach(key => {
+                    // Normalize values for comparison (lowercase, trim)
+                    const profileValue = (profile[key] || '').toString().toLowerCase().trim();
+                    const filterValue = (filters[key] || '').toString().toLowerCase().trim();
+                    
+                    if (profileValue === filterValue) {
+                        matchedCount++;
+                    } else {
+                        unmatchedFields.push(key);
+                    }
+                });
+                
+                const matchPercentage = Math.round((matchedCount / filterKeys.length) * 100);
+                
+                return {
+                    ...profile,
+                    matchPercentage,
+                    unmatchedFields
+                };
+            });
+
+            // Sort by match percentage (highest first)
+            scoredProfiles.sort((a, b) => b.matchPercentage - a.matchPercentage);
+            
+            return scoredProfiles;
+        }
+
+
+        // --- UPDATED: Search & Render Logic ---
 
         async function searchProfiles(isSmartSearch = false) {
             if (!searchResultsDiv) return;
             searchResultsDiv.innerHTML = '<p class="no-profiles">Searching profiles...</p>';
-            let conditions = [];
             
-            conditions.push(where('profileStatus', '==', 'active'));
+            // hardConditions are for the Firestore query
+            let hardConditions = [where('profileStatus', '==', 'active')];
+            // softFilters are for client-side scoring
+            let softFilters = {};
 
             if (isSmartSearch) {
                 const paragraph = smartSearchParagraphInput.value;
@@ -631,7 +739,7 @@
                 }
                 showSpinner(smartSearchSpinner, smartSearchBtn, true);
 
-                const smartPrompt = `Analyze the following paragraph to extract search criteria for a matrimonial profile. Focus on age range (min/max), location, education, religion, cast, and annual income range (min/max). Provide the output as a JSON object. If a criterion is not found, use a null value. For age range, convert to YYYY-MM-DD date range format (e.g., 'late 20s' could be minDOB: YYYY-MM-DD, maxDOB: YYYY-MM-DD). Date format should be strict YYYY-MM-DD. Annual income should be a number. \n\nParagraph: "${paragraph}"\n\nExpected JSON format: {"minDOB": null, "maxDOB": null, "location": null, "religion": null, "education": null, "cast": null, "incomeMin": null, "incomeMax": null}`;
+                const smartPrompt = `Analyze the following paragraph to extract search criteria for a matrimonial profile. Focus on age range (min/max), location, education, religion, cast, and annual income range (min/max). Provide the output as a JSON object. If a criterion is not found, use a null value. For age range, convert to YYYY-MM-DD date range format. Date format should be strict YYYY-MM-DD. Annual income should be a number. \n\nParagraph: "${paragraph}"\n\nExpected JSON format: {"minDOB": null, "maxDOB": null, "location": null, "religion": null, "education": null, "cast": null, "incomeMin": null, "incomeMax": null}`;
                 
                 try {
                     const result = await model.generateContent(smartPrompt);
@@ -642,15 +750,17 @@
                     }
                     const smartData = JSON.parse(responseText);
 
-                    if (smartData.minDOB) conditions.push(where('dateOfBirth', '<=', smartData.minDOB));
-                    if (smartData.maxDOB) conditions.push(where('dateOfBirth', '>=', smartData.maxDOB));
-                    if (smartData.location) conditions.push(where('location', '==', smartData.location));
-                    if (smartData.religion) conditions.push(where('religion', '==', smartData.religion));
-                    if (smartData.education) conditions.push(where('education', '==', smartData.education));
-                    
-                    if (smartData.cast) conditions.push(where('cast', '==', smartData.cast));
-                    if (smartData.incomeMin) conditions.push(where('annualIncome', '>=', Number(smartData.incomeMin)));
-                    if (smartData.incomeMax) conditions.push(where('annualIncome', '<=', Number(smartData.incomeMax)));
+                    // Add to HARD conditions
+                    if (smartData.minDOB) hardConditions.push(where('dateOfBirth', '<=', smartData.minDOB));
+                    if (smartData.maxDOB) hardConditions.push(where('dateOfBirth', '>=', smartData.maxDOB));
+                    if (smartData.incomeMin) hardConditions.push(where('annualIncome', '>=', Number(smartData.incomeMin)));
+                    if (smartData.incomeMax) hardConditions.push(where('annualIncome', '<=', Number(smartData.incomeMax)));
+
+                    // Add to SOFT filters
+                    if (smartData.location) softFilters.location = smartData.location;
+                    if (smartData.religion) softFilters.religion = smartData.religion;
+                    if (smartData.education) softFilters.education = smartData.education;
+                    if (smartData.cast) softFilters.cast = smartData.cast;
                     
                     showMessage(searchMessage, 'Smart search applied!', true);
                 } catch (aiError) {
@@ -663,39 +773,43 @@
                 }
 
             } else {
+                // --- Manual Filters ---
+                
+                // Add to HARD conditions
                 const minAge = parseInt(searchAgeMinInput.value);
                 const maxAge = parseInt(searchAgeMaxInput.value);
-                const location = searchLocationInput.value.trim();
-                const religion = searchReligionInput.value.trim();
-                const education = searchEducationInput.value.trim();
-                const matrimonyGroupId = searchMatrimonyGroupSelect.value;
-
-                const cast = searchCastInput.value.trim();
-                const incomeMin = parseInt(searchIncomeMinInput.value);
-                const incomeMax = parseInt(searchIncomeMaxInput.value);
-
                 if (!isNaN(minAge)) {
-                    conditions.push(where('dateOfBirth', '<=', getDobFromAge(minAge, true)));
+                    hardConditions.push(where('dateOfBirth', '<=', getDobFromAge(minAge, true)));
                 }
                 if (!isNaN(maxAge)) {
-                    conditions.push(where('dateOfBirth', '>=', getDobFromAge(maxAge, false)));
+                    hardConditions.push(where('dateOfBirth', '>=', getDobFromAge(maxAge, false)));
                 }
+                const incomeMin = parseInt(searchIncomeMinInput.value);
+                const incomeMax = parseInt(searchIncomeMaxInput.value);
+                if (!isNaN(incomeMin) && incomeMin > 0) hardConditions.push(where('annualIncome', '>=', incomeMin));
+                if (!isNaN(incomeMax) && incomeMax > 0) hardConditions.push(where('annualIncome', '<=', incomeMax));
 
-                if (location) conditions.push(where('location', '==', location));
-                if (religion) conditions.push(where('religion', '==', religion));
-                if (education) conditions.push(where('education', '==', education));
-                if (matrimonyGroupId) conditions.push(where('matrimonyGroupId', '==', matrimonyGroupId));
-
-                if (cast) conditions.push(where('cast', '==', cast));
-                if (!isNaN(incomeMin) && incomeMin > 0) conditions.push(where('annualIncome', '>=', incomeMin));
-                if (!isNaN(incomeMax) && incomeMax > 0) conditions.push(where('annualIncome', '<=', incomeMax));
+                // Add to SOFT filters
+                if (searchLocationInput.value.trim()) softFilters.location = searchLocationInput.value.trim();
+                if (searchReligionInput.value.trim()) softFilters.religion = searchReligionInput.value.trim();
+                if (searchEducationInput.value.trim()) softFilters.education = searchEducationInput.value.trim();
+                if (searchMatrimonyGroupSelect.value) softFilters.matrimonyGroupId = searchMatrimonyGroupSelect.value;
+                if (searchCastInput.value.trim()) softFilters.cast = searchCastInput.value.trim();
             }
 
-            const finalQuery = query(collection(db, 'profiles'), ...conditions, orderBy('dateOfBirth', 'desc'));
+            // Only one orderBy is needed since the hard filters handle the ranges
+            const finalQuery = query(collection(db, 'profiles'), ...hardConditions, orderBy('dateOfBirth', 'desc'));
 
             try {
                 const snapshot = await getDocs(finalQuery);
-                renderProfiles(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })), searchResultsDiv, false);
+                const allProfiles = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+                // --- NEW STEP: Score and Sort ---
+                const scoredProfiles = scoreAndSortProfiles(allProfiles, softFilters);
+                
+                // --- NEW: Pass softFilters to render function ---
+                renderProfiles(scoredProfiles, searchResultsDiv, softFilters);
+
             } catch (error) {
                 console.error("Error searching profiles:", error);
                 
@@ -710,38 +824,91 @@
             }
         }
 
-        function renderProfiles(profiles, targetDiv, showAdminActions = false) {
+        /**
+         * Renders the scored and sorted profiles to the page.
+         * @param {Array} profiles - The scored profiles to render.
+         * @param {HTMLElement} targetDiv - The div to render into.
+         * @param {Object} softFilters - The soft filters used in the search.
+         */
+        function renderProfiles(profiles, targetDiv, softFilters = {}) {
             targetDiv.innerHTML = '';
             if (profiles.length === 0) {
-                targetDiv.innerHTML = '<p class="no-profiles">No profiles found.</p>';
+                targetDiv.innerHTML = '<p class="no-profiles">No profiles found matching your "Must-Have" criteria.</p>';
                 return;
             }
+
+            const softFilterKeys = Object.keys(softFilters);
+            
+            // Helper to format field names for display
+            const formatFieldName = (key) => {
+                switch (key) {
+                    case 'matrimonyGroupId': return 'Group';
+                    case 'cast': return 'Cast';
+                    case 'location': 'Location';
+                    case 'religion': return 'Religion';
+                    case 'education': return 'Education';
+                    default: return key.charAt(0).toUpperCase() + key.slice(1);
+                }
+            };
+            
             profiles.forEach(profile => {
-                const matrimonyGroupName = getMatrimonyGroupName(profile.matrimonyGroupId);
                 const age = calculateAge(profile.dateOfBirth);
                 
-                // This logic is correct and matches your create-profile.html
                 let displayPhoto = 'https://via.placeholder.com/300x200?text=No+Photo';
                 if (profile.photoURLs && profile.photoURLs.length > 0) {
-                    displayPhoto = profile.photoURLs[0]; // Use first image from new array
+                    displayPhoto = profile.photoURLs[0];
                 } else if (profile.photoURL) { 
-                    displayPhoto = profile.photoURL; // Backwards compatibility for old field
+                    displayPhoto = profile.photoURL;
                 }
                 
-                // Format income
                 const incomeString = profile.annualIncome ? '₹' + profile.annualIncome.toLocaleString('en-IN') : 'N/A';
 
                 const profileCard = document.createElement('div');
                 profileCard.className = 'profile-card';
                 
+                // --- NEW: Card Content with Match Details ---
+                
+                let matchDetailsHTML = '';
+                let matchClass = 'full-match';
+                
+                if (softFilterKeys.length > 0) {
+                    // Only show match details if soft filters were used
+                    if (profile.matchPercentage === 100) {
+                        matchDetailsHTML = `<p class="match-percentage full-match">100% Match <i class='bx bx-check-circle'></i></p>`;
+                    } else {
+                        matchClass = 'partial-match';
+                        profileCard.classList.add('partial-match');
+                        matchDetailsHTML = `<p class="match-percentage partial-match">${profile.matchPercentage}% Match</p>`;
+                    }
+                    
+                    matchDetailsHTML += '<div class="match-details">';
+                    
+                    // Show details for all applied soft filters
+                    softFilterKeys.forEach(key => {
+                        const fieldName = formatFieldName(key);
+                        const profileValue = (key === 'matrimonyGroupId') ? getMatrimonyGroupName(profile[key]) : (profile[key] || 'N/A');
+                        
+                        if (profile.unmatchedFields.includes(key)) {
+                            // Unmatched: Show profile value with strikethrough
+                            matchDetailsHTML += `<p><strong>${fieldName}:</strong> <del>${profileValue}</del></p>`;
+                        } else {
+                            // Matched: Show profile value with a check
+                            matchDetailsHTML += `<p><strong>${fieldName}:</strong> ${profileValue} <i class='bx bx-check-circle'></i></p>`;
+                        }
+                    });
+                    
+                    matchDetailsHTML += '</div>';
+                }
+
                 profileCard.innerHTML = `
                     <img src="${displayPhoto}" alt="${profile.name}">
                     <h3>${profile.name}</h3>
+                    
                     <p><strong>Age:</strong> ${age}</p>
-                    <p><strong>Cast:</strong> ${profile.cast || 'N/A'}</p>
-                    <p><strong>Location:</strong> ${profile.location || 'N/A'}</p>
                     <p><strong>Income:</strong> ${incomeString}</p>
-                    <p><strong>Group:</strong> ${matrimonyGroupName}</p>
+                    
+                    ${matchDetailsHTML} 
+
                     <div class="actions">
                         <button class="view-profile-btn" data-id="${profile.id}">View Details</button>
                     </div>
