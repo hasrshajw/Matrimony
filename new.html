@@ -16,10 +16,9 @@
     <style>
         :root { --body-bg: #F9FAFB; --widget-bg: #FFFFFF; --border-color: #E5E7EB; --text-primary: #002726; --text-secondary: #6B7280; --brand-green: #33C375; --hover-bg: #F3F4F6; --warning-color: #F59E0B; --danger-color: #EF4444; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'IBM Plex Sans', sans-serif; background-color: var(--body-bg); color: var(--text-primary); font-size: 14px; overflow: hidden; } /* Ensure overflow hidden for sidebar to work */
+        body { font-family: 'IBM Plex Sans', sans-serif; background-color: var(--body-bg); color: var(--text-primary); font-size: 14px; overflow: hidden; }
         .dashboard-container { display: grid; grid-template-columns: 260px 1fr; height: 100vh; position: relative; }
 
-        /* Sidebar Styles */
         .sidebar { background-color: var(--widget-bg); border-right: 1px solid var(--border-color); padding: 2rem 1.5rem; display: flex; flex-direction: column; position: relative; transition: transform 0.3s ease-in-out; }
         .sidebar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem; }
         .logo-image { height: 40px; background-color: #f0f0f0; border-radius: 8px; width: 120px; display: flex; align-items: center; justify-content: center; font-weight: bold; color: var(--text-secondary); }
@@ -31,7 +30,6 @@
         .main-nav a.active { background-color: var(--hover-bg); font-weight: 600; }
         .main-nav a.active i { color: var(--brand-green); }
 
-        /* Profile Section in Sidebar */
         .profile-section { margin-top: auto; padding-top: 1.5rem; border-top: 1px solid var(--border-color); display: flex; align-items: center; gap: 0.75rem; cursor: pointer; }
         .profile-content-wrapper { display: flex; align-items: center; gap: 0.75rem; width: 100%; }
         .profile-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; flex-shrink: 0; background-color: #e2e8f0; }
@@ -50,21 +48,18 @@
         .popup-list a.logout i { color: var(--danger-color); }
         .popup-list a.logout { color: var(--danger-color); }
 
-        /* Main Content Area */
         .main-area { display: flex; flex-direction: column; overflow-y: auto; background-color: var(--body-bg); }
         .main-header { padding: 1.25rem 3rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background-color: var(--widget-bg); position: sticky; top: 0; z-index: 10; }
         .main-header h1 { font-size: 1.5rem; font-weight: 600; }
         .content-body { padding: 2rem 3rem; display: grid; grid-template-columns: 2fr 1fr; gap: 2rem; align-items: flex-start; }
         .column { display: flex; flex-direction: column; gap: 2rem; }
 
-        /* Widget Styles */
         .widget { background-color: var(--widget-bg); border-radius: 16px; border: 1px solid var(--border-color); padding: 1.5rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.03), 0 2px 4px -1px rgba(0,0,0,0.02); }
         .widget-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
         .widget-header h3 { font-size: 1.1rem; font-weight: 600; color: var(--text-primary); }
         .widget-header a { font-size: 0.9rem; color: var(--brand-green); text-decoration: none; font-weight: 500; }
         .widget-header a:hover { text-decoration: underline; }
 
-        /* Custom Buttons */
         .button-primary {
             display: inline-block;
             background-color: var(--brand-green);
@@ -80,20 +75,19 @@
         }
         .button-primary:hover { background-color: #2fb165; }
 
-        /* Dashboard Metrics */
         .metrics-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); /* Adjusted min-width */
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
             gap: 1rem;
             margin-top: 1rem;
         }
         .metric-card {
-            background: var(--hover-bg); /* Lighter background for metric cards */
+            background: var(--hover-bg);
             padding: 1rem;
             border-radius: 8px;
             text-align: center;
             box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-            text-decoration: none; /* For quick links to look like cards */
+            text-decoration: none;
             color: var(--text-primary);
             transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
@@ -102,29 +96,20 @@
             box-shadow: 0 4px 8px rgba(0,0,0,0.08);
         }
         .metric-card .value {
-            font-size: 2.2em; /* Slightly smaller for better fit */
+            font-size: 2.2em;
             font-weight: bold;
             color: var(--brand-green);
             margin-bottom: 0.25rem;
         }
-        .metric-card .value img { /* Style for quick link icons */
-            width: 40px;
-            height: 40px;
+        .metric-card .value i { /* Style for quick link icons */
+            font-size: 2.2em;
             vertical-align: middle;
-            margin: 0 auto 5px;
-            display: block;
         }
         .metric-card .label {
             font-size: 0.9em;
             color: var(--text-secondary);
         }
 
-        /* Recently Added Profiles List */
-        #recently-added-profiles-list {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
         .recent-profile-item {
             display: flex;
             align-items: center;
@@ -159,10 +144,9 @@
             padding: 5px 10px;
         }
 
-        /* Monthly Growth Chart Styles */
         .bar-chart-container {
             position: relative;
-            height: 250px; /* Increased height for better visualization */
+            height: 250px;
             padding: 1rem;
             background: var(--hover-bg);
             border: 1px solid var(--border-color);
@@ -181,7 +165,7 @@
             flex: 1;
         }
         .chart-bar {
-            width: 80%; /* Adjust width for bars */
+            width: 80%;
             background-color: var(--brand-green);
             border-radius: 4px 4px 0 0;
             position: relative;
@@ -189,11 +173,11 @@
             display: flex;
             align-items: flex-start;
             justify-content: center;
-            color: var(--text-primary); /* Value text color */
+            color: var(--text-primary);
         }
         .chart-bar .value {
             position: absolute;
-            top: -1.2em; /* Position above the bar */
+            top: -1.2em;
             font-size: 0.8em;
             font-weight: 600;
             color: var(--text-primary);
@@ -206,7 +190,6 @@
             white-space: nowrap;
         }
 
-        /* Responsive Adjustments */
         .menu-toggle { display: none; }
         .sidebar-close-btn { display: none; }
         
@@ -226,20 +209,27 @@
             .metrics-grid { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); }
         }
 
-        /* Skeleton Loading Styles */
         @keyframes shimmer { 100% { transform: translateX(100%); } }
         .skeleton { background-color: #e2e8f0; position: relative; overflow: hidden; }
         .skeleton::after { content: ''; position: absolute; top: 0; right: 0; bottom: 0; left: 0; transform: translateX(-100%); background-image: linear-gradient(90deg, rgba(255, 255, 255, 0) 0, rgba(255, 255, 255, 0.2) 20%, rgba(255, 255, 255, 0.5) 60%, rgba(255, 255, 255, 0)); animation: shimmer 2s infinite; }
         .skeleton-avatar { width: 40px; height: 40px; border-radius: 50%; }
         .skeleton-line { height: 14px; border-radius: 4px; }
-        .skeleton-text { height: 1em; width: 80%; } /* General text placeholder */
-        .skeleton-small-text { height: 0.8em; width: 60%; } /* Smaller text placeholder */
+        .skeleton-text { height: 1em; width: 80%; }
+        .skeleton-small-text { height: 0.8em; width: 60%; }
 
-        /* Specific skeleton states for this dashboard */
-        .metric-card.skeleton .value { height: 2.5em; width: 60%; margin: 0.25rem auto; }
-        .metric-card.skeleton .label { height: 1em; width: 80%; margin: 0 auto; }
-        .recent-profile-item.skeleton { height: 60px; }
-        .bar-chart-container.skeleton { height: 200px; }
+        .metric-card.is-loading .value { height: 2.5em; width: 60%; margin: 0.25rem auto; background-color: #ccc; }
+        .metric-card.is-loading .label { height: 1em; width: 80%; margin: 0 auto; background-color: #ccc; }
+        .recent-profile-item.is-loading { height: 60px; background-color: #ccc; }
+        .bar-chart-container.is-loading { height: 200px; background-color: #ccc; }
+        .is-loading::after {
+            content: '';
+            position: absolute;
+            top: 0; right: 0; bottom: 0; left: 0;
+            transform: translateX(-100%);
+            background-image: linear-gradient(90deg, rgba(255, 255, 255, 0) 0, rgba(255, 255, 255, 0.2) 20%, rgba(255, 255, 255, 0.5) 60%, rgba(255, 255, 255, 0));
+            animation: shimmer 2s infinite;
+        }
+
     </style>
 </head>
 <body>
@@ -248,7 +238,7 @@
         <aside class="sidebar" id="sidebar">
             <button class="sidebar-close-btn" id="sidebar-close-btn"><i class='bx bx-x'></i></button>
             <div class="sidebar-header">
-                <div class="logo-image">Portal Admin</div>
+                <div class="logo-image">Admin Panel</div>
             </div>
             <nav class="main-nav">
                 <ul>
@@ -295,20 +285,25 @@
                         <div class="widget-header"><h3>Dashboard Metrics</h3></div>
                         <p id="admin-global-message" class="success-message hidden"></p>
                         <div class="metrics-grid" id="dashboard-metrics-grid">
-                            <div class="metric-card skeleton">
-                                <div class="value"></div><div class="label skeleton-text"></div>
+                            <div class="metric-card is-loading">
+                                <div class="value" id="total-profiles-metric-value"></div>
+                                <div class="label" id="total-profiles-metric-label"></div>
                             </div>
-                            <div class="metric-card skeleton">
-                                <div class="value"></div><div class="label skeleton-text"></div>
+                            <div class="metric-card is-loading">
+                                <div class="value" id="active-profiles-metric-value"></div>
+                                <div class="label" id="active-profiles-metric-label"></div>
                             </div>
-                            <div class="metric-card skeleton">
-                                <div class="value"></div><div class="label skeleton-text"></div>
+                            <div class="metric-card is-loading">
+                                <div class="value" id="married-profiles-metric-value"></div>
+                                <div class="label" id="married-profiles-metric-label"></div>
                             </div>
-                            <div class="metric-card skeleton">
-                                <div class="value"></div><div class="label skeleton-text"></div>
+                            <div class="metric-card is-loading">
+                                <div class="value" id="pending-users-metric-value"></div>
+                                <div class="label" id="pending-users-metric-label"></div>
                             </div>
-                            <div class="metric-card skeleton">
-                                <div class="value"></div><div class="label skeleton-text"></div>
+                            <div class="metric-card is-loading">
+                                <div class="value" id="total-users-metric-value"></div>
+                                <div class="label" id="total-users-metric-label"></div>
                             </div>
                         </div>
                     </div>
@@ -316,7 +311,7 @@
                     <div class="widget">
                         <div class="widget-header"><h3>Profile Growth (Last 6 Months)</h3></div>
                         <p id="profile-growth-message" class="error-message hidden"></p>
-                        <div id="monthly-growth-chart" class="bar-chart-container skeleton">
+                        <div id="monthly-growth-chart" class="bar-chart-container is-loading">
                             <p class="no-records">Loading growth data...</p>
                         </div>
                     </div>
@@ -329,9 +324,9 @@
                             <a href="admin-profiles.html" class="button-primary">View All &rarr;</a>
                         </div>
                         <div id="recently-added-profiles-list">
-                            <div class="recent-profile-item skeleton"><div class="skeleton skeleton-avatar"></div><div style="flex:1;"><div class="skeleton-line" style="width: 80%;"></div><div class="skeleton-line" style="width: 50%; height: 12px; margin-top: 4px;"></div></div><div class="skeleton-line" style="width: 60px;"></div></div>
-                            <div class="recent-profile-item skeleton"><div class="skeleton skeleton-avatar"></div><div style="flex:1;"><div class="skeleton-line" style="width: 70%;"></div><div class="skeleton-line" style="width: 40%; height: 12px; margin-top: 4px;"></div></div><div class="skeleton-line" style="width: 60px;"></div></div>
-                            <div class="recent-profile-item skeleton"><div class="skeleton skeleton-avatar"></div><div style="flex:1;"><div class="skeleton-line" style="width: 90%;"></div><div class="skeleton-line" style="width: 60%; height: 12px; margin-top: 4px;"></div></div><div class="skeleton-line" style="width: 60px;"></div></div>
+                            <div class="recent-profile-item is-loading"><div class="profile-avatar skeleton"></div><div class="recent-profile-details"><div class="skeleton-line" style="width: 80%;"></div><div class="skeleton-line" style="width: 50%; height: 12px; margin-top: 4px;"></div></div><div class="skeleton-line" style="width: 60px;"></div></div>
+                            <div class="recent-profile-item is-loading"><div class="profile-avatar skeleton"></div><div class="recent-profile-details"><div class="skeleton-line" style="width: 70%;"></div><div class="skeleton-line" style="width: 40%; height: 12px; margin-top: 4px;"></div></div><div class="skeleton-line" style="width: 60px;"></div></div>
+                            <div class="recent-profile-item is-loading"><div class="profile-avatar skeleton"></div><div class="recent-profile-details"><div class="skeleton-line" style="width: 90%;"></div><div class="skeleton-line" style="width: 60%; height: 12px; margin-top: 4px;"></div></div><div class="skeleton-line" style="width: 60px;"></div></div>
                             <p class="no-records hidden">No profiles added yet.</p>
                         </div>
                     </div>
@@ -404,11 +399,20 @@
 
         const adminGlobalMessage = document.getElementById('admin-global-message');
 
-        const totalProfilesMetric = document.getElementById('total-profiles-metric');
-        const activeProfilesMetric = document.getElementById('active-profiles-metric');
-        const marriedProfilesMetric = document.getElementById('married-profiles-metric');
-        const pendingUsersMetric = document.getElementById('pending-users-metric');
-        const totalUsersMetric = document.getElementById('total-users-metric');
+        // Metric Value Elements
+        const totalProfilesMetricValue = document.getElementById('total-profiles-metric-value');
+        const activeProfilesMetricValue = document.getElementById('active-profiles-metric-value');
+        const marriedProfilesMetricValue = document.getElementById('married-profiles-metric-value');
+        const pendingUsersMetricValue = document.getElementById('pending-users-metric-value');
+        const totalUsersMetricValue = document.getElementById('total-users-metric-value');
+
+        // Metric Label Elements
+        const totalProfilesMetricLabel = document.getElementById('total-profiles-metric-label');
+        const activeProfilesMetricLabel = document.getElementById('active-profiles-metric-label');
+        const marriedProfilesMetricLabel = document.getElementById('married-profiles-metric-label');
+        const pendingUsersMetricLabel = document.getElementById('pending-users-metric-label');
+        const totalUsersMetricLabel = document.getElementById('total-users-metric-label');
+
 
         const recentlyAddedProfilesList = document.getElementById('recently-added-profiles-list');
         const monthlyGrowthChart = document.getElementById('monthly-growth-chart');
@@ -493,9 +497,6 @@
             if (closeBtn) closeBtn.addEventListener('click', toggleMenu);
             if (overlay) overlay.addEventListener('click', toggleMenu);
 
-            // Hide skeleton loaders
-            const skeletonElements = document.querySelectorAll('.skeleton');
-            skeletonElements.forEach(el => el.classList.remove('skeleton'));
         });
         // --- End UI Interactions ---
 
@@ -529,12 +530,11 @@
                 }
 
                 sidebarUserName.textContent = user.email;
-                sidebarUserRole.textContent = currentUserRole ? currentUserRole.charAt(0).toUpperCase() + currentUserRole.slice(1) : 'Admin'; // Capitalize role
+                sidebarUserRole.textContent = currentUserRole ? currentUserRole.charAt(0).toUpperCase() + currentUserRole.slice(1) : 'Admin';
                 popupUserEmail.textContent = user.email;
                 popupUserRole.textContent = currentUserRole ? currentUserRole.charAt(0).toUpperCase() + currentUserRole.slice(1) : 'Admin';
 
 
-                // Set a placeholder avatar or fetch actual user avatar if available in user data
                 const avatarUrl = user.photoURL || 'https://via.placeholder.com/40';
                 if (sidebarUserAvatar) sidebarUserAvatar.src = avatarUrl;
                 if (popupUserAvatar) popupUserAvatar.src = avatarUrl;
@@ -560,16 +560,12 @@
             }
         });
 
-        // --- Dashboard Metrics ---
         async function fetchDashboardMetrics() {
-            // Remove skeleton classes first
-            document.querySelectorAll('#dashboard-metrics-grid .metric-card.skeleton').forEach(el => {
-                el.classList.remove('skeleton');
-                el.querySelector('.value').innerHTML = ''; // Clear skeleton content
-                el.querySelector('.label').innerHTML = '';
-            });
-
             try {
+                // Get all metric cards
+                const metricCards = document.querySelectorAll('#dashboard-metrics-grid .metric-card');
+                metricCards.forEach(card => card.classList.add('is-loading')); // Add loading state to all cards
+
                 const profilesSnapshot = await getDocs(collection(db, 'profiles'));
                 let totalProfiles = 0;
                 let activeProfiles = 0;
@@ -591,28 +587,38 @@
                     if (doc.data().status === 'pending') pendingUsers++;
                 });
 
-                totalProfilesMetric.textContent = totalProfiles;
-                activeProfilesMetric.textContent = activeProfiles;
-                marriedProfilesMetric.textContent = marriedProfiles;
-                totalUsersMetric.textContent = totalUsers;
-                pendingUsersMetric.textContent = pendingUsers;
+                // Update text content
+                if (totalProfilesMetricValue) totalProfilesMetricValue.textContent = totalProfiles;
+                if (activeProfilesMetricValue) activeProfilesMetricValue.textContent = activeProfiles;
+                if (marriedProfilesMetricValue) marriedProfilesMetricValue.textContent = marriedProfiles;
+                if (pendingUsersMetricValue) pendingUsersMetricValue.textContent = pendingUsers;
+                if (totalUsersMetricValue) totalUsersMetricValue.textContent = totalUsers;
 
-                // Set labels explicitly after values are loaded
-                totalProfilesMetric.nextElementSibling.textContent = 'Total Profiles';
-                activeProfilesMetric.nextElementSibling.textContent = 'Active Profiles';
-                marriedProfilesMetric.nextElementSibling.textContent = 'Married Profiles';
-                totalUsersMetric.nextElementSibling.textContent = 'Total Registered Users';
-                pendingUsersMetric.nextElementSibling.textContent = 'Pending Users';
+                // Update labels
+                if (totalProfilesMetricLabel) totalProfilesMetricLabel.textContent = 'Total Profiles';
+                if (activeProfilesMetricLabel) activeProfilesMetricLabel.textContent = 'Active Profiles';
+                if (marriedProfilesMetricLabel) marriedProfilesMetricLabel.textContent = 'Married Profiles';
+                if (pendingUsersMetricLabel) pendingUsersMetricLabel.textContent = 'Pending Users';
+                if (totalUsersMetricLabel) totalUsersMetricLabel.textContent = 'Total Registered Users';
 
             } catch (error) {
                 console.error("Error fetching dashboard metrics:", error);
                 showMessage(adminGlobalMessage, `Error loading metrics: ${error.message}`, false);
+            } finally {
+                // Remove loading state from all cards
+                document.querySelectorAll('#dashboard-metrics-grid .metric-card.is-loading').forEach(card => card.classList.remove('is-loading'));
             }
         }
 
-        // --- Recently Added Profiles ---
         async function fetchRecentlyAddedProfiles() {
-            recentlyAddedProfilesList.innerHTML = '<p class="no-records">Loading recent profiles...</p>'; // Show loading before data
+            recentlyAddedProfilesList.innerHTML = ''; // Clear existing skeleton
+            for(let i=0; i<3; i++) { // Show 3 skeleton items
+                 const skeletonItem = document.createElement('div');
+                 skeletonItem.className = 'recent-profile-item is-loading';
+                 skeletonItem.innerHTML = `<div class="profile-avatar skeleton"></div><div class="recent-profile-details"><div class="skeleton-line" style="width: 80%;"></div><div class="skeleton-line" style="width: 50%; height: 12px; margin-top: 4px;"></div></div><div class="skeleton-line" style="width: 60px;"></div>`;
+                 recentlyAddedProfilesList.appendChild(skeletonItem);
+            }
+
             try {
                 const q = query(collection(db, 'profiles'), orderBy('createdAt', 'desc'), limit(5));
                 const snapshot = await getDocs(q);
@@ -622,7 +628,7 @@
                     return;
                 }
 
-                recentlyAddedProfilesList.innerHTML = ''; // Clear loading text
+                recentlyAddedProfilesList.innerHTML = '';
                 snapshot.docs.forEach(doc => {
                     const profile = { id: doc.id, ...doc.data() };
                     const age = calculateAge(profile.dateOfBirth);
@@ -649,9 +655,8 @@
             }
         }
 
-        // --- Monthly Profile Growth ---
         async function fetchMonthlyProfileGrowth() {
-            monthlyGrowthChart.classList.add('skeleton'); // Add skeleton for chart
+            monthlyGrowthChart.classList.add('is-loading');
             monthlyGrowthChart.innerHTML = '<p class="no-records">Loading growth data...</p>';
             try {
                 const profilesSnapshot = await getDocs(collection(db, 'profiles'));
@@ -661,7 +666,7 @@
                 for (let i = 0; i < 6; i++) {
                     const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
                     const monthKey = `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}`;
-                    const monthLabel = d.toLocaleString('en-us', { month: 'short' }); // For chart labels
+                    const monthLabel = d.toLocaleString('en-us', { month: 'short' });
                     monthlyCounts[monthKey] = { count: 0, label: monthLabel };
                 }
 
@@ -683,7 +688,7 @@
                 showMessage(profileGrowthMessage, `Error loading profile growth data: ${error.message}`, false);
                 monthlyGrowthChart.innerHTML = `<p class="error-message">Error loading growth data: ${error.message}</p>`;
             } finally {
-                monthlyGrowthChart.classList.remove('skeleton'); // Remove skeleton after loading
+                monthlyGrowthChart.classList.remove('is-loading');
             }
         }
 
@@ -697,18 +702,18 @@
             }
 
             const allCounts = monthsSortedKeys.map(key => monthlyCounts[key].count);
-            const maxCount = Math.max(...allCounts, 1); // Ensure maxCount is at least 1 to avoid division by zero if all are 0
+            const maxCount = Math.max(...allCounts, 1);
 
             monthsSortedKeys.forEach(monthKey => {
                 const data = monthlyCounts[monthKey];
                 const count = data.count;
                 const label = data.label;
-                const barHeight = (count / maxCount) * 100; // Percentage of max height
+                const barHeight = (count / maxCount) * 100;
 
                 const barWrapper = document.createElement('div');
                 barWrapper.className = 'bar-wrapper';
                 barWrapper.innerHTML = `
-                    <div class="chart-bar" style="height: ${barHeight > 0 ? barHeight : 5}%;"> <!-- Min height for visibility -->
+                    <div class="chart-bar" style="height: ${barHeight > 0 ? barHeight : 5}%;">
                         <span class="value">${count}</span>
                     </div>
                     <span class="bar-label">${label}</span>
