@@ -59,26 +59,50 @@
         background-color: var(--widget-bg);
         border-radius: 16px;
         border: 1px solid var(--border-color);
-        padding: 1.5rem;
+        padding: 2rem; /* Increased padding */
         box-shadow: 0 4px 6px -1px rgba(0,0,0,0.03), 0 2px 4px -1px rgba(0,0,0,0.02);
     }
-    .widget-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
-    .widget-header h3 { font-size: 1.1rem; font-weight: 600; color: var(--text-primary); }
+    .widget-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; /* Increased margin */ border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; }
+    .widget-header h2 { font-size: 1.25rem; font-weight: 600; color: var(--text-primary); margin: 0; }
 
     /* Form Layout */
-    .form-layout-grid { display: grid; grid-template-columns: 1fr 2fr; gap: 20px; }
-    .profile-fields-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .form-section { margin-bottom: 2rem; }
+    .form-section h3 {
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--brand-green);
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+    .form-layout-grid { display: grid; grid-template-columns: 1fr 2fr; gap: 30px; /* Increased gap */ }
+    /* --- UPDATED: 3 columns for fields --- */
+    .profile-fields-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
     .full-width { grid-column: 1 / -1; }
     .form-group { margin-bottom: 15px; }
-    .form-group label { display: block; margin-bottom: 5px; font-weight: bold; color: #555; }
-    input[type="text"], input[type="email"], input[type="password"], input[type="number"], input[type="date"], textarea, select {
-        width: calc(100% - 22px); padding: 10px; margin: 0; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; font-size: 16px;
+    .form-group label { display: block; margin-bottom: 5px; font-weight: 500; /* Slightly lighter */ color: #555; font-size: 0.875rem; /* Smaller label */ }
+    input[type="text"], input[type="email"], input[type="tel"], input[type="password"], input[type="number"], input[type="date"], textarea, select {
+        width: 100%; /* Changed width */
+        padding: 10px; 
+        margin: 0; 
+        border: 1px solid var(--border-color); /* Use theme color */
+        border-radius: 8px; /* More rounded */
+        box-sizing: border-box; 
+        font-size: 0.95rem; /* Slightly smaller input text */
+        font-family: 'IBM Plex Sans', sans-serif;
+        background-color: var(--body-bg); /* Match body background */
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
     }
+     input[type="text"]:focus, input[type="email"]:focus, input[type="tel"]:focus, input[type="password"]:focus, input[type="number"]:focus, input[type="date"]:focus, textarea:focus, select:focus {
+         border-color: var(--brand-green);
+         outline: none;
+         box-shadow: 0 0 0 3px rgba(51, 195, 117, 0.2); /* Green glow */
+     }
     .form-group textarea { min-height: 80px; }
-    #auto-generate-paragraph { min-height: 150px; }
+    #auto-generate-paragraph { min-height: 100px; } /* Reduced height */
 
     /* Buttons */
-    button { background-color: var(--brand-green); color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; transition: background-color 0.2s ease; }
+    button { background-color: var(--brand-green); color: white; padding: 10px 20px; /* More padding */ border: none; border-radius: 8px; /* Match inputs */ cursor: pointer; font-size: 1rem; /* Larger button text */ transition: background-color 0.2s ease; font-weight: 500; }
     button:hover { background-color: #2fb165; }
     button:disabled { background-color: #cccccc; cursor: not-allowed; }
 
@@ -90,176 +114,51 @@
     /* Loading Spinner */
     .loading-spinner {
         border: 4px solid #f3f3f3;
-        border-top: 4px solid #3498db;
+        border-top: 4px solid var(--brand-green); /* Match theme */
         border-radius: 50%;
-        width: 20px;
-        height: 20px;
+        width: 18px; /* Slightly smaller */
+        height: 18px;
         animation: spin 1s linear infinite;
         display: inline-block;
         vertical-align: middle;
-        margin-left: 10px;
+        margin-left: 8px; /* Reduced margin */
     }
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-    /* Skeleton Loading Styles */
-    @keyframes shimmer { 100% { transform: translateX(100%); } }
-    .skeleton { background-color: #e2e8f0; position: relative; overflow: hidden; border-radius: 8px;}
-    .skeleton::after { content: ''; position: absolute; top: 0; right: 0; bottom: 0; left: 0; transform: translateX(-100%); background-image: linear-gradient(90deg, rgba(255, 255, 255, 0) 0, rgba(255, 255, 255, 0.2) 20%, rgba(255, 255, 255, 0.5) 60%, rgba(255, 255, 255, 0)); animation: shimmer 2s infinite; }
-    .skeleton-line { height: 1em; border-radius: 4px; background-color: #cbd5e1; margin-bottom: 0.5rem; }
-    .skeleton-input { height: 40px; width: 100%; }
-    .skeleton-textarea { height: 80px; width: 100%; }
-    .skeleton-photo-preview { width: 150px; height: 150px; border-radius: 8px; }
-    .skeleton-button { height: 40px; width: 100%; }
-
-    /* New Photo Upload Styles */
+    /* Photo Upload Styles */
     .photo-upload-area {
-        border: 2px dashed var(--border-color);
-        border-radius: 12px;
-        padding: 20px;
-        text-align: center;
-        cursor: pointer;
-        transition: border-color 0.3s ease, background-color 0.3s ease;
-        margin-bottom: 15px;
-        background-color: var(--hover-bg);
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
+        border: 2px dashed var(--border-color); border-radius: 12px; padding: 20px; text-align: center; cursor: pointer; transition: border-color 0.3s ease, background-color 0.3s ease; margin-bottom: 15px; background-color: var(--hover-bg); display: flex; flex-direction: column; align-items: center; justify-content: center;
     }
-    .photo-upload-area:hover {
-        border-color: var(--brand-green);
-        background-color: #e8f5e9;
-    }
-    .photo-upload-area.drag-over {
-        border-color: var(--brand-green);
-        background-color: #e0f2f1;
-    }
-    .photo-upload-area i {
-        font-size: 3em;
-        color: var(--text-secondary);
-        margin-bottom: 10px;
-    }
-    .photo-upload-area p {
-        color: var(--text-secondary);
-        font-size: 0.9em;
-    }
-    .photo-upload-area p strong {
-        color: var(--brand-green);
-    }
-    .hidden-file-input {
-        display: none;
-    }
-
-    .image-preview-container {
-        display: flex;
-        flex-direction: column; /* Stack vertically */
-        gap: 10px;
-        margin-top: 15px;
-        border-top: 1px solid var(--border-color);
-        padding-top: 15px;
-    }
-    .image-preview-card {
-        position: relative;
-        display: flex;
-        align-items: center;
-        justify-content: space-between; /* Space out content */
-        padding: 10px;
-        border: 1px solid var(--border-color);
-        border-radius: 8px;
-        background-color: var(--widget-bg);
-        box-shadow: 0 1px 2px rgba(0,0,0,0.04);
-        overflow: hidden;
-        height: 80px; /* Fixed height for list item */
-    }
-    .image-preview-card .image-thumbnail-wrapper {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        flex-grow: 1; /* Allow to take space */
-        overflow: hidden; /* Hide overflow from text */
-    }
-    .image-preview-card img {
-        width: 60px; /* Fixed size for list thumbnail */
-        height: 60px;
-        object-fit: cover;
-        border-radius: 4px;
-        flex-shrink: 0;
-    }
-    .image-preview-card .file-info {
-        flex-grow: 1;
-        text-align: left;
-        overflow: hidden;
-        white-space: nowrap;
-        text-overflow: ellipsis;
-    }
-    .image-preview-card .file-name {
-        font-weight: 500;
-        color: var(--text-primary);
-        font-size: 0.9em;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-    .image-preview-card .upload-progress-wrapper {
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        width: 100%;
-        height: 5px;
-        background-color: #e0e0e0;
-    }
-    .image-preview-card .progress-bar {
-        height: 100%;
-        background-color: var(--brand-green);
-        width: 0%;
-        transition: width 0.3s ease;
-    }
-    .image-preview-card .status-and-actions {
-        display: flex;
-        align-items: center;
-        gap: 5px;
-        flex-shrink: 0;
-    }
-    .image-preview-card .upload-status-icon {
-        background-color: rgba(255, 255, 255, 0.9);
-        border-radius: 50%;
-        width: 30px;
-        height: 30px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.2em;
-        color: var(--brand-green);
-        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    }
-    .image-preview-card .upload-status-icon i {
-        margin-bottom: 0;
-    }
-    .image-preview-card .upload-actions button {
-        background: none;
-        color: var(--text-secondary);
-        width: 30px;
-        height: 30px;
-        padding: 0;
-        border-radius: 50%;
-        font-size: 1.1em;
-        border: none;
-        transition: background-color 0.2s ease, color 0.2s ease;
-    }
-    .image-preview-card .upload-actions button:hover {
-        background-color: var(--hover-bg);
-    }
-    .image-preview-card .upload-actions button.delete-temp {
-        color: var(--danger-color);
-    }
-    .image-preview-card .upload-actions button.delete-temp:hover {
-        background-color: var(--danger-bg-light);
-        color: var(--danger-color);
-    }
-
+    .photo-upload-area:hover { border-color: var(--brand-green); background-color: #e8f5e9; }
+    .photo-upload-area.drag-over { border-color: var(--brand-green); background-color: #e0f2f1; }
+    .photo-upload-area i { font-size: 3em; color: var(--text-secondary); margin-bottom: 10px; }
+    .photo-upload-area p { color: var(--text-secondary); font-size: 0.9em; }
+    .photo-upload-area p strong { color: var(--brand-green); }
+    .hidden-file-input { display: none; }
+    .image-preview-container { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; border-top: 1px solid var(--border-color); padding-top: 15px; }
+    .image-preview-card { position: relative; display: flex; align-items: center; justify-content: space-between; padding: 10px; border: 1px solid var(--border-color); border-radius: 8px; background-color: var(--widget-bg); box-shadow: 0 1px 2px rgba(0,0,0,0.04); overflow: hidden; height: 80px; }
+    .image-preview-card .image-thumbnail-wrapper { display: flex; align-items: center; gap: 10px; flex-grow: 1; overflow: hidden; }
+    .image-preview-card img { width: 60px; height: 60px; object-fit: cover; border-radius: 4px; flex-shrink: 0; }
+    .image-preview-card .file-info { flex-grow: 1; text-align: left; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+    .image-preview-card .file-name { font-weight: 500; color: var(--text-primary); font-size: 0.9em; overflow: hidden; text-overflow: ellipsis; }
+    .image-preview-card .upload-progress-wrapper { position: absolute; bottom: 0; left: 0; width: 100%; height: 5px; background-color: #e0e0e0; }
+    .image-preview-card .progress-bar { height: 100%; background-color: var(--brand-green); width: 0%; transition: width 0.3s ease; }
+    .image-preview-card .status-and-actions { display: flex; align-items: center; gap: 5px; flex-shrink: 0; }
+    .image-preview-card .upload-status-icon { background-color: rgba(255, 255, 255, 0.9); border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; font-size: 1.2em; color: var(--brand-green); box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    .image-preview-card .upload-status-icon i { margin-bottom: 0; }
+    .image-preview-card .upload-actions button { background: none; color: var(--text-secondary); width: 30px; height: 30px; padding: 0; border-radius: 50%; font-size: 1.1em; border: none; transition: background-color 0.2s ease, color 0.2s ease; }
+    .image-preview-card .upload-actions button:hover { background-color: var(--hover-bg); }
+    .image-preview-card .upload-actions button.delete-temp { color: var(--danger-color); }
 
     /* Responsive Adjustments */
     .menu-toggle { display: none; }
     .sidebar-close-btn { display: none; }
+    
+    @media (max-width: 1200px) { /* Adjust breakpoint for 3 columns */
+         .profile-fields-grid {
+             grid-template-columns: 1fr 1fr; /* 2 columns on medium screens */
+         }
+    }
     
     @media (max-width: 1024px) {
         .dashboard-container { grid-template-columns: 1fr; }
@@ -269,28 +168,16 @@
         .content-body { padding: 1.5rem; }
         .menu-toggle { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; font-size: 1.5rem; color: var(--text-primary); cursor: pointer; background: none; border: none; }
         .sidebar-close-btn { display: flex; align-items: center; justify-content: center; position: absolute; top: 1.5rem; right: 1.5rem; font-size: 1.75rem; color: var(--danger-color); cursor: pointer; border: none; background: none; }
-        .overlay {
-            position: fixed; inset: 0; background-color: rgba(0,0,0,0.4); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
-            z-index: 999;
-            opacity: 0;
-            visibility: hidden;
-            pointer-events: none;
-            transition: opacity 0.3s ease, visibility 0.3s ease;
-        }
-        .overlay.active {
-            opacity: 1;
-            visibility: visible;
-            pointer-events: auto;
-        }
-
-        /* Stack columns on mobile */
-        .form-layout-grid {
-            grid-template-columns: 1fr;
-        }
-        .profile-fields-grid {
-            grid-template-columns: 1fr; /* Single column for profile fields on mobile */
-        }
-    }</style>
+        .overlay { position: fixed; inset: 0; background-color: rgba(0,0,0,0.4); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); z-index: 999; opacity: 0; visibility: hidden; pointer-events: none; transition: opacity 0.3s ease, visibility 0.3s ease; }
+        .overlay.active { opacity: 1; visibility: visible; pointer-events: auto; }
+        .form-layout-grid { grid-template-columns: 1fr; }
+    }
+     @media (max-width: 768px) { /* Adjust breakpoint */
+         .profile-fields-grid {
+             grid-template-columns: 1fr; /* 1 column on small screens */
+         }
+     }
+    </style>
   
 </head>
 <body>
@@ -341,13 +228,27 @@
                 <h1 id="main-header-title">Create New Profile</h1>
             </header>
             <section class="content-body">
-                <div class="form-wrapper"> <h2 id="profile-form-title" class="widget-header">Create New Profile</h2>
+                <div class="form-wrapper"> 
+                    <div class="widget-header">
+                         <h2 id="profile-form-title">Create New Profile</h2>
+                    </div>
                     <form id="profile-form">
                         <input type="hidden" id="profile-id">
+                        
+                        <div class="form-section">
+                             <h3>AI Auto-Generation</h3>
+                             <div class="form-group full-width">
+                                 <label for="auto-generate-paragraph">Generate details from paragraph:</label>
+                                 <textarea id="auto-generate-paragraph" placeholder="e.g., John Doe, Male, born 1995-05-15, 175cm tall. Cast: Brahmin... Contact: 98XXXXXX01, john@email.com..." rows="4"></textarea>
+                                 <button type="button" id="auto-generate-btn" style="margin-top: 10px;">Auto-generate Fields <span class="loading-spinner hidden" id="auto-generate-spinner"></span></button>
+                             </div>
+                        </div>
+
                         <div class="form-layout-grid">
-                            <div class="photo-upload-column">
+                            <div class="photo-upload-column form-section">
+                                 <h3>Profile Photos</h3>
                                 <div class="form-group">
-                                    <label>Profile Photos (Drag & Drop or Click)</label>
+                                    <label>Upload Photos (Drag & Drop or Click)</label>
                                     <div id="drop-area" class="photo-upload-area">
                                         <input type="file" id="profile-photo-input" class="hidden-file-input" accept="image/*" multiple>
                                         <i class='bx bx-cloud-upload'></i>
@@ -359,97 +260,270 @@
                                     </div>
                                 </div>
                             </div>
+                            
                             <div class="profile-fields-column">
-                                <div class="form-group">
-                                    <label for="auto-generate-paragraph">Auto-generate details from paragraph:</label>
-                                    <textarea id="auto-generate-paragraph" placeholder="e.g., John Doe, born 1995-05-15. Cast: Brahmin, Subcast: Iyer. Country: India, State: Tamil Nadu, City: Chennai. Mother Tongue: Tamil. Star: Ashwini, Rasi: Mesha. Annual Income: 500000. Education: B.Tech, Profession: Software Engineer. Looking for a compatible partner." rows="6"></textarea>
-                                    <button type="button" id="auto-generate-btn" style="margin-top: 10px;">Auto-generate Fields <span class="loading-spinner hidden" id="auto-generate-spinner"></span></button>
-                                </div>
-                                <div class="profile-fields-grid">
-                                    <div class="form-group">
-                                        <label for="profile-name">Full Name:</label>
-                                        <input type="text" id="profile-name" required>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="profile-dob">Date of Birth:</label>
-                                        <input type="date" id="profile-dob" required>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="profile-marital-status">Marital Status:</label>
-                                        <select id="profile-marital-status">
-                                            <option value="Single">Single</option>
-                                            <option value="Divorced">Divorced</option>
-                                            <option value="Widowed">Widowed</option>
-                                        </select>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="profile-matrimony-group">Matrimony Group:</label>
-                                        <select id="profile-matrimony-group">
-                                        </select>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="profile-cast">Cast:</label>
-                                        <input type="text" id="profile-cast">
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="profile-subcast">Subcast:</label>
-                                        <input type="text" id="profile-subcast">
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="profile-country">Country:</label>
-                                        <input type="text" id="profile-country">
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="profile-state">State:</label>
-                                        <input type="text" id="profile-state">
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="profile-city">City:</label>
-                                        <input type="text" id="profile-city">
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="profile-location">Location (General):</label>
-                                        <input type="text" id="profile-location" required>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="profile-religion">Religion:</label>
-                                        <input type="text" id="profile-religion">
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="profile-mother-tongue">Mother Tongue:</label>
-                                        <input type="text" id="profile-mother-tongue">
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="profile-star">Star:</label>
-                                        <input type="text" id="profile-star">
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="profile-rasi">Rasi:</label>
-                                        <input type="text" id="profile-rasi">
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="profile-education">Education:</label>
-                                        <input type="text" id="profile-education">
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="profile-profession">Profession:</label>
-                                        <input type="text" id="profile-profession">
-                                    </div>
-                                    <div class="form-group full-width">
-                                        <label for="profile-annual-income">Annual Income:</label>
-                                        <input type="number" id="profile-annual-income" min="0">
-                                    </div>
-                                    <div class="form-group full-width">
-                                        <label for="profile-bio">Bio / Description:</label>
-                                        <textarea id="profile-bio" rows="4"></textarea>
+                                
+                                <div class="form-section">
+                                    <h3>Personal Details</h3>
+                                    <div class="profile-fields-grid">
+                                        <div class="form-group">
+                                            <label for="profile-name">Full Name:</label>
+                                            <input type="text" id="profile-name" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="profile-gender">Gender:</label>
+                                            <select id="profile-gender" required>
+                                                <option value="">Select Gender</option>
+                                                <option value="Male">Male</option>
+                                                <option value="Female">Female</option>
+                                                <option value="Other">Other</option>
+                                            </select>
+                                        </div>
+                                         <div class="form-group">
+                                            <label for="profile-dob">Date of Birth:</label>
+                                            <input type="date" id="profile-dob" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="profile-height">Height (cm):</label>
+                                            <input type="number" id="profile-height" placeholder="e.g., 175">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="profile-weight">Weight (kg):</label>
+                                            <input type="number" id="profile-weight" placeholder="e.g., 70">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="profile-body-type">Body Type:</label>
+                                            <select id="profile-body-type">
+                                                <option value="">Select Body Type</option>
+                                                <option value="Slim">Slim</option>
+                                                <option value="Average">Average</option>
+                                                <option value="Athletic">Athletic</option>
+                                                <option value="Heavy">Heavy</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="profile-complexion">Complexion:</label>
+                                            <select id="profile-complexion">
+                                                <option value="">Select Complexion</option>
+                                                <option value="Very Fair">Very Fair</option>
+                                                <option value="Fair">Fair</option>
+                                                <option value="Wheatish">Wheatish</option>
+                                                 <option value="Wheatish Brown">Wheatish Brown</option>
+                                                <option value="Dark">Dark</option>
+                                            </select>
+                                        </div>
+                                         <div class="form-group">
+                                            <label for="profile-marital-status">Marital Status:</label>
+                                            <select id="profile-marital-status">
+                                                <option value="Single">Single</option>
+                                                <option value="Divorced">Divorced</option>
+                                                <option value="Widowed">Widowed</option>
+                                                 <option value="Awaiting Divorce">Awaiting Divorce</option>
+                                            </select>
+                                        </div>
+                                         <div class="form-group">
+                                            <label for="profile-mother-tongue">Mother Tongue:</label>
+                                            <input type="text" id="profile-mother-tongue">
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        </div>
-                        <div class="form-group full-width" style="margin-top: 20px;">
-                            <p id="profile-form-message" class="success-message hidden"></p>
+                                
+                                <div class="form-section">
+                                    <h3>Contact Details</h3>
+                                    <div class="profile-fields-grid">
+                                         <div class="form-group">
+                                            <label for="profile-phone-primary">Primary Phone:</label>
+                                            <input type="tel" id="profile-phone-primary" placeholder="e.g., 9876543210" required>
+                                        </div>
+                                         <div class="form-group">
+                                            <label for="profile-phone-secondary">Secondary Phone (Optional):</label>
+                                            <input type="tel" id="profile-phone-secondary" placeholder="e.g., 9123456789">
+                                        </div>
+                                         <div class="form-group">
+                                            <label for="profile-email">Email:</label>
+                                            <input type="email" id="profile-email" placeholder="e.g., name@example.com">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="form-section">
+                                    <h3>Professional & Educational Details</h3>
+                                     <div class="profile-fields-grid">
+                                        <div class="form-group">
+                                            <label for="profile-education">Highest Education:</label>
+                                            <input type="text" id="profile-education">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="profile-profession">Profession:</label>
+                                            <input type="text" id="profile-profession">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="profile-annual-income">Annual Income (INR):</label>
+                                            <input type="number" id="profile-annual-income" min="0" placeholder="e.g., 500000">
+                                        </div>
+                                     </div>
+                                </div>
+
+                                <div class="form-section">
+                                     <h3>Location Details</h3>
+                                      <div class="profile-fields-grid">
+                                        <div class="form-group">
+                                            <label for="profile-country">Country:</label>
+                                            <input type="text" id="profile-country">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="profile-state">State:</label>
+                                            <input type="text" id="profile-state">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="profile-city">City:</label>
+                                            <input type="text" id="profile-city">
+                                        </div>
+                                         <div class="form-group full-width">
+                                            <label for="profile-location">Current Location / Address:</label>
+                                            <input type="text" id="profile-location" required>
+                                        </div>
+                                      </div>
+                                </div>
+                                
+                                <div class="form-section">
+                                    <h3>Religious & Horoscope Details</h3>
+                                    <div class="profile-fields-grid">
+                                        <div class="form-group">
+                                            <label for="profile-religion">Religion:</label>
+                                            <input type="text" id="profile-religion">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="profile-cast">Cast:</label>
+                                            <input type="text" id="profile-cast">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="profile-subcast">Subcast:</label>
+                                            <input type="text" id="profile-subcast">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="profile-gotram">Gotram/Gothra:</label>
+                                            <input type="text" id="profile-gotram">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="profile-star">Star (Nakshatra):</label>
+                                            <input type="text" id="profile-star">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="profile-rasi">Rasi (Moon Sign):</label>
+                                            <input type="text" id="profile-rasi">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="profile-dosham">Dosham (Manglik etc.):</label>
+                                            <select id="profile-dosham">
+                                                <option value="">Select Option</option>
+                                                <option value="Yes">Yes</option>
+                                                <option value="No">No</option>
+                                                <option value="Don't Know">Don't Know</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-section">
+                                    <h3>Family Details</h3>
+                                     <div class="profile-fields-grid">
+                                        <div class="form-group">
+                                            <label for="profile-father-name">Father's Name:</label>
+                                            <input type="text" id="profile-father-name">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="profile-father-status">Father's Status:</label>
+                                            <select id="profile-father-status">
+                                                 <option value="">Select Status</option>
+                                                 <option value="Working">Working</option>
+                                                 <option value="Retired">Retired</option>
+                                                 <option value="Business">Business</option>
+                                                 <option value="Not Employed">Not Employed</option>
+                                                 <option value="Passed Away">Passed Away</option>
+                                            </select>
+                                        </div>
+                                         <div class="form-group">
+                                            <label for="profile-mother-name">Mother's Name:</label>
+                                            <input type="text" id="profile-mother-name">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="profile-mother-status">Mother's Status:</label>
+                                            <select id="profile-mother-status">
+                                                 <option value="">Select Status</option>
+                                                 <option value="Homemaker">Homemaker</option>
+                                                 <option value="Working">Working</option>
+                                                 <option value="Retired">Retired</option>
+                                                 <option value="Business">Business</option>
+                                                 <option value="Not Employed">Not Employed</option>
+                                                 <option value="Passed Away">Passed Away</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="profile-brothers">No. of Brothers:</label>
+                                            <input type="number" id="profile-brothers" min="0">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="profile-sisters">No. of Sisters:</label>
+                                            <input type="number" id="profile-sisters" min="0">
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-section">
+                                    <h3>Lifestyle</h3>
+                                    <div class="profile-fields-grid">
+                                         <div class="form-group">
+                                            <label for="profile-eating-habits">Eating Habits:</label>
+                                            <select id="profile-eating-habits">
+                                                <option value="">Select Habits</option>
+                                                <option value="Vegetarian">Vegetarian</option>
+                                                <option value="Non-Vegetarian">Non-Vegetarian</option>
+                                                <option value="Eggetarian">Eggetarian</option>
+                                                 <option value="Jain">Jain</option>
+                                                 <option value="Vegan">Vegan</option>
+                                            </select>
+                                        </div>
+                                         <div class="form-group">
+                                            <label for="profile-smoking-habit">Smoking Habit:</label>
+                                            <select id="profile-smoking-habit">
+                                                <option value="">Select Habit</option>
+                                                <option value="No">No</option>
+                                                <option value="Yes">Yes</option>
+                                                <option value="Occasionally">Occasionally</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="profile-drinking-habit">Drinking Habit:</label>
+                                            <select id="profile-drinking-habit">
+                                                <option value="">Select Habit</option>
+                                                <option value="No">No</option>
+                                                <option value="Yes">Yes</option>
+                                                <option value="Occasionally">Occasionally</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="form-section">
+                                    <h3>About & Group</h3>
+                                    <div class="profile-fields-grid">
+                                         <div class="form-group">
+                                            <label for="profile-matrimony-group">Matrimony Group:</label>
+                                            <select id="profile-matrimony-group">
+                                                 <option value="">None (Optional)</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group full-width">
+                                            <label for="profile-bio">About / Bio:</label>
+                                            <textarea id="profile-bio" rows="4" placeholder="Write a brief description about yourself..."></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div> </div> <div class="form-group full-width" style="margin-top: 2rem; border-top: 1px solid var(--border-color); padding-top: 1.5rem; text-align: right;">
+                            <p id="profile-form-message" class="success-message hidden" style="text-align: left; margin-bottom: 1rem;"></p>
+                             <button type="button" id="cancel-edit-btn" class="hidden" style="background-color: var(--text-secondary); margin-right: 10px;">Cancel Edit</button>
                             <button type="submit" id="submit-profile-btn">Create Profile <span class="loading-spinner hidden" id="profile-submit-spinner"></span></button>
-                            <button type="button" id="cancel-edit-btn" class="hidden">Cancel Edit</button>
                         </div>
                     </form>
                 </div>
@@ -489,7 +563,7 @@
     ];
     let editingProfileId = null;
     
-    // --- Photo Upload State Management ---
+    // Photo Upload State Management
     let currentUploadedPhotos = []; 
     const LOCAL_STORAGE_KEY_PREFIX = 'matrimony_profile_form_';
 
@@ -499,19 +573,25 @@
     let menuToggle, sidebar, sidebarCloseBtn, overlay, mainHeaderTitle;
     let navDashboardItem, navDashboardLink, navManageUsersItem, navManageProfilesItem, navGlobalHistoryItem;
 
-
-    // Page Specific Elements
-    let profileFormTitle, profileForm, profileIdInput, profileNameInput, profileDobInput, profileLocationInput, profileReligionInput, profileEducationInput, profileProfessionInput, profileMaritalStatusSelect, profileMatrimonyGroupSelect, profileBioInput;
-    let profileCastInput, profileSubcastInput, profileCountryInput, profileStateInput, profileCityInput, profileMotherTongueInput, profileStarInput, profileRasiInput, profileAnnualIncomeInput;
+    // Page Specific Elements (Existing + New)
+    let profileFormTitle, profileForm, profileIdInput;
+    let profileNameInput, profileGenderSelect, profileDobInput, profileHeightInput, profileWeightInput, profileBodyTypeSelect, profileComplexionSelect; // Personal
+    let profilePhonePrimaryInput, profilePhoneSecondaryInput, profileEmailInput; // Contact
+    let profileEducationInput, profileProfessionInput, profileAnnualIncomeInput; // Professional
+    let profileCountryInput, profileStateInput, profileCityInput, profileLocationInput; // Location
+    let profileReligionInput, profileCastInput, profileSubcastInput, profileMotherTongueInput, profileGotramInput, profileStarInput, profileRasiInput, profileDoshamSelect; // Religious/Horoscope
+    let profileMaritalStatusSelect; // Moved under Personal
+    let profileFatherNameInput, profileFatherStatusSelect, profileMotherNameInput, profileMotherStatusSelect, profileBrothersInput, profileSistersInput; // Family
+    let profileEatingHabitsSelect, profileSmokingHabitSelect, profileDrinkingHabitSelect; // Lifestyle
+    let profileMatrimonyGroupSelect, profileBioInput; // About/Group
 
     let autoGenerateParagraphInput, autoGenerateBtn, autoGenerateSpinner, submitProfileBtn, cancelEditBtn, profileFormMessage, profileSubmitSpinner;
     
     // Photo upload specific elements
     let dropArea, profilePhotoInput, imagePreviewContainer, noImagesSelectedText;
 
-
     document.addEventListener('DOMContentLoaded', function() {
-        // UI Shell Element Assignments
+        // UI Shell Element Assignments (Keep as is)
         sidebarUserAvatar = document.getElementById('sidebar-user-avatar');
         popupUserAvatar = document.getElementById('popup-user-avatar');
         sidebarUserName = document.getElementById('current-user-email');
@@ -524,41 +604,71 @@
         sidebarCloseBtn = document.getElementById('sidebar-close-btn');
         overlay = document.getElementById('overlay');
         mainHeaderTitle = document.getElementById('main-header-title');
-
-        // Navigation specific items
         navDashboardItem = document.getElementById('nav-dashboard-item');
         navDashboardLink = document.getElementById('nav-dashboard-link');
         navManageUsersItem = document.getElementById('nav-manage-users-item');
         navManageProfilesItem = document.getElementById('nav-manage-profiles-item');
         navGlobalHistoryItem = document.getElementById('nav-global-history-item');
 
-
-        // Page Specific Element Assignments
+        // Page Specific Element Assignments (Add new ones)
         profileFormTitle = document.getElementById('profile-form-title');
         profileForm = document.getElementById('profile-form');
         profileIdInput = document.getElementById('profile-id');
+        
+        // Personal
         profileNameInput = document.getElementById('profile-name');
+        profileGenderSelect = document.getElementById('profile-gender');
         profileDobInput = document.getElementById('profile-dob');
-        profileLocationInput = document.getElementById('profile-location');
-        profileReligionInput = document.getElementById('profile-religion');
+        profileHeightInput = document.getElementById('profile-height');
+        profileWeightInput = document.getElementById('profile-weight');
+        profileBodyTypeSelect = document.getElementById('profile-body-type');
+        profileComplexionSelect = document.getElementById('profile-complexion');
+        profileMaritalStatusSelect = document.getElementById('profile-marital-status');
+        profileMotherTongueInput = document.getElementById('profile-mother-tongue');
+        
+        // Contact
+        profilePhonePrimaryInput = document.getElementById('profile-phone-primary');
+        profilePhoneSecondaryInput = document.getElementById('profile-phone-secondary');
+        profileEmailInput = document.getElementById('profile-email');
+
+        // Professional
         profileEducationInput = document.getElementById('profile-education');
         profileProfessionInput = document.getElementById('profile-profession');
-        profileMaritalStatusSelect = document.getElementById('profile-marital-status');
-        profileMatrimonyGroupSelect = document.getElementById('profile-matrimony-group');
-        profileBioInput = document.getElementById('profile-bio');
+        profileAnnualIncomeInput = document.getElementById('profile-annual-income');
 
-        // New fields
-        profileCastInput = document.getElementById('profile-cast');
-        profileSubcastInput = document.getElementById('profile-subcast');
+        // Location
         profileCountryInput = document.getElementById('profile-country');
         profileStateInput = document.getElementById('profile-state');
         profileCityInput = document.getElementById('profile-city');
-        profileMotherTongueInput = document.getElementById('profile-mother-tongue');
+        profileLocationInput = document.getElementById('profile-location'); 
+
+        // Religious/Horoscope
+        profileReligionInput = document.getElementById('profile-religion');
+        profileCastInput = document.getElementById('profile-cast');
+        profileSubcastInput = document.getElementById('profile-subcast');
+        profileGotramInput = document.getElementById('profile-gotram');
         profileStarInput = document.getElementById('profile-star');
         profileRasiInput = document.getElementById('profile-rasi');
-        profileAnnualIncomeInput = document.getElementById('profile-annual-income');
+        profileDoshamSelect = document.getElementById('profile-dosham');
+        
+        // Family
+        profileFatherNameInput = document.getElementById('profile-father-name');
+        profileFatherStatusSelect = document.getElementById('profile-father-status');
+        profileMotherNameInput = document.getElementById('profile-mother-name');
+        profileMotherStatusSelect = document.getElementById('profile-mother-status');
+        profileBrothersInput = document.getElementById('profile-brothers');
+        profileSistersInput = document.getElementById('profile-sisters');
 
+        // Lifestyle
+        profileEatingHabitsSelect = document.getElementById('profile-eating-habits');
+        profileSmokingHabitSelect = document.getElementById('profile-smoking-habit');
+        profileDrinkingHabitSelect = document.getElementById('profile-drinking-habit');
 
+        // About/Group
+        profileMatrimonyGroupSelect = document.getElementById('profile-matrimony-group');
+        profileBioInput = document.getElementById('profile-bio');
+
+        // Actions & Others
         autoGenerateParagraphInput = document.getElementById('auto-generate-paragraph');
         autoGenerateBtn = document.getElementById('auto-generate-btn');
         autoGenerateSpinner = document.getElementById('auto-generate-spinner');
@@ -573,100 +683,80 @@
         imagePreviewContainer = document.getElementById('image-preview-container');
         noImagesSelectedText = imagePreviewContainer ? imagePreviewContainer.querySelector('.no-images-selected') : null;
 
-
-        // UI Shell Event Listeners
+        // UI Shell Event Listeners (Keep as is)
         const profileSection = document.getElementById('profile-section');
         const profilePopup = document.getElementById('profile-popup');
-
-        if (profileSection) {
-            profileSection.addEventListener('click', e => {
-                e.stopPropagation();
-                if (profilePopup) profilePopup.classList.toggle('active');
-                if (profileSection) profileSection.classList.toggle('active');
-            });
-        }
-        document.addEventListener('click', e => {
-            if (profileSection && !profileSection.contains(e.target) && profilePopup && !profilePopup.contains(e.target)) {
-                profilePopup.classList.remove('active');
-                profileSection.classList.remove('active');
-            }
-        });
-        const toggleMenu = () => {
-            if (sidebar) sidebar.classList.toggle('active');
-            if (overlay) overlay.classList.toggle('active');
-        };
+        if (profileSection) { profileSection.addEventListener('click', e => { e.stopPropagation(); if (profilePopup) profilePopup.classList.toggle('active'); if (profileSection) profileSection.classList.toggle('active'); }); }
+        document.addEventListener('click', e => { if (profileSection && !profileSection.contains(e.target) && profilePopup && !profilePopup.contains(e.target)) { profilePopup.classList.remove('active'); profileSection.classList.remove('active'); } });
+        const toggleMenu = () => { if (sidebar) sidebar.classList.toggle('active'); if (overlay) overlay.classList.toggle('active'); };
         if (menuToggle) menuToggle.addEventListener('click', toggleMenu);
         if (sidebarCloseBtn) sidebarCloseBtn.addEventListener('click', toggleMenu);
         if (overlay) overlay.addEventListener('click', toggleMenu);
+        if (logoutBtn) logoutBtn.addEventListener('click', async () => { try { await signOut(auth); window.location.href = 'index.html'; } catch (error) { console.error("Error signing out:", error); } });
 
-
-        // Page Specific Event Listeners
+        // Page Specific Event Listeners (Keep as is)
         if (autoGenerateBtn) autoGenerateBtn.addEventListener('click', autoGenerateProfileDetails);
-        if (profileForm) {
-            profileForm.addEventListener('submit', submitProfileForm);
-            profileForm.addEventListener('input', saveFormDataToLocalStorage); // Auto-save on input changes
-        }
+        if (profileForm) { profileForm.addEventListener('submit', submitProfileForm); profileForm.addEventListener('input', saveFormDataToLocalStorage); }
         if (cancelEditBtn) cancelEditBtn.addEventListener('click', resetProfileForm);
-        if (logoutBtn) logoutBtn.addEventListener('click', async () => {
-            try {
-                await signOut(auth);
-                window.location.href = 'index.html';
-            } catch (error) {
-                console.error("Error signing out:", error);
-            }
-        });
-
-        // Photo Upload Event Listeners
-        if (dropArea) {
-            dropArea.addEventListener('click', () => {
-                if (profilePhotoInput) profilePhotoInput.click(); // Trigger hidden file input click
-            });
-            if (profilePhotoInput) profilePhotoInput.addEventListener('change', handleFileSelect); // Attach change listener
-            dropArea.addEventListener('dragover', (e) => { e.preventDefault(); if (dropArea) dropArea.classList.add('drag-over'); });
-            dropArea.addEventListener('dragleave', (e) => { e.preventDefault(); if (dropArea) dropArea.classList.remove('drag-over'); });
-            dropArea.addEventListener('drop', handleDrop);
-        }
-
-        // --- FIX 1: REMOVED loadFormDataFromLocalStorage() from here ---
-        // It will now be called inside onAuthStateChanged
+        
+        // Photo Upload Event Listeners (Keep as is)
+        if (dropArea) { dropArea.addEventListener('click', () => { if (profilePhotoInput) profilePhotoInput.click(); }); if (profilePhotoInput) profilePhotoInput.addEventListener('change', handleFileSelect); dropArea.addEventListener('dragover', (e) => { e.preventDefault(); if (dropArea) dropArea.classList.add('drag-over'); }); dropArea.addEventListener('dragleave', (e) => { e.preventDefault(); if (dropArea) dropArea.classList.remove('drag-over'); }); dropArea.addEventListener('drop', handleDrop); }
     });
 
     // --- Local Storage Functions ---
-    function getLocalStorageKey() {
-        // Use currentUserId if available, otherwise a generic key
-        return `${LOCAL_STORAGE_KEY_PREFIX}${currentUser ? currentUser.uid : 'anonymous'}`;
-    }
+    function getLocalStorageKey() { return `${LOCAL_STORAGE_KEY_PREFIX}${currentUser ? currentUser.uid : 'anonymous'}`; }
 
     function saveFormDataToLocalStorage() {
-        if (!profileForm) return; // Ensure form exists
+        if (!profileForm) return; 
         const formData = {
-            name: profileNameInput ? profileNameInput.value : '',
-            dateOfBirth: profileDobInput ? profileDobInput.value : '',
-            location: profileLocationInput ? profileLocationInput.value : '',
-            religion: profileReligionInput ? profileReligionInput.value : '',
-            education: profileEducationInput ? profileEducationInput.value : '',
-            profession: profileProfessionInput ? profileProfessionInput.value : '',
-            maritalStatus: profileMaritalStatusSelect ? profileMaritalStatusSelect.value : 'Single',
-            matrimonyGroupId: profileMatrimonyGroupSelect ? profileMatrimonyGroupSelect.value : '',
-            bio: profileBioInput ? profileBioInput.value : '',
-            autoGenerateParagraph: autoGenerateParagraphInput ? autoGenerateParagraphInput.value : '',
-            // New fields
-            cast: profileCastInput ? profileCastInput.value : '',
-            subcast: profileSubcastInput ? profileSubcastInput.value : '',
-            country: profileCountryInput ? profileCountryInput.value : '',
-            state: profileStateInput ? profileStateInput.value : '',
-            city: profileCityInput ? profileCityInput.value : '',
-            motherTongue: profileMotherTongueInput ? profileMotherTongueInput.value : '',
-            star: profileStarInput ? profileStarInput.value : '',
-            rasi: profileRasiInput ? profileRasiInput.value : '',
-            annualIncome: profileAnnualIncomeInput ? profileAnnualIncomeInput.value : '',
-
-            uploadedPhotos: currentUploadedPhotos.filter(p => p.status === 'completed').map(p => ({
-                id: p.id,
-                url: p.url,
-                storagePath: p.storagePath,
-                fileName: p.fileName
-            }))
+            // Personal
+            name: profileNameInput?.value || '',
+            gender: profileGenderSelect?.value || '',
+            dateOfBirth: profileDobInput?.value || '',
+            height: profileHeightInput?.value || '',
+            weight: profileWeightInput?.value || '',
+            bodyType: profileBodyTypeSelect?.value || '',
+            complexion: profileComplexionSelect?.value || '',
+            maritalStatus: profileMaritalStatusSelect?.value || 'Single',
+            motherTongue: profileMotherTongueInput?.value || '',
+             // Contact
+            phonePrimary: profilePhonePrimaryInput?.value || '',
+            phoneSecondary: profilePhoneSecondaryInput?.value || '',
+            email: profileEmailInput?.value || '',
+            // Professional
+            education: profileEducationInput?.value || '',
+            profession: profileProfessionInput?.value || '',
+            annualIncome: profileAnnualIncomeInput?.value || '',
+            // Location
+            country: profileCountryInput?.value || '',
+            state: profileStateInput?.value || '',
+            city: profileCityInput?.value || '',
+            location: profileLocationInput?.value || '',
+            // Religious/Horoscope
+            religion: profileReligionInput?.value || '',
+            cast: profileCastInput?.value || '',
+            subcast: profileSubcastInput?.value || '',
+            gotram: profileGotramInput?.value || '',
+            star: profileStarInput?.value || '',
+            rasi: profileRasiInput?.value || '',
+            dosham: profileDoshamSelect?.value || '',
+             // Family
+            fatherName: profileFatherNameInput?.value || '',
+            fatherStatus: profileFatherStatusSelect?.value || '',
+            motherName: profileMotherNameInput?.value || '',
+            motherStatus: profileMotherStatusSelect?.value || '',
+            brothers: profileBrothersInput?.value || '',
+            sisters: profileSistersInput?.value || '',
+            // Lifestyle
+            eatingHabits: profileEatingHabitsSelect?.value || '',
+            smokingHabit: profileSmokingHabitSelect?.value || '',
+            drinkingHabit: profileDrinkingHabitSelect?.value || '',
+            // About/Group
+            matrimonyGroupId: profileMatrimonyGroupSelect?.value || '',
+            bio: profileBioInput?.value || '',
+            // Other
+            autoGenerateParagraph: autoGenerateParagraphInput?.value || '',
+            uploadedPhotos: currentUploadedPhotos.filter(p => p.status === 'completed').map(p => ({ id: p.id, url: p.url, storagePath: p.storagePath, fileName: p.fileName }))
         };
         localStorage.setItem(getLocalStorageKey(), JSON.stringify(formData));
     }
@@ -675,416 +765,123 @@
         const savedData = localStorage.getItem(getLocalStorageKey());
         if (savedData) {
             const formData = JSON.parse(savedData);
+            // Personal
             if (profileNameInput) profileNameInput.value = formData.name || '';
+            if (profileGenderSelect) profileGenderSelect.value = formData.gender || '';
             if (profileDobInput) profileDobInput.value = formData.dateOfBirth || '';
-            if (profileLocationInput) profileLocationInput.value = formData.location || '';
-            if (profileReligionInput) profileReligionInput.value = formData.religion || '';
+            if (profileHeightInput) profileHeightInput.value = formData.height || '';
+            if (profileWeightInput) profileWeightInput.value = formData.weight || '';
+            if (profileBodyTypeSelect) profileBodyTypeSelect.value = formData.bodyType || '';
+            if (profileComplexionSelect) profileComplexionSelect.value = formData.complexion || '';
+            if (profileMaritalStatusSelect) profileMaritalStatusSelect.value = formData.maritalStatus || 'Single';
+            if (profileMotherTongueInput) profileMotherTongueInput.value = formData.motherTongue || '';
+            // Contact
+            if (profilePhonePrimaryInput) profilePhonePrimaryInput.value = formData.phonePrimary || '';
+            if (profilePhoneSecondaryInput) profilePhoneSecondaryInput.value = formData.phoneSecondary || '';
+            if (profileEmailInput) profileEmailInput.value = formData.email || '';
+            // Professional
             if (profileEducationInput) profileEducationInput.value = formData.education || '';
             if (profileProfessionInput) profileProfessionInput.value = formData.profession || '';
-            if (profileMaritalStatusSelect) profileMaritalStatusSelect.value = formData.maritalStatus || 'Single';
-            if (profileMatrimonyGroupSelect) profileMatrimonyGroupSelect.value = formData.matrimonyGroupId || '';
-            if (profileBioInput) profileBioInput.value = formData.bio || '';
-            if (autoGenerateParagraphInput) autoGenerateParagraphInput.value = formData.autoGenerateParagraph || '';
-
-            // New fields
-            if (profileCastInput) profileCastInput.value = formData.cast || '';
-            if (profileSubcastInput) profileSubcastInput.value = formData.subcast || '';
+            if (profileAnnualIncomeInput) profileAnnualIncomeInput.value = formData.annualIncome || '';
+            // Location
             if (profileCountryInput) profileCountryInput.value = formData.country || '';
             if (profileStateInput) profileStateInput.value = formData.state || '';
             if (profileCityInput) profileCityInput.value = formData.city || '';
-            if (profileMotherTongueInput) profileMotherTongueInput.value = formData.motherTongue || '';
+            if (profileLocationInput) profileLocationInput.value = formData.location || '';
+             // Religious/Horoscope
+            if (profileReligionInput) profileReligionInput.value = formData.religion || '';
+            if (profileCastInput) profileCastInput.value = formData.cast || '';
+            if (profileSubcastInput) profileSubcastInput.value = formData.subcast || '';
+            if (profileGotramInput) profileGotramInput.value = formData.gotram || '';
             if (profileStarInput) profileStarInput.value = formData.star || '';
             if (profileRasiInput) profileRasiInput.value = formData.rasi || '';
-            if (profileAnnualIncomeInput) profileAnnualIncomeInput.value = formData.annualIncome || '';
-
+            if (profileDoshamSelect) profileDoshamSelect.value = formData.dosham || '';
+            // Family
+            if (profileFatherNameInput) profileFatherNameInput.value = formData.fatherName || '';
+            if (profileFatherStatusSelect) profileFatherStatusSelect.value = formData.fatherStatus || '';
+            if (profileMotherNameInput) profileMotherNameInput.value = formData.motherName || '';
+            if (profileMotherStatusSelect) profileMotherStatusSelect.value = formData.motherStatus || '';
+            if (profileBrothersInput) profileBrothersInput.value = formData.brothers || '';
+            if (profileSistersInput) profileSistersInput.value = formData.sisters || '';
+             // Lifestyle
+            if (profileEatingHabitsSelect) profileEatingHabitsSelect.value = formData.eatingHabits || '';
+            if (profileSmokingHabitSelect) profileSmokingHabitSelect.value = formData.smokingHabit || '';
+            if (profileDrinkingHabitSelect) profileDrinkingHabitSelect.value = formData.drinkingHabit || '';
+            // About/Group
+            if (profileMatrimonyGroupSelect) profileMatrimonyGroupSelect.value = formData.matrimonyGroupId || '';
+            if (profileBioInput) profileBioInput.value = formData.bio || '';
+            // Other
+            if (autoGenerateParagraphInput) autoGenerateParagraphInput.value = formData.autoGenerateParagraph || '';
 
             if (formData.uploadedPhotos && formData.uploadedPhotos.length > 0) {
-                currentUploadedPhotos = formData.uploadedPhotos.map(p => ({
-                    ...p,
-                    progress: 100,
-                    status: 'completed',
-                    uploadTask: null,
-                    isPersisted: true
-                }));
+                currentUploadedPhotos = formData.uploadedPhotos.map(p => ({ ...p, progress: 100, status: 'completed', uploadTask: null, isPersisted: true }));
                 renderImagePreviews();
-                showMessage(profileFormMessage, 'Loaded unsaved data from local storage.', false);
+                showMessage(profileFormMessage, 'Loaded unsaved data from local storage.', true); // Changed isSuccess
             }
         }
     }
 
-    function clearLocalStorage() {
-        localStorage.removeItem(getLocalStorageKey());
-    }
+    function clearLocalStorage() { localStorage.removeItem(getLocalStorageKey()); }
 
-    // --- Utility Functions ---
-    function showMessage(element, message, isSuccess = true) {
-        if (element) {
-            element.textContent = message;
-            element.classList.remove('hidden');
-            element.classList.toggle('success-message', isSuccess);
-            element.classList.toggle('error-message', !isSuccess);
-            setTimeout(() => element.classList.add('hidden'), 5000);
-        }
-    }
+    // --- Utility Functions (Keep as is) ---
+    function showMessage(element, message, isSuccess = true) { if (element) { element.textContent = message; element.classList.remove('hidden'); element.classList.toggle('success-message', isSuccess); element.classList.toggle('error-message', !isSuccess); setTimeout(() => element.classList.add('hidden'), 5000); } }
+    function showSpinner(spinnerElement, buttonElement, show) { if (spinnerElement) spinnerElement.classList.toggle('hidden', !show); if (buttonElement) buttonElement.disabled = show; }
+    async function logChange(action, entityType, entityId, details = {}) { if (!currentUser) return; try { await addDoc(collection(db, 'changeHistory'), { action, entityType, entityId, userId: currentUser.uid, userEmail: currentUser.email, timestamp: serverTimestamp(), details: JSON.stringify(details) }); } catch (error) { console.error("Error logging change:", error); } }
+    async function logProfileFieldChange(profileId, fieldName, oldValue, newValue) { if (!currentUser || oldValue === newValue) return; try { await addDoc(collection(db, 'profiles', profileId, 'history'), { fieldName, oldValue, newValue, changedByUid: currentUser.uid, changedByEmail: currentUser.email, timestamp: serverTimestamp() }); } catch (error) { console.error(`Error logging field change for ${fieldName}:`, error); } }
+    function populateMatrimonyGroupSelects() { const currentSelectedGroup = profileMatrimonyGroupSelect?.value || ''; if (profileMatrimonyGroupSelect) { profileMatrimonyGroupSelect.innerHTML = '<option value="">None (Optional)</option>'; hardcodedMatrimonyGroups.forEach(group => { const option1 = document.createElement('option'); option1.value = group.id; option1.textContent = group.name; profileMatrimonyGroupSelect.appendChild(option1); }); profileMatrimonyGroupSelect.value = currentSelectedGroup; } }
 
-    function showSpinner(spinnerElement, buttonElement, show) {
-        if (spinnerElement) spinnerElement.classList.toggle('hidden', !show);
-        if (buttonElement) buttonElement.disabled = show;
-    }
+    // --- Auth State Change (Keep as is) ---
+     onAuthStateChanged(auth, async (user) => { if (user) { currentUser = user; try { const userDoc = await getDoc(doc(db, 'users', user.uid)); const userData = userDoc.exists() ? userDoc.data() : {}; currentUserRole = userData.role; const userStatus = userData.status; if (userStatus === 'pending') { window.location.href = 'pending.html'; return; } else if (userStatus === 'denied' || userStatus === 'suspended') { window.location.href = 'denied.html'; return; } else if (currentUserRole !== 'admin' && currentUserRole !== 'employee') { alert('Your account is not approved. Redirecting to login.'); await signOut(auth); window.location.href = 'index.html'; return; } } catch (error) { console.error("Error fetching user role/status:", error); alert('Error verifying user role. Redirecting to login.'); await signOut(auth); window.location.href = 'index.html'; return; } if (sidebarUserName) sidebarUserName.textContent = user.email; if (sidebarUserRole) sidebarUserRole.textContent = currentUserRole ? currentUserRole.charAt(0).toUpperCase() + currentUserRole.slice(1) : 'Admin'; if (popupUserEmail) popupUserEmail.textContent = user.email; if (popupUserRole) popupUserRole.textContent = currentUserRole ? currentUserRole.charAt(0).toUpperCase() + currentUserRole.slice(1) : 'Admin'; const avatarUrl = user.photoURL || 'https://via.placeholder.com/40'; if (sidebarUserAvatar) sidebarUserAvatar.src = avatarUrl; if (popupUserAvatar) popupUserAvatar.src = avatarUrl; if (logoutBtn) logoutBtn.classList.remove('hidden'); if (navDashboardLink) { navDashboardLink.href = (currentUserRole === 'admin') ? 'admin-dashboard.html' : 'employee-dashboard.html'; } if (navManageUsersItem) navManageUsersItem.classList.toggle('hidden', currentUserRole !== 'admin'); if (navManageProfilesItem) navManageProfilesItem.classList.toggle('hidden', currentUserRole !== 'admin'); if (navGlobalHistoryItem) navGlobalHistoryItem.classList.toggle('hidden', currentUserRole !== 'admin'); populateMatrimonyGroupSelects(); loadFormDataToLocalStorage(); const urlParams = new URLSearchParams(window.location.search); const profileId = urlParams.get('profileId'); if (profileId) { if (mainHeaderTitle) mainHeaderTitle.textContent = 'Edit Profile'; if (profileFormTitle) profileFormTitle.textContent = 'Edit Profile'; await loadProfileForEdit(profileId); } else { if (mainHeaderTitle) mainHeaderTitle.textContent = 'Create New Profile'; if (profileFormTitle) profileFormTitle.textContent = 'Create New Profile'; } } else { window.location.href = 'index.html'; } });
 
-    async function logChange(action, entityType, entityId, details = {}) {
-        if (!currentUser) return;
-        try {
-            await addDoc(collection(db, 'changeHistory'), {
-                action,
-                entityType,
-                entityId,
-                userId: currentUser.uid,
-                userEmail: currentUser.email,
-                timestamp: serverTimestamp(),
-                details: JSON.stringify(details)
-            });
-        } catch (error) {
-            console.error("Error logging change:", error);
-        }
-    }
-
-    async function logProfileFieldChange(profileId, fieldName, oldValue, newValue) {
-        if (!currentUser || oldValue === newValue) return;
-
-        try {
-            await addDoc(collection(db, 'profiles', profileId, 'history'), {
-                fieldName,
-                oldValue,
-                newValue,
-                changedByUid: currentUser.uid,
-                changedByEmail: currentUser.email,
-                timestamp: serverTimestamp(),
-            });
-        } catch (error) {
-            console.error(`Error logging field change for ${fieldName}:`, error);
-        }
-    }
-
-    function populateMatrimonyGroupSelects() {
-        const currentSelectedGroup = profileMatrimonyGroupSelect ? profileMatrimonyGroupSelect.value : '';
-        if (profileMatrimonyGroupSelect) {
-            profileMatrimonyGroupSelect.innerHTML = '<option value="">None (Optional)</option>';
-            hardcodedMatrimonyGroups.forEach(group => {
-                const option1 = document.createElement('option');
-                option1.value = group.id;
-                option1.textContent = group.name;
-                profileMatrimonyGroupSelect.appendChild(option1);
-            });
-            profileMatrimonyGroupSelect.value = currentSelectedGroup;
-        }
-    }
-
-    onAuthStateChanged(auth, async (user) => {
-        if (user) {
-            currentUser = user;
-            try {
-                const userDoc = await getDoc(doc(db, 'users', user.uid));
-                const userData = userDoc.exists() ? userDoc.data() : {};
-                currentUserRole = userData.role;
-                const userStatus = userData.status;
-
-                if (userStatus === 'pending') {
-                    window.location.href = 'pending.html';
-                    return;
-                } else if (userStatus === 'denied' || userStatus === 'suspended') {
-                    window.location.href = 'denied.html';
-                    return;
-                } else if (currentUserRole !== 'admin' && currentUserRole !== 'employee') {
-                    alert('Your account is not approved. Redirecting to login.');
-                    await signOut(auth);
-                    window.location.href = 'index.html';
-                    return;
-                }
-
-            } catch (error) {
-                console.error("Error fetching user role/status:", error);
-                alert('Error verifying user role. Redirecting to login.');
-                await signOut(auth);
-                window.location.href = 'index.html';
-                return;
-            }
-
-            if (sidebarUserName) sidebarUserName.textContent = user.email;
-            if (sidebarUserRole) sidebarUserRole.textContent = currentUserRole ? currentUserRole.charAt(0).toUpperCase() + currentUserRole.slice(1) : 'Admin';
-            if (popupUserEmail) popupUserEmail.textContent = user.email;
-            if (popupUserRole) popupUserRole.textContent = currentUserRole ? currentUserRole.charAt(0).toUpperCase() + currentUserRole.slice(1) : 'Admin';
-
-            const avatarUrl = user.photoURL || 'https://via.placeholder.com/40';
-            if (sidebarUserAvatar) sidebarUserAvatar.src = avatarUrl;
-            if (popupUserAvatar) popupUserAvatar.src = avatarUrl;
-
-            if (logoutBtn) logoutBtn.classList.remove('hidden');
-
-            if (navDashboardLink) {
-                navDashboardLink.href = (currentUserRole === 'admin') ? 'admin-dashboard.html' : 'employee-dashboard.html';
-            }
-            if (navManageUsersItem) navManageUsersItem.classList.toggle('hidden', currentUserRole !== 'admin');
-            if (navManageProfilesItem) navManageProfilesItem.classList.toggle('hidden', currentUserRole !== 'admin');
-            if (navGlobalHistoryItem) navGlobalHistoryItem.classList.toggle('hidden', currentUserRole !== 'admin');
-
-
-            populateMatrimonyGroupSelects(); // Populate dropdown after auth
-
-            // --- FIX 2: Load saved draft data AFTER user is known ---
-            // This runs before checking for a profileId, so a draft is loaded first.
-            // If a profileId *is* present, loadProfileForEdit will correctly
-            // clear this draft and load from the database.
-            loadFormDataToLocalStorage();
-            // -----------------------------------------------------
-
-            const urlParams = new URLSearchParams(window.location.search);
-            const profileId = urlParams.get('profileId');
-            if (profileId) {
-                if (mainHeaderTitle) mainHeaderTitle.textContent = 'Edit Profile';
-                if (profileFormTitle) profileFormTitle.textContent = 'Edit Profile';
-                await loadProfileForEdit(profileId);
-            } else {
-                if (mainHeaderTitle) mainHeaderTitle.textContent = 'Create New Profile';
-                if (profileFormTitle) profileFormTitle.textContent = 'Create New Profile';
-                // --- FIX 3: DO NOT reset the form here ---
-                // We just loaded data from local storage.
-                // If there was no data, the form is already blank.
-                // resetProfileForm(); // <--- This line was removed
-            }
-
-        } else {
-            window.location.href = 'index.html';
-        }
-    });
-
-
-    // --- Photo Upload Functions ---
-    function handleFileSelect(event) {
-        const files = event.target.files;
-        if (files.length > 0) {
-            Array.from(files).forEach(file => {
-                if (file.type.startsWith('image/')) {
-                    uploadFile(file);
-                } else {
-                    showMessage(profileFormMessage, `File '${file.name}' is not an image.`, false);
-                }
-            });
-            if (profilePhotoInput) profilePhotoInput.value = ''; // Clear input AFTER files are processed
-        }
-    }
-
-    function handleDrop(event) {
-        event.preventDefault();
-        if (dropArea) dropArea.classList.remove('drag-over');
-        const files = event.dataTransfer.files;
-        if (files.length > 0) {
-            Array.from(files).forEach(file => {
-                if (file.type.startsWith('image/')) {
-                    uploadFile(file);
-                } else {
-                    showMessage(profileFormMessage, `File '${file.name}' is not an image.`, false);
-                }
-            });
-        }
-    }
-
-    async function uploadFile(file) {
-        if (!currentUser) {
-            showMessage(profileFormMessage, 'Please log in to upload photos.', false);
-            return;
-        }
-
-        const uniqueId = Date.now() + '-' + Math.random().toString(36).substring(2, 9);
-        const storagePath = `profile_photos/${currentUser.uid}/${uniqueId}_${file.name}`;
-        const storageRef = ref(storage, storagePath);
-        const uploadTask = uploadBytesResumable(storageRef, file);
-
-        const fileMetadata = {
-            id: uniqueId,
-            file: file,
-            fileName: file.name,
-            progress: 0,
-            status: 'uploading',
-            url: '',
-            storagePath: storagePath,
-            uploadTask: uploadTask,
-            isPersisted: false
-        };
-        currentUploadedPhotos.push(fileMetadata);
-        renderImagePreviews();
-
-        uploadTask.on('state_changed',
-            (snapshot) => {
-                const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                const metadataIndex = currentUploadedPhotos.findIndex(f => f.id === uniqueId);
-                if (metadataIndex > -1) {
-                    currentUploadedPhotos[metadataIndex].progress = progress;
-                }
-                renderImagePreviews();
-            },
-            (error) => {
-                console.error("Upload failed:", error);
-                const metadataIndex = currentUploadedPhotos.findIndex(f => f.id === uniqueId);
-                if (metadataIndex > -1) {
-                    currentUploadedPhotos[metadataIndex].status = 'failed';
-                }
-                showMessage(profileFormMessage, `Upload for ${file.name} failed: ${error.message}`, false);
-                renderImagePreviews();
-            },
-            async () => {
-                const url = await getDownloadURL(uploadTask.snapshot.ref);
-                const metadataIndex = currentUploadedPhotos.findIndex(f => f.id === uniqueId);
-                if (metadataIndex > -1) {
-                    currentUploadedPhotos[metadataIndex].url = url;
-                    currentUploadedPhotos[metadataIndex].status = 'completed';
-                }
-                renderImagePreviews();
-                saveFormDataToLocalStorage();
-            }
-        );
-    }
-
-    function renderImagePreviews() {
-        if (!imagePreviewContainer) return;
-
-        imagePreviewContainer.innerHTML = '';
-        if (currentUploadedPhotos.length === 0) {
-            imagePreviewContainer.innerHTML = '<p class="no-images-selected" style="color: var(--text-secondary); font-size: 0.9em;">No images selected yet.</p>';
-            return;
-        }
-        
-        currentUploadedPhotos.forEach(fileMetadata => {
-            const previewCard = document.createElement('div');
-            previewCard.className = 'image-preview-card';
-            previewCard.dataset.id = fileMetadata.id;
-
-            let imageSrc = fileMetadata.url || (fileMetadata.file ? URL.createObjectURL(fileMetadata.file) : 'https://via.placeholder.com/60');
-            if (fileMetadata.status === 'failed') imageSrc = 'https://via.placeholder.com/60?text=Error';
-
-
-            previewCard.innerHTML = `
-                <div class="image-thumbnail-wrapper">
-                    <img src="${imageSrc}" alt="Preview">
-                    <div class="file-info">
-                        <div class="file-name">${fileMetadata.fileName || 'Image'}</div>
-                    </div>
-                </div>
-                <div class="status-and-actions">
-                    ${fileMetadata.status === 'uploading' ? 
-                        `<div class="upload-progress-wrapper"><div class="progress-bar" style="width: ${fileMetadata.progress}%;"></div></div>` : ''}
-                    <div class="upload-status-icon ${fileMetadata.status === 'completed' ? '' : 'hidden'}">
-                        <i class='bx bx-check-circle'></i>
-                    </div>
-                    <div class="upload-actions">
-                        <button type="button" class="delete-temp" data-id="${fileMetadata.id}"><i class='bx bx-x'></i></button>
-                    </div>
-                </div>
-            `;
-            imagePreviewContainer.appendChild(previewCard);
-
-            previewCard.querySelector('.delete-temp').addEventListener('click', (e) => {
-                e.stopPropagation();
-                // Find the button element itself to get the dataset.id
-                const button = e.target.closest('.delete-temp');
-                if (button) {
-                    deleteTemporaryImage(button.dataset.id);
-                }
-            });
-        });
-    }
-
-    async function deleteTemporaryImage(idToDelete) {
-        const index = currentUploadedPhotos.findIndex(f => f.id === idToDelete);
-        if (index > -1) {
-            const fileMetadata = currentUploadedPhotos[index];
-            
-            if (fileMetadata.url && !fileMetadata.isPersisted) {
-                try {
-                    if (fileMetadata.uploadTask && fileMetadata.uploadTask.cancel) {
-                       fileMetadata.uploadTask.cancel();
-                       console.log("Upload task cancelled for:", fileMetadata.fileName || fileMetadata.id);
-                    }
-                    const storageRefToDelete = ref(storage, fileMetadata.storagePath);
-                    await deleteObject(storageRefToDelete);
-                    showMessage(profileFormMessage, `Deleted temporary image '${fileMetadata.fileName || fileMetadata.id}' from storage.`, true);
-                } catch (error) {
-                    console.error("Error deleting temp image from storage:", error);
-                    if (error.code !== 'storage/object-not-found') {
-                        showMessage(profileFormMessage, `Could not delete temporary image '${fileMetadata.fileName || fileMetadata.id}' from storage: ${error.message}`, false);
-                    }
-                }
-            }
-            currentUploadedPhotos.splice(index, 1);
-            renderImagePreviews();
-            saveFormDataToLocalStorage();
-        }
-    }
-
-    async function cleanupCurrentUploadedPhotos() {
-        const photosToDeleteFromStorage = currentUploadedPhotos.filter(p => !p.isPersisted && (p.status === 'completed' || p.status === 'uploading'));
-
-        for (const fileMetadata of photosToDeleteFromStorage) {
-            try {
-                if (fileMetadata.uploadTask && fileMetadata.uploadTask.cancel) {
-                    fileMetadata.uploadTask.cancel();
-                }
-                const storageRefToDelete = ref(storage, fileMetadata.storagePath);
-                await deleteObject(storageRefToDelete);
-                console.log(`Cleaned up temp photo: ${fileMetadata.storagePath}`);
-            } catch (error) {
-                console.warn(`Failed to clean up temp file ${fileMetadata.storagePath} from storage:`, error);
-            }
-        }
-        currentUploadedPhotos = [];
-        renderImagePreviews();
-        clearLocalStorage();
-    }
+    // --- Photo Upload Functions (Keep as is) ---
+    function handleFileSelect(event) { const files = event.target.files; if (files.length > 0) { Array.from(files).forEach(file => { if (file.type.startsWith('image/')) { uploadFile(file); } else { showMessage(profileFormMessage, `File '${file.name}' is not an image.`, false); } }); if (profilePhotoInput) profilePhotoInput.value = ''; } }
+    function handleDrop(event) { event.preventDefault(); if (dropArea) dropArea.classList.remove('drag-over'); const files = event.dataTransfer.files; if (files.length > 0) { Array.from(files).forEach(file => { if (file.type.startsWith('image/')) { uploadFile(file); } else { showMessage(profileFormMessage, `File '${file.name}' is not an image.`, false); } }); } }
+    async function uploadFile(file) { if (!currentUser) { showMessage(profileFormMessage, 'Please log in to upload photos.', false); return; } const uniqueId = Date.now() + '-' + Math.random().toString(36).substring(2, 9); const storagePath = `profile_photos/${currentUser.uid}/${uniqueId}_${file.name}`; const storageRef = ref(storage, storagePath); const uploadTask = uploadBytesResumable(storageRef, file); const fileMetadata = { id: uniqueId, file: file, fileName: file.name, progress: 0, status: 'uploading', url: '', storagePath: storagePath, uploadTask: uploadTask, isPersisted: false }; currentUploadedPhotos.push(fileMetadata); renderImagePreviews(); uploadTask.on('state_changed', (snapshot) => { const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100; const metadataIndex = currentUploadedPhotos.findIndex(f => f.id === uniqueId); if (metadataIndex > -1) { currentUploadedPhotos[metadataIndex].progress = progress; } renderImagePreviews(); }, (error) => { console.error("Upload failed:", error); const metadataIndex = currentUploadedPhotos.findIndex(f => f.id === uniqueId); if (metadataIndex > -1) { currentUploadedPhotos[metadataIndex].status = 'failed'; } showMessage(profileFormMessage, `Upload for ${file.name} failed: ${error.message}`, false); renderImagePreviews(); }, async () => { const url = await getDownloadURL(uploadTask.snapshot.ref); const metadataIndex = currentUploadedPhotos.findIndex(f => f.id === uniqueId); if (metadataIndex > -1) { currentUploadedPhotos[metadataIndex].url = url; currentUploadedPhotos[metadataIndex].status = 'completed'; } renderImagePreviews(); saveFormDataToLocalStorage(); }); }
+    function renderImagePreviews() { if (!imagePreviewContainer) return; imagePreviewContainer.innerHTML = ''; if (currentUploadedPhotos.length === 0) { imagePreviewContainer.innerHTML = '<p class="no-images-selected" style="color: var(--text-secondary); font-size: 0.9em;">No images selected yet.</p>'; return; } currentUploadedPhotos.forEach(fileMetadata => { const previewCard = document.createElement('div'); previewCard.className = 'image-preview-card'; previewCard.dataset.id = fileMetadata.id; let imageSrc = fileMetadata.url || (fileMetadata.file ? URL.createObjectURL(fileMetadata.file) : 'https://via.placeholder.com/60'); if (fileMetadata.status === 'failed') imageSrc = 'https://via.placeholder.com/60?text=Error'; previewCard.innerHTML = `<div class="image-thumbnail-wrapper"><img src="${imageSrc}" alt="Preview"><div class="file-info"><div class="file-name">${fileMetadata.fileName || 'Image'}</div></div></div><div class="status-and-actions">${fileMetadata.status === 'uploading' ? `<div class="upload-progress-wrapper"><div class="progress-bar" style="width: ${fileMetadata.progress}%;"></div></div>` : ''}<div class="upload-status-icon ${fileMetadata.status === 'completed' ? '' : 'hidden'}"><i class='bx bx-check-circle'></i></div><div class="upload-actions"><button type="button" class="delete-temp" data-id="${fileMetadata.id}"><i class='bx bx-x'></i></button></div></div>`; imagePreviewContainer.appendChild(previewCard); previewCard.querySelector('.delete-temp').addEventListener('click', (e) => { e.stopPropagation(); const button = e.target.closest('.delete-temp'); if (button) { deleteTemporaryImage(button.dataset.id); } }); }); }
+    async function deleteTemporaryImage(idToDelete) { const index = currentUploadedPhotos.findIndex(f => f.id === idToDelete); if (index > -1) { const fileMetadata = currentUploadedPhotos[index]; if (fileMetadata.url && !fileMetadata.isPersisted) { try { if (fileMetadata.uploadTask && fileMetadata.uploadTask.cancel) { fileMetadata.uploadTask.cancel(); console.log("Upload task cancelled for:", fileMetadata.fileName || fileMetadata.id); } const storageRefToDelete = ref(storage, fileMetadata.storagePath); await deleteObject(storageRefToDelete); showMessage(profileFormMessage, `Deleted temporary image '${fileMetadata.fileName || fileMetadata.id}' from storage.`, true); } catch (error) { console.error("Error deleting temp image from storage:", error); if (error.code !== 'storage/object-not-found') { showMessage(profileFormMessage, `Could not delete temporary image '${fileMetadata.fileName || fileMetadata.id}' from storage: ${error.message}`, false); } } } currentUploadedPhotos.splice(index, 1); renderImagePreviews(); saveFormDataToLocalStorage(); } }
+    async function cleanupCurrentUploadedPhotos() { const photosToDeleteFromStorage = currentUploadedPhotos.filter(p => !p.isPersisted && (p.status === 'completed' || p.status === 'uploading')); for (const fileMetadata of photosToDeleteFromStorage) { try { if (fileMetadata.uploadTask && fileMetadata.uploadTask.cancel) { fileMetadata.uploadTask.cancel(); } const storageRefToDelete = ref(storage, fileMetadata.storagePath); await deleteObject(storageRefToDelete); console.log(`Cleaned up temp photo: ${fileMetadata.storagePath}`); } catch (error) { console.warn(`Failed to clean up temp file ${fileMetadata.storagePath} from storage:`, error); } } currentUploadedPhotos = []; renderImagePreviews(); clearLocalStorage(); }
 
     // --- Core Profile Form Functions ---
     async function autoGenerateProfileDetails() {
-        const paragraph = autoGenerateParagraphInput ? autoGenerateParagraphInput.value : '';
-        if (!paragraph) {
-            showMessage(profileFormMessage, 'Please enter a paragraph to auto-generate.', false);
-            return;
-        }
-
+        const paragraph = autoGenerateParagraphInput?.value || '';
+        if (!paragraph) { showMessage(profileFormMessage, 'Please enter a paragraph to auto-generate.', false); return; }
         showSpinner(autoGenerateSpinner, autoGenerateBtn, true);
-
         try {
-            const prompt = `Extract the following details from the paragraph below and return them as a JSON object. If a detail is not found, use an empty string for strings or null for Date of Birth/Annual Income. The marital status should be one of 'Single', 'Divorced', 'Widowed'. Date of Birth should be in YYYY-MM-DD format. Annual Income should be a number. Also extract Full Name, Cast, Subcast, Country, State, City, Location, Religion, Mother Tongue, Star, Rasi, Education, Profession, and a brief Bio.\n\nParagraph: "${paragraph}"\n\nExpected JSON format: {"name": "", "dateOfBirth": null, "maritalStatus": "", "cast": "", "subcast": "", "country": "", "state": "", "city": "", "location": "", "religion": "", "motherTongue": "", "star": "", "rasi": "", "education": "", "profession": "", "annualIncome": null, "bio": ""}`;
+             // Updated prompt for new fields
+            const prompt = `Extract the following details from the paragraph below and return them as a JSON object. If a detail is not found, use an empty string or null. Gender should be 'Male', 'Female', or 'Other'. Marital Status should be 'Single', 'Divorced', 'Widowed', or 'Awaiting Divorce'. Dosham should be 'Yes', 'No', or 'Don't Know'. Height should be in cm (number). Phone should be just digits. Annual Income should be a number. Date of Birth should be YYYY-MM-DD.\n\nParagraph: "${paragraph}"\n\nExpected JSON format: {"name": "", "gender": "", "dateOfBirth": null, "height": null, "maritalStatus": "", "phonePrimary": "", "email": "", "education": "", "profession": "", "annualIncome": null, "country": "", "state": "", "city": "", "location": "", "religion": "", "cast": "", "subcast": "", "motherTongue": "", "gotram": "", "star": "", "rasi": "", "dosham": "", "bio": ""}`;
             const result = await model.generateContent(prompt);
             let responseText = result.response.text();
-
             const jsonMatch = responseText.match(/```json\n([\s\S]*?)\n```/);
-            if (jsonMatch && jsonMatch[1]) {
-                responseText = jsonMatch[1];
-            }
+            if (jsonMatch && jsonMatch[1]) { responseText = jsonMatch[1]; }
             
             const data = JSON.parse(responseText);
 
+            // Populate fields (check if element exists before setting value)
             if (profileNameInput) profileNameInput.value = data.name || '';
+            if (profileGenderSelect) profileGenderSelect.value = data.gender || '';
             if (profileDobInput) profileDobInput.value = data.dateOfBirth || '';
-            if (profileMaritalStatusSelect && ['Single', 'Divorced', 'Widowed'].includes(data.maritalStatus)) {
-                profileMaritalStatusSelect.value = data.maritalStatus;
-            } else if (profileMaritalStatusSelect) {
-                profileMaritalStatusSelect.value = 'Single';
-            }
-            if (profileMatrimonyGroupSelect) profileMatrimonyGroupSelect.value = data.matrimonyGroupId || ''; // AI might not generate, but include for completeness
-            if (profileCastInput) profileCastInput.value = data.cast || '';
-            if (profileSubcastInput) profileSubcastInput.value = data.subcast || '';
+            if (profileHeightInput) profileHeightInput.value = data.height || '';
+            if (profileMaritalStatusSelect) profileMaritalStatusSelect.value = data.maritalStatus || 'Single';
+            if (profilePhonePrimaryInput) profilePhonePrimaryInput.value = data.phonePrimary || '';
+            if (profileEmailInput) profileEmailInput.value = data.email || '';
+            if (profileEducationInput) profileEducationInput.value = data.education || '';
+            if (profileProfessionInput) profileProfessionInput.value = data.profession || '';
+            if (profileAnnualIncomeInput) profileAnnualIncomeInput.value = data.annualIncome !== null ? parseFloat(data.annualIncome) : '';
             if (profileCountryInput) profileCountryInput.value = data.country || '';
             if (profileStateInput) profileStateInput.value = data.state || '';
             if (profileCityInput) profileCityInput.value = data.city || '';
             if (profileLocationInput) profileLocationInput.value = data.location || '';
             if (profileReligionInput) profileReligionInput.value = data.religion || '';
+            if (profileCastInput) profileCastInput.value = data.cast || '';
+            if (profileSubcastInput) profileSubcastInput.value = data.subcast || '';
             if (profileMotherTongueInput) profileMotherTongueInput.value = data.motherTongue || '';
+            if (profileGotramInput) profileGotramInput.value = data.gotram || '';
             if (profileStarInput) profileStarInput.value = data.star || '';
             if (profileRasiInput) profileRasiInput.value = data.rasi || '';
-            if (profileEducationInput) profileEducationInput.value = data.education || '';
-            if (profileProfessionInput) profileProfessionInput.value = data.profession || '';
-            if (profileAnnualIncomeInput) profileAnnualIncomeInput.value = data.annualIncome !== null ? parseFloat(data.annualIncome) : '';
+             if (profileDoshamSelect) profileDoshamSelect.value = data.dosham || '';
             if (profileBioInput) profileBioInput.value = data.bio || '';
+            
+            // Fields less likely to be in paragraph: weight, bodyType, complexion, phoneSecondary, father/mother details, siblings, habits, matrimonyGroupId
 
             showMessage(profileFormMessage, 'Details auto-generated from paragraph using AI!', true);
             saveFormDataToLocalStorage();
@@ -1101,41 +898,74 @@
         showSpinner(profileSubmitSpinner, submitProfileBtn, true);
 
         const pendingUploads = currentUploadedPhotos.filter(p => p.status === 'uploading');
-        if (pendingUploads.length > 0) {
-            showMessage(profileFormMessage, `Please wait for ${pendingUploads.length} images to finish uploading.`, false);
-            showSpinner(profileSubmitSpinner, submitProfileBtn, false);
-            return;
-        }
+        if (pendingUploads.length > 0) { showMessage(profileFormMessage, `Please wait for ${pendingUploads.length} images to finish uploading.`, false); showSpinner(profileSubmitSpinner, submitProfileBtn, false); return; }
 
         const photoURLs = currentUploadedPhotos.filter(p => p.status === 'completed' && p.url).map(p => p.url);
 
         const newProfileData = {
-            name: profileNameInput ? profileNameInput.value : '',
-            dateOfBirth: profileDobInput ? profileDobInput.value : '',
-            maritalStatus: profileMaritalStatusSelect ? profileMaritalStatusSelect.value : 'Single',
-            matrimonyGroupId: profileMatrimonyGroupSelect ? profileMatrimonyGroupSelect.value : '',
-            cast: profileCastInput ? profileCastInput.value : '',
-            subcast: profileSubcastInput ? profileSubcastInput.value : '',
-            country: profileCountryInput ? profileCountryInput.value : '',
-            state: profileStateInput ? profileStateInput.value : '',
-            city: profileCityInput ? profileCityInput.value : '',
-            location: profileLocationInput ? profileLocationInput.value : '',
-            presentAddress: profileLocationInput ? profileLocationInput.value : '', // Copy from location
-            religion: profileReligionInput ? profileReligionInput.value : '',
-            motherTongue: profileMotherTongueInput ? profileMotherTongueInput.value : '',
-            star: profileStarInput ? profileStarInput.value : '',
-            rasi: profileRasiInput ? profileRasiInput.value : '',
-            education: profileEducationInput ? profileEducationInput.value : '',
-            profession: profileProfessionInput ? profileProfessionInput.value : '',
-            annualIncome: profileAnnualIncomeInput && profileAnnualIncomeInput.value ? parseFloat(profileAnnualIncomeInput.value) : null,
-            bio: profileBioInput ? profileBioInput.value : '',
+            // Personal
+            name: profileNameInput?.value || '',
+            gender: profileGenderSelect?.value || '',
+            dateOfBirth: profileDobInput?.value || '',
+            height: profileHeightInput?.value ? parseInt(profileHeightInput.value) : null,
+            weight: profileWeightInput?.value ? parseInt(profileWeightInput.value) : null,
+            bodyType: profileBodyTypeSelect?.value || '',
+            complexion: profileComplexionSelect?.value || '',
+            maritalStatus: profileMaritalStatusSelect?.value || 'Single',
+            motherTongue: profileMotherTongueInput?.value || '',
+            // Contact
+            phonePrimary: profilePhonePrimaryInput?.value || '',
+            phoneSecondary: profilePhoneSecondaryInput?.value || '',
+            email: profileEmailInput?.value || '',
+             // Professional
+            education: profileEducationInput?.value || '',
+            profession: profileProfessionInput?.value || '',
+            annualIncome: profileAnnualIncomeInput?.value ? parseFloat(profileAnnualIncomeInput.value) : null,
+            // Location
+            country: profileCountryInput?.value || '',
+            state: profileStateInput?.value || '',
+            city: profileCityInput?.value || '',
+            location: profileLocationInput?.value || '',
+            presentAddress: profileLocationInput?.value || '', // Keep for consistency?
+            // Religious/Horoscope
+            religion: profileReligionInput?.value || '',
+            cast: profileCastInput?.value || '',
+            subcast: profileSubcastInput?.value || '',
+            gotram: profileGotramInput?.value || '',
+            star: profileStarInput?.value || '',
+            rasi: profileRasiInput?.value || '',
+            dosham: profileDoshamSelect?.value || '',
+            // Family
+            fatherName: profileFatherNameInput?.value || '',
+            fatherStatus: profileFatherStatusSelect?.value || '',
+            motherName: profileMotherNameInput?.value || '',
+            motherStatus: profileMotherStatusSelect?.value || '',
+            brothers: profileBrothersInput?.value ? parseInt(profileBrothersInput.value) : null,
+            sisters: profileSistersInput?.value ? parseInt(profileSistersInput.value) : null,
+            // Lifestyle
+            eatingHabits: profileEatingHabitsSelect?.value || '',
+            smokingHabit: profileSmokingHabitSelect?.value || '',
+            drinkingHabit: profileDrinkingHabitSelect?.value || '',
+            // About/Group
+            matrimonyGroupId: profileMatrimonyGroupSelect?.value || '',
+            bio: profileBioInput?.value || '',
+            // System
             photoURLs: photoURLs,
             updatedAt: serverTimestamp(),
             updatedBy: currentUser.uid,
             profileStatus: 'active',
         };
 
-        const fieldsToAudit = ['name', 'dateOfBirth', 'maritalStatus', 'matrimonyGroupId', 'cast', 'subcast', 'country', 'state', 'city', 'location', 'presentAddress', 'religion', 'motherTongue', 'star', 'rasi', 'education', 'profession', 'annualIncome', 'bio', 'photoURLs', 'profileStatus'];
+        const fieldsToAudit = [
+            'name', 'gender', 'dateOfBirth', 'height', 'weight', 'bodyType', 'complexion', 'maritalStatus', 'motherTongue', 
+            'phonePrimary', 'phoneSecondary', 'email', 
+            'education', 'profession', 'annualIncome', 
+            'country', 'state', 'city', 'location', 'presentAddress', 
+            'religion', 'cast', 'subcast', 'gotram', 'star', 'rasi', 'dosham',
+            'fatherName', 'fatherStatus', 'motherName', 'motherStatus', 'brothers', 'sisters',
+            'eatingHabits', 'smokingHabit', 'drinkingHabit',
+            'matrimonyGroupId', 'bio', 'photoURLs', 'profileStatus'
+        ];
 
         let oldProfileData = {};
         let profileRef;
@@ -1143,37 +973,18 @@
         if (editingProfileId) {
             profileRef = doc(db, 'profiles', editingProfileId);
             const oldProfileDoc = await getDoc(profileRef);
-            if (oldProfileDoc.exists()) {
-                oldProfileData = oldProfileDoc.data();
-            }
+            if (oldProfileDoc.exists()) { oldProfileData = oldProfileDoc.data(); }
         }
         
         try {
             const oldPhotoURLs = oldProfileData.photoURLs || [];
             const photosToDeleteFromStorage = oldPhotoURLs.filter(oldUrl => !photoURLs.includes(oldUrl));
-
-            for (const urlToDelete of photosToDeleteFromStorage) {
-                try {
-                    const storageRefToDelete = ref(storage, urlToDelete);
-                    await deleteObject(storageRefToDelete);
-                    console.log(`Deleted old profile photo from storage: ${urlToDelete}`);
-                } catch (deleteError) {
-                    console.warn(`Failed to delete old photo ${urlToDelete} from storage:`, deleteError);
-                }
-            }
+            for (const urlToDelete of photosToDeleteFromStorage) { try { const storageRefToDelete = ref(storage, urlToDelete); await deleteObject(storageRefToDelete); console.log(`Deleted old profile photo from storage: ${urlToDelete}`); } catch (deleteError) { console.warn(`Failed to delete old photo ${urlToDelete} from storage:`, deleteError); } }
 
             if (editingProfileId) {
                 await updateDoc(profileRef, newProfileData);
                 await logChange('edit', 'profile', editingProfileId, { oldData: oldProfileData, newData: newProfileData });
-
-                for (const field of fieldsToAudit) {
-                    const oldValue = JSON.stringify(oldProfileData[field] || '');
-                    const newValue = JSON.stringify(newProfileData[field] || '');
-                    if (oldValue !== newValue) {
-                        await logProfileFieldChange(editingProfileId, field, oldProfileData[field], newProfileData[field]);
-                    }
-                }
-
+                for (const field of fieldsToAudit) { const oldValue = JSON.stringify(oldProfileData[field] ?? ''); const newValue = JSON.stringify(newProfileData[field] ?? ''); if (oldValue !== newValue) { await logProfileFieldChange(editingProfileId, field, oldProfileData[field], newProfileData[field]); } }
                 showMessage(profileFormMessage, 'Profile updated successfully!', true);
             } else {
                 newProfileData.createdAt = serverTimestamp();
@@ -1182,11 +993,7 @@
                 await logChange('add', 'profile', docRef.id, { newData: newProfileData });
                 showMessage(profileFormMessage, 'Profile created successfully!', true);
             }
-            currentUploadedPhotos.forEach(p => {
-                if (p.status === 'completed') {
-                    p.isPersisted = true;
-                }
-            });
+            currentUploadedPhotos.forEach(p => { if (p.status === 'completed') { p.isPersisted = true; } }); // Mark photos as persisted *before* reset
             resetProfileForm();
         } catch (error) {
             console.error("Error saving profile:", error);
@@ -1202,60 +1009,75 @@
         if (cancelEditBtn) cancelEditBtn.classList.remove('hidden');
         editingProfileId = profileId;
 
-        await cleanupCurrentUploadedPhotos();
-        clearLocalStorage();
+        await cleanupCurrentUploadedPhotos(); // Clear temp photos
+        clearLocalStorage(); // Clear any draft
 
         try {
             const profileDoc = await getDoc(doc(db, 'profiles', profileId));
-            if (!profileDoc.exists()) {
-                showMessage(profileFormMessage, 'Profile not found for editing.', false);
-                return;
-            }
+            if (!profileDoc.exists()) { showMessage(profileFormMessage, 'Profile not found for editing.', false); return; }
             const profile = { id: profileDoc.id, ...profileDoc.data() };
 
+            // Populate all fields (check if element exists)
+            // Personal
             if (profileIdInput) profileIdInput.value = profile.id;
-            if (profileNameInput) profileNameInput.value = profile.name;
-            if (profileDobInput) profileDobInput.value = profile.dateOfBirth;
-            if (profileLocationInput) profileLocationInput.value = profile.location;
-            if (profileReligionInput) profileReligionInput.value = profile.religion;
-            if (profileEducationInput) profileEducationInput.value = profile.education;
-            if (profileProfessionInput) profileProfessionInput.value = profile.profession;
-            if (profileMaritalStatusSelect) profileMaritalStatusSelect.value = profile.maritalStatus;
-            if (profileMatrimonyGroupSelect) profileMatrimonyGroupSelect.value = profile.matrimonyGroupId || '';
-            if (profileBioInput) profileBioInput.value = profile.bio;
-            if (autoGenerateParagraphInput) autoGenerateParagraphInput.value = '';
-
-            // New fields
-            if (profileCastInput) profileCastInput.value = profile.cast || '';
-            if (profileSubcastInput) profileSubcastInput.value = profile.subcast || '';
+            if (profileNameInput) profileNameInput.value = profile.name || '';
+            if (profileGenderSelect) profileGenderSelect.value = profile.gender || '';
+            if (profileDobInput) profileDobInput.value = profile.dateOfBirth || '';
+            if (profileHeightInput) profileHeightInput.value = profile.height || '';
+            if (profileWeightInput) profileWeightInput.value = profile.weight || '';
+            if (profileBodyTypeSelect) profileBodyTypeSelect.value = profile.bodyType || '';
+            if (profileComplexionSelect) profileComplexionSelect.value = profile.complexion || '';
+            if (profileMaritalStatusSelect) profileMaritalStatusSelect.value = profile.maritalStatus || 'Single';
+            if (profileMotherTongueInput) profileMotherTongueInput.value = profile.motherTongue || '';
+            // Contact
+            if (profilePhonePrimaryInput) profilePhonePrimaryInput.value = profile.phonePrimary || '';
+            if (profilePhoneSecondaryInput) profilePhoneSecondaryInput.value = profile.phoneSecondary || '';
+            if (profileEmailInput) profileEmailInput.value = profile.email || '';
+            // Professional
+            if (profileEducationInput) profileEducationInput.value = profile.education || '';
+            if (profileProfessionInput) profileProfessionInput.value = profile.profession || '';
+            if (profileAnnualIncomeInput) profileAnnualIncomeInput.value = profile.annualIncome !== null ? profile.annualIncome : '';
+            // Location
             if (profileCountryInput) profileCountryInput.value = profile.country || '';
             if (profileStateInput) profileStateInput.value = profile.state || '';
             if (profileCityInput) profileCityInput.value = profile.city || '';
-            if (profileMotherTongueInput) profileMotherTongueInput.value = profile.motherTongue || '';
+            if (profileLocationInput) profileLocationInput.value = profile.location || '';
+             // Religious/Horoscope
+            if (profileReligionInput) profileReligionInput.value = profile.religion || '';
+            if (profileCastInput) profileCastInput.value = profile.cast || '';
+            if (profileSubcastInput) profileSubcastInput.value = profile.subcast || '';
+            if (profileGotramInput) profileGotramInput.value = profile.gotram || '';
             if (profileStarInput) profileStarInput.value = profile.star || '';
             if (profileRasiInput) profileRasiInput.value = profile.rasi || '';
-            if (profileAnnualIncomeInput) profileAnnualIncomeInput.value = profile.annualIncome !== null ? profile.annualIncome : '';
+            if (profileDoshamSelect) profileDoshamSelect.value = profile.dosham || '';
+            // Family
+            if (profileFatherNameInput) profileFatherNameInput.value = profile.fatherName || '';
+            if (profileFatherStatusSelect) profileFatherStatusSelect.value = profile.fatherStatus || '';
+            if (profileMotherNameInput) profileMotherNameInput.value = profile.motherName || '';
+            if (profileMotherStatusSelect) profileMotherStatusSelect.value = profile.motherStatus || '';
+            if (profileBrothersInput) profileBrothersInput.value = profile.brothers !== null ? profile.brothers : '';
+            if (profileSistersInput) profileSistersInput.value = profile.sisters !== null ? profile.sisters : '';
+             // Lifestyle
+            if (profileEatingHabitsSelect) profileEatingHabitsSelect.value = profile.eatingHabits || '';
+            if (profileSmokingHabitSelect) profileSmokingHabitSelect.value = profile.smokingHabit || '';
+            if (profileDrinkingHabitSelect) profileDrinkingHabitSelect.value = profile.drinkingHabit || '';
+            // About/Group
+            if (profileMatrimonyGroupSelect) profileMatrimonyGroupSelect.value = profile.matrimonyGroupId || '';
+            if (profileBioInput) profileBioInput.value = profile.bio || '';
+            // Other
+            if (autoGenerateParagraphInput) autoGenerateParagraphInput.value = ''; // Don't load paragraph
 
+            // Load existing photos
             currentUploadedPhotos = (profile.photoURLs || []).map(url => {
                 const storagePathMatch = url.match(/https:\/\/firebasestorage\.googleapis\.com\/v0\/b\/[^/]+\/o\/(.+)\?alt=media/);
                 const storagePath = storagePathMatch ? decodeURIComponent(storagePathMatch[1]) : url;
                 const fileNameMatch = storagePath.match(/\/([^\/]+)$/);
                 const fileName = fileNameMatch ? fileNameMatch[1] : 'Existing Image';
-
-                return {
-                    id: 'existing-' + Math.random().toString(36).substring(2, 9),
-                    file: null,
-                    fileName: fileName,
-                    progress: 100,
-                    status: 'completed',
-                    url: url,
-                    storagePath: storagePath,
-                    uploadTask: null,
-                    isPersisted: true
-                };
+                return { id: 'existing-' + Math.random().toString(36).substring(2, 9), file: null, fileName: fileName, progress: 100, status: 'completed', url: url, storagePath: storagePath, uploadTask: null, isPersisted: true };
             });
             renderImagePreviews();
-            saveFormDataToLocalStorage();
+            // Don't save to local storage when loading for edit, let user make changes first
+            // saveFormDataToLocalStorage(); 
 
             showMessage(profileFormMessage, `Loading profile for edit: ${profile.name}`, true);
         } catch (error) {
@@ -1265,22 +1087,21 @@
     }
 
     async function resetProfileForm() {
-        if (profileForm) profileForm.reset();
+        if (profileForm) profileForm.reset(); // Resets all form fields
         if (profileIdInput) profileIdInput.value = '';
         
-        await cleanupCurrentUploadedPhotos();
+        await cleanupCurrentUploadedPhotos(); // Clears photos and local storage
 
-        if (autoGenerateParagraphInput) autoGenerateParagraphInput.value = '';
         if (profileFormTitle) profileFormTitle.textContent = 'Create New Profile';
         if (submitProfileBtn) submitProfileBtn.textContent = 'Create Profile';
         if (cancelEditBtn) cancelEditBtn.classList.add('hidden');
         editingProfileId = null;
-        if (profileMatrimonyGroupSelect) profileMatrimonyGroupSelect.value = '';
         if (profileFormMessage) profileFormMessage.classList.add('hidden');
         
-        clearLocalStorage();
-        window.history.replaceState({}, document.title, window.location.pathname);
-    }</script>
+        // No need to clear local storage again, cleanup does it
+        window.history.replaceState({}, document.title, window.location.pathname); // Remove profileId from URL if present
+    }
+    </script>
   
 </body>
 </html>
