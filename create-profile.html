@@ -848,7 +848,22 @@
         showSpinner(autoGenerateSpinner, autoGenerateBtn, true);
         try {
              // Updated prompt for new fields
-            const prompt = `Extract the following details from the paragraph below and return them as a JSON object. If a detail is not found, use an empty string or null. Gender should be 'Male', 'Female', or 'Other'. Marital Status should be 'Single', 'Divorced', 'Widowed', or 'Awaiting Divorce'. Dosham should be 'Yes', 'No', or 'Don't Know'. Height should be in cm (number). Phone should be just digits. Annual Income should be a number. Date of Birth should be YYYY-MM-DD.\n\nParagraph: "${paragraph}"\n\nExpected JSON format: {"name": "", "gender": "", "dateOfBirth": null, "height": null, "maritalStatus": "", "phonePrimary": "", "email": "", "education": "", "profession": "", "annualIncome": null, "country": "", "state": "", "city": "", "location": "", "religion": "", "cast": "", "subcast": "", "motherTongue": "", "gotram": "", "star": "", "rasi": "", "dosham": "", "bio": ""}`;
+            const prompt = `Extract the following details from the paragraph below and return them as a JSON object. If a detail is not found, use an empty string or null.
+- Personal: name, gender ('Male', 'Female', 'Other'), dateOfBirth (YYYY-MM-DD), height (number in cm), maritalStatus ('Single', 'Divorced', 'Widowed', 'Awaiting Divorce'), motherTongue.
+- Contact: phonePrimary (digits only), email.
+- Professional: education, profession, annualIncome (number).
+- Location: country, state, city, location (address/area).
+- Religious/Horoscope: religion, cast, subcast, gotram, star, rasi, dosham ('Yes', 'No', "Don't Know").
+- Lifestyle: eatingHabits ('Vegetarian', 'Non-Vegetarian', 'Eggetarian', 'Jain', 'Vegan'), smokingHabit ('Yes', 'No', 'Occasionally'), drinkingHabit ('Yes', 'No', 'Occasionally').
+- Bio: A brief bio.
+
+Interpretation Guidelines:
+- For Eating Habits: Interpret 'no veg', 'non veg', 'non-veg' as 'Non-Vegetarian'. Interpret 'veg' as 'Vegetarian'. Interpret 'eats eggs' or similar as 'Eggetarian'.
+- For Smoking/Drinking: Interpret 'smokes' or 'drinks' as 'Yes'. Interpret 'doesn't smoke' or 'non-drinker' as 'No'. Interpret 'sometimes', 'socially', 'occasionally' as 'Occasionally'.
+
+Paragraph: "${paragraph}"
+
+Expected JSON format: {"name": "", "gender": "", "dateOfBirth": null, "height": null, "maritalStatus": "", "motherTongue": "", "phonePrimary": "", "email": "", "education": "", "profession": "", "annualIncome": null, "country": "", "state": "", "city": "", "location": "", "religion": "", "cast": "", "subcast": "", "gotram": "", "star": "", "rasi": "", "dosham": "", "eatingHabits": "", "smokingHabit": "", "drinkingHabit": "", "bio": ""}`;
             const result = await model.generateContent(prompt);
             let responseText = result.response.text();
             const jsonMatch = responseText.match(/```json\n([\s\S]*?)\n```/);
@@ -880,6 +895,9 @@
             if (profileRasiInput) profileRasiInput.value = data.rasi || '';
              if (profileDoshamSelect) profileDoshamSelect.value = data.dosham || '';
             if (profileBioInput) profileBioInput.value = data.bio || '';
+            if (profileEatingHabitsSelect) profileEatingHabitsSelect.value = data.eatingHabits || '';
+if (profileSmokingHabitSelect) profileSmokingHabitSelect.value = data.smokingHabit || '';
+if (profileDrinkingHabitSelect) profileDrinkingHabitSelect.value = data.drinkingHabit || '';
             
             // Fields less likely to be in paragraph: weight, bodyType, complexion, phoneSecondary, father/mother details, siblings, habits, matrimonyGroupId
 
