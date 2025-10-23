@@ -55,7 +55,7 @@
         .column { display: flex; flex-direction: column; gap: 2rem; }
 
         /* Widget base styles */
-        .widget { background-color: var(--widget-bg); border-radius: 16px; border: 1px solid var(--border-color); padding: 1.5rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.03), 0 2px 4px -1px rgba(0,0,0,0.02); }
+        .widget { background-color: var(--widget-bg); border-radius: 16px; border: 1px solid var(--border-color); padding: 1rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.03), 0 2px 4px -1px rgba(0,0,0,0.02); }
         .widget-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
         .widget-header h3 { font-size: 1.1rem; font-weight: 600; color: var(--text-primary); }
         .widget-header a { font-size: 0.9rem; color: var(--brand-green); text-decoration: none; font-weight: 500; }
@@ -66,7 +66,7 @@
             background-color: var(--widget-bg);
             border-radius: 16px;
             border: 1px solid var(--border-color);
-            padding: 1.5rem;
+            padding: 1rem;
             box-shadow: 0 4px 6px -1px rgba(0,0,0,0.03), 0 2px 4px -1px rgba(0,0,0,0.02);
             display: flex;
             flex-direction: column;
@@ -79,19 +79,19 @@
         }
 
 
-        .button-primary {
-            display: inline-block;
-            background-color: var(--brand-green);
-            color: white; /* Explicitly set to white */
-            padding: 0.6rem 1.2rem;
-            border-radius: 8px;
-            text-decoration: none;
-            font-weight: 500;
-            font-size: 0.9rem;
-            transition: background-color 0.2s ease;
-            border: none;
-            cursor: pointer;
-        }
+.button-primary {
+    display: inline-block;
+    background-color: var(--brand-green);
+    color: white !important; /* <-- force white text */
+    padding: 0.6rem 1.2rem;
+    border-radius: 8px;
+    text-decoration: none !important;
+    font-weight: 500;
+    font-size: 0.9rem;
+    transition: background-color 0.2s ease;
+    border: none;
+    cursor: pointer;
+}
         .button-primary:hover { background-color: #2fb165; }
 
         .metrics-grid {
@@ -227,7 +227,7 @@
             .sidebar { position: fixed; top: 0; left: 0; height: 100%; width: 80%; max-width: 300px; z-index: 1000; transform: translateX(-100%); box-shadow: 0 0 30px rgba(0,0,0,0.1); }
             .sidebar.active { transform: translateX(0); }
             .main-header { padding: 1.25rem 1.5rem; }
-            .content-body { grid-template-columns: 1fr; padding: 1.5rem; }
+            .content-body { grid-template-columns: 1fr; padding: 0.5rem; }
             .menu-toggle { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; font-size: 1.5rem; color: var(--text-primary); cursor: pointer; border: 2px solid var(--border-color); border-radius: 8px; transition: background-color 0.2s ease; }
             .menu-toggle:hover { background-color: var(--hover-bg); }
             .sidebar-close-btn { display: flex; align-items: center; justify-content: center; position: absolute; top: 1.5rem; right: 1.5rem; font-size: 1.75rem; color: var(--danger-color); cursor: pointer; border: none; background: none; transition: color 0.2s ease; }
@@ -301,13 +301,13 @@
         <main class="main-area">
             <header class="main-header">
                 <i class='bx bx-menu menu-toggle' id="menu-toggle"></i>
-                <h1>Admin Dashboard Overview</h1>
+                <h1>Admin Dashboard</h1>
             </header>
             <section class="content-body">
                 <div class="column side-col">
                     <div class="custom-widget-container">
                         <div class="widget-header">
-                            <h3>Recently Added Profiles</h3>
+                            <h3>Recently Added</h3>
                             <a href="admin-profiles.html" class="button-primary">View All &rarr;</a>
                         </div>
                         <div id="recently-added-profiles-list">
