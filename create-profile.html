@@ -59,7 +59,7 @@
         background-color: var(--widget-bg);
         border-radius: 16px;
         border: 1px solid var(--border-color);
-        padding: 2rem; /* Increased padding */
+        padding: 1.5rem; /* Increased padding */
         box-shadow: 0 4px 6px -1px rgba(0,0,0,0.03), 0 2px 4px -1px rgba(0,0,0,0.02);
     }
     .widget-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; /* Increased margin */ border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; }
@@ -165,7 +165,7 @@
         .sidebar { position: fixed; top: 0; left: 0; height: 100%; width: 80%; max-width: 300px; z-index: 1000; transform: translateX(-100%); box-shadow: 0 0 30px rgba(0,0,0,0.1); }
         .sidebar.active { transform: translateX(0); }
         .main-header { padding: 1.25rem 1.5rem; }
-        .content-body { padding: 1.5rem; }
+        .content-body { padding: 0.5rem; }
         .menu-toggle { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; font-size: 1.5rem; color: var(--text-primary); cursor: pointer; background: none; border: none; }
         .sidebar-close-btn { display: flex; align-items: center; justify-content: center; position: absolute; top: 1.5rem; right: 1.5rem; font-size: 1.75rem; color: var(--danger-color); cursor: pointer; border: none; background: none; }
         .overlay { position: fixed; inset: 0; background-color: rgba(0,0,0,0.4); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); z-index: 999; opacity: 0; visibility: hidden; pointer-events: none; transition: opacity 0.3s ease, visibility 0.3s ease; }
