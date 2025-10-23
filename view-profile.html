@@ -5,154 +5,248 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Matrimony Portal - View Profile</title>
 
-    <!-- DEFAULT Open Graph / Twitter Tags (Overwritten by JS) -->
     <meta property="og:title" content="Matrimony Profile" /> <meta name="twitter:title" content="Matrimony Profile" />
     <meta property="og:description" content="View a Matrimony profile." /> <meta name="twitter:description" content="View a Matrimony profile." />
     <meta property="og:image" content="https://via.placeholder.com/1200x630.png?text=Matrimony" /> <meta name="twitter:image" content="https://via.placeholder.com/1200x630.png?text=Matrimony" />
     <meta property="og:url" content="" /> <meta name="twitter:card" content="summary_large_image" />
     <meta property="og:type" content="profile" />
 
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Boxicons for icons -->
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
 
-    <!-- Firebase -->
     <script type="module" src="https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js"></script>
     <script type="module" src="https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js"></script>
     <script type="module" src="https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js"></script>
 
     <style>
-        /* Use Inter font */
-        body { font-family: 'Inter', sans-serif; }
+        /* --- Base Dashboard CSS (Mostly Unchanged) --- */
+        :root { --body-bg: #F9FAFB; --widget-bg: #FFFFFF; --border-color: #E5E7EB; --text-primary: #002726; --text-secondary: #6B7280; --brand-green: #33C375; --hover-bg: #F3F4F6; --warning-color: #F59E0B; --danger-color: #EF4444; --info-color: #3B82F6; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'IBM Plex Sans', sans-serif; background-color: var(--body-bg); color: var(--text-primary); font-size: 14px; overflow: hidden; }
+        .dashboard-container { display: grid; grid-template-columns: 260px 1fr; height: 100vh; position: relative; }
+        /* Guest View: Hide Sidebar */
+        body.guest-view .dashboard-container { grid-template-columns: 1fr; }
+        body.guest-view .sidebar { display: none; }
+        body.guest-view .menu-toggle { display: none !important; /* Hide hamburger too */ }
+
+        .sidebar { background-color: var(--widget-bg); border-right: 1px solid var(--border-color); padding: 2rem 1.5rem; display: flex; flex-direction: column; position: relative; transition: transform 0.3s ease-in-out; }
+        .sidebar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem; }
+        .logo-image { height: 40px; background-color: #f0f0f0; border-radius: 8px; width: 120px; display: flex; align-items: center; justify-content: center; font-weight: bold; color: var(--text-secondary); }
+        .main-nav { flex-grow: 1; }
+        .main-nav ul { list-style: none; display: flex; flex-direction: column; gap: 0.5rem; }
+        .main-nav a { display: flex; align-items: center; gap: 1rem; text-decoration: none; color: var(--text-primary); font-weight: 500; padding: 0.75rem 1rem; border-radius: 8px; transition: background-color 0.2s ease, color 0.2s ease; }
+        .main-nav a i { font-size: 1.5rem; color: var(--text-secondary); transition: color 0.2s ease; }
+        .main-nav a:hover { background-color: var(--hover-bg); }
+        .main-nav a.active { background-color: var(--hover-bg); font-weight: 600; }
+        .main-nav a.active i { color: var(--brand-green); }
+        .profile-section { margin-top: auto; padding-top: 1.5rem; border-top: 1px solid var(--border-color); display: flex; align-items: center; gap: 0.75rem; cursor: pointer; }
+        .profile-content-wrapper { display: flex; align-items: center; gap: 0.75rem; width: 100%; }
+        .profile-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; flex-shrink: 0; background-color: #e2e8f0; }
+        .profile-details { flex-grow: 1; min-width: 0; }
+        .profile-name { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+        .profile-email { font-size: 0.8rem; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+        .profile-options i { font-size: 1.5rem; color: var(--text-secondary); transition: transform 0.2s ease; }
+        .profile-section.active .profile-options i { transform: rotate(180deg); }
+        .profile-popup { position: absolute; bottom: 90px; left: 1.5rem; right: 1.5rem; background-color: var(--widget-bg); border-radius: 12px; box-shadow: 0 10px 30px -5px rgba(0,0,0,0.1); border: 1px solid var(--border-color); padding: 0.75rem; z-index: 100; opacity: 0; pointer-events: none; transform: translateY(10px) scale(0.95); transition: opacity 0.2s ease, transform 0.2s ease; }
+        .profile-popup.active { opacity: 1; pointer-events: all; transform: translateY(0) scale(1); }
+        .popup-header { display: flex; align-items: center; gap: 0.75rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border-color); }
+        .popup-list { list-style: none; padding-top: 0.5rem; }
+        .popup-list a { display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem; border-radius: 6px; text-decoration: none; color: var(--text-primary); }
+        .popup-list a:hover { background-color: var(--hover-bg); }
+        .popup-list a i { font-size: 1.2rem; color: var(--text-secondary); }
+        .popup-list a.logout i { color: var(--danger-color); }
+        .popup-list a.logout { color: var(--danger-color); }
+        .main-area { display: flex; flex-direction: column; overflow-y: auto; background-color: var(--body-bg); }
+        .main-header { padding: 1.25rem 3rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background-color: var(--widget-bg); position: sticky; top: 0; z-index: 10; }
+        .main-header h1 { font-size: 1.5rem; font-weight: 600; }
+        .content-body { padding: 2rem 3rem; margin-top: 0; }
         
-        /* Custom scrollbar for thumbnails */
-        .thumbnail-container::-webkit-scrollbar { height: 5px; }
-        .thumbnail-container::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
-        .thumbnail-container::-webkit-scrollbar-thumb { background: #ccc; border-radius: 10px; }
-        .thumbnail-container::-webkit-scrollbar-thumb:hover { background: #aaa; }
-        /* Firefox scrollbar */
-        .thumbnail-container { scrollbar-width: thin; scrollbar-color: #ccc #f1f1f1; }
+        button { background-color: var(--brand-green); color: white; padding: 10px 15px; border: none; border-radius: 8px; cursor: pointer; font-size: 0.95rem; transition: background-color 0.2s ease; font-weight: 500; display: inline-flex; align-items: center; gap: 0.5rem; line-height: 1.2; } /* Added flex properties */
+        button i { font-size: 1.2em; } /* Icon size relative to button text */
+        button:hover { background-color: #2fb165; }
+        button:disabled { background-color: #cccccc; cursor: not-allowed; }
+        .error-message { color: var(--danger-color); font-weight: bold; margin-top: 1rem; }
+        .success-message { color: var(--brand-green); font-weight: bold; margin-top: 1rem; }
+        .hidden { display: none !important; }
 
-        /* Sidebar scrollbar */
-         .sidebar { scrollbar-width: thin; scrollbar-color: #ccc #f1f1f1; }
-         .sidebar::-webkit-scrollbar { width: 5px; }
-         .sidebar::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
-         .sidebar::-webkit-scrollbar-thumb { background: #ccc; border-radius: 10px; }
-         .sidebar::-webkit-scrollbar-thumb:hover { background: #aaa; }
+        .menu-toggle { display: none; }
+        .sidebar-close-btn { display: none; }
+        @media (max-width: 1024px) { body:not(.guest-view) .dashboard-container { grid-template-columns: 1fr; } /* Apply only if not guest */ body:not(.guest-view) .sidebar { position: fixed; top: 0; left: 0; height: 100%; width: 80%; max-width: 300px; z-index: 1000; transform: translateX(-100%); box-shadow: 0 0 30px rgba(0,0,0,0.1); } body:not(.guest-view) .sidebar.active { transform: translateX(0); } .main-header { padding: 1.25rem 1.5rem; } .content-body { padding: 1.5rem; } body:not(.guest-view) .menu-toggle { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; font-size: 1.5rem; color: var(--text-primary); cursor: pointer; background: none; border: none; } body:not(.guest-view) .sidebar-close-btn { display: flex; align-items: center; justify-content: center; position: absolute; top: 1.5rem; right: 1.5rem; font-size: 1.75rem; color: var(--danger-color); cursor: pointer; border: none; background: none; } .overlay { position: fixed; inset: 0; background-color: rgba(0,0,0,0.4); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); z-index: 999; opacity: 0; visibility: hidden; pointer-events: none; transition: opacity 0.3s ease, visibility 0.3s ease; } .overlay.active { opacity: 1; visibility: visible; pointer-events: auto; } }
 
-         /* Main area scrollbar */
-          .main-area { scrollbar-width: thin; scrollbar-color: #ccc #f1f1f1; }
-         .main-area::-webkit-scrollbar { width: 8px; }
-         .main-area::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
-         .main-area::-webkit-scrollbar-thumb { background: #ccc; border-radius: 10px; }
-         .main-area::-webkit-scrollbar-thumb:hover { background: #aaa; }
+        /* --- Profile View Specific Styles --- */
+        .profile-view-wrapper { /* New wrapper for better control */
+             background-color: var(--widget-bg);
+             border-radius: 16px;
+             border: 1px solid var(--border-color);
+             padding: 2rem;
+             box-shadow: 0 4px 6px -1px rgba(0,0,0,0.03), 0 2px 4px -1px rgba(0,0,0,0.02);
+        }
+        .profile-view-container {
+            display: grid;
+            grid-template-columns: minmax(300px, 400px) 1fr; /* Image gallery column and details column */
+            gap: 2rem;
+        }
 
-        /* Custom spinner animation */
-        .spinner {
-            border: 3px solid rgba(51, 192, 114, 0.2); 
-            border-bottom-color: #33c072; 
-            animation: rotation 1s linear infinite;
+        /* --- Image Gallery Styles --- */
+        .image-gallery { position: relative; }
+        .main-image-container { position: relative; width: 100%; padding-top: 100%; background-color: var(--hover-bg); border-radius: 12px; overflow: hidden; margin-bottom: 1rem; border: 1px solid var(--border-color); }
+        .main-image { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; transition: opacity 0.3s ease; background-color: var(--pure-white); /* Ensure background for contain */ }
+        .gallery-nav { position: absolute; top: 50%; transform: translateY(-50%); width: 36px; height: 36px; background-color: rgba(0, 39, 38, 0.6); color: white; border: none; border-radius: 50%; font-size: 1.5rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background-color 0.2s ease; z-index: 5; opacity: 0.8; }
+        .gallery-nav:hover { background-color: rgba(0, 39, 38, 0.9); opacity: 1; }
+        .gallery-nav.prev { left: 10px; }
+        .gallery-nav.next { right: 10px; }
+        .gallery-nav.hidden { display: none; }
+
+        .thumbnail-container { display: flex; gap: 0.75rem; overflow-x: auto; padding-bottom: 5px; scrollbar-width: none; -ms-overflow-style: none; }
+        .thumbnail-container::-webkit-scrollbar { display: none; }
+        .thumbnail { width: 60px; height: 60px; object-fit: cover; border-radius: 6px; border: 2px solid transparent; cursor: pointer; flex-shrink: 0; transition: border-color 0.2s ease, opacity 0.2s ease; opacity: 0.6; }
+        .thumbnail:hover { opacity: 1; }
+        .thumbnail.active { border-color: var(--brand-green); opacity: 1; }
+        
+        /* --- Profile Details Section --- */
+        .profile-details-content .profile-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; }
+        .profile-details-content h2 { font-size: 1.8rem; font-weight: 600; color: var(--text-primary); margin: 0; line-height: 1.2; }
+        .profile-status-badge { display: inline-block; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.8rem; font-weight: 600; text-transform: capitalize; }
+        .profile-status-badge.active { background-color: #d1fae5; color: #065f46; } /* Green */
+        .profile-status-badge.inactive { background-color: #feefc7; color: #92400e; } /* Amber */
+        .profile-status-badge.married { background-color: #ffedd5; color: #9a3412; } /* Orange */
+        
+        .details-section { margin-bottom: 2rem; } /* Space between sections */
+        .details-section h3 { font-size: 1.1rem; font-weight: 600; color: var(--brand-green); margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border-color); }
+        .details-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem 1.5rem; }
+        .detail-item { font-size: 0.95rem; line-height: 1.5; }
+        .detail-item strong { display: block; color: var(--text-secondary); font-weight: 500; font-size: 0.85rem; margin-bottom: 3px; }
+        .detail-item span { color: var(--text-primary); font-weight: 500; }
+
+        .profile-bio { margin-top: 1.5rem; font-size: 0.95rem; line-height: 1.6; color: var(--text-secondary); background: var(--hover-bg); padding: 1rem; border-radius: 8px; border: 1px solid var(--border-color); }
+        .profile-bio strong { color: var(--text-primary); font-weight: 600; display: block; margin-bottom: 0.5rem; }
+
+        /* --- Actions --- */
+        .action-buttons-container { margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 1rem; }
+        .action-group { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+        .action-group h4 { width: 100%; font-size: 0.9rem; color: var(--text-secondary); font-weight: 600; margin-bottom: 0.25rem; }
+        .action-group button { width: auto; min-width: 130px; padding: 8px 15px; font-size: 0.9rem; }
+
+        /* Style specific buttons */
+         button#copy-link-btn { background-color: var(--info-color); }
+         button#copy-link-btn:hover { background-color: #2563EB; }
+         button#copy-details-btn { background-color: var(--text-secondary); }
+         button#copy-details-btn:hover { background-color: #4B5563; }
+
+        #profile-status-actions button.married { background-color: #ea580c; } /* Orange-700 */
+        #profile-status-actions button.married:hover { background-color: #c2410c; } /* Orange-800 */
+        #profile-status-actions button.deactivate { background-color: #f59e0b; } /* Amber-500 */
+        #profile-status-actions button.deactivate:hover { background-color: #d97706; } /* Amber-600 */
+        #profile-status-actions button.reactivate { background-color: #22c55e; } /* Green-500 */
+        #profile-status-actions button.reactivate:hover { background-color: #16a34a; } /* Green-600 */
+
+        /* Guest View: Hide share buttons */
+        body.guest-view #share-actions { display: none; }
+
+        /* --- History --- */
+        #field-change-history { margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color); }
+        #field-change-history h3 { color: var(--text-primary); font-size: 1.1rem; margin-bottom: 1rem; }
+        #field-change-history ul { list-style: none; padding: 0; }
+        #field-change-history li { background: var(--hover-bg); border: 1px solid var(--border-color); border-radius: 6px; padding: 10px 12px; margin-bottom: 8px; font-size: 0.9em; display: flex; justify-content: space-between; flex-wrap: wrap; }
+        #field-change-history li div { flex-basis: 70%; } /* Content part */
+        #field-change-history li strong { color: var(--brand-green); margin-right: 5px; }
+        #field-change-history li .change-detail { color: var(--text-secondary); font-style: italic; }
+        #field-change-history li .timestamp { font-size: 0.8em; color: #999; flex-basis: 30%; text-align: right; white-space: nowrap; }
+
+        /* --- Message/Feedback Area --- */
+         #feedback-message {
+             position: fixed;
+             bottom: 2rem;
+             left: 50%;
+             transform: translateX(-50%);
+             padding: 10px 20px;
+             border-radius: 8px;
+             color: white;
+             font-weight: 500;
+             box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+             z-index: 1001;
+             opacity: 0;
+             transition: opacity 0.3s ease, bottom 0.3s ease;
+             pointer-events: none;
+         }
+         #feedback-message.show {
+             opacity: 1;
+             bottom: 3rem;
+             pointer-events: auto;
+         }
+         #feedback-message.success { background-color: var(--brand-green); }
+         #feedback-message.error { background-color: var(--danger-color); }
+
+
+        /* --- Responsive for Profile View --- */
+        @media (max-width: 1024px) { /* Adjust breakpoint for stacking */
+            .profile-view-container {
+                grid-template-columns: 1fr; /* Stack gallery and details */
+            }
+             .main-image-container {
+                 padding-top: 75%; /* Adjust aspect ratio if needed */
+                 max-width: 500px; /* Limit width on mobile stack */
+                 margin-left: auto;
+                 margin-right: auto;
+             }
+              .thumbnail-container {
+                 justify-content: center; /* Center thumbnails when stacked */
+             }
         }
-         @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-         
-         /* Hide scrollbar default arrows in number input */
-        input[type=number]::-webkit-inner-spin-button, 
-        input[type=number]::-webkit-outer-spin-button { 
-          -webkit-appearance: none; 
-          margin: 0; 
+        @media (max-width: 768px) {
+            .details-grid { grid-template-columns: 1fr; } /* Single column earlier */
+             .action-group { flex-direction: column; } /* Stack buttons vertically */
+             .action-group button { width: 100%; }
+             #field-change-history li { flex-direction: column; align-items: flex-start; }
+             #field-change-history li .timestamp { float: none; text-align: left; margin-top: 5px; }
         }
-        input[type=number] {
-          -moz-appearance: textfield; /* Firefox */
-        }
+
     </style>
 </head>
-<body class="bg-gray-100 text-gray-800">
-    <!-- Overlay for mobile menu -->
-    <div id="overlay" class="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm z-40 hidden lg:hidden transition-opacity duration-300"></div>
-    
-    <!-- Dashboard Container -->
-    <div id="dashboard-container" class="grid lg:grid-cols-[260px_1fr] h-screen max-h-screen">
-        <!-- Sidebar -->
-        <aside id="sidebar" class="bg-white border-r border-gray-200 p-6 flex flex-col fixed lg:relative inset-y-0 left-0 z-50 w-64 lg:w-auto h-full max-h-screen transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out overflow-y-auto">
-            <button id="sidebar-close-btn" class="absolute top-4 right-4 text-red-500 text-2xl lg:hidden"><i class='bx bx-x'></i></button>
-            <div class="flex justify-between items-center mb-12">
-                <div class="h-10 bg-gray-200 rounded-lg w-32 flex items-center justify-center font-bold text-gray-500 text-sm">Matrimony Admin</div>
+<body>
+    <div id="feedback-message" class="hidden"></div>
+
+    <div class="overlay" id="overlay"></div>
+    <div class="dashboard-container">
+        <aside class="sidebar" id="sidebar">
+            <button class="sidebar-close-btn" id="sidebar-close-btn"><i class='bx bx-x'></i></button>
+            <div class="sidebar-header">
+                <div class="logo-image">Matrimony Admin</div>
             </div>
-            <nav class="flex-grow">
-                <ul class="flex flex-col space-y-2">
-                    <!-- Nav items -->
-                    <li><a href="#" id="nav-dashboard-link" class="flex items-center gap-4 text-gray-700 font-medium py-2 px-3 rounded-lg hover:bg-gray-100 transition-colors"><i class='bx bx-home-alt text-xl text-gray-500'></i> Dashboard</a></li>
-                    <li><a href="create-profile.html" id="nav-create-profile-link" class="flex items-center gap-4 text-gray-700 font-medium py-2 px-3 rounded-lg hover:bg-gray-100 transition-colors"><i class='bx bx-user-plus text-xl text-gray-500'></i> Create Profile</a></li>
-                    <li><a href="search-profiles.html" id="nav-search-profiles-link" class="flex items-center gap-4 text-gray-700 font-medium py-2 px-3 rounded-lg hover:bg-gray-100 transition-colors"><i class='bx bx-search text-xl text-gray-500'></i> Search Profiles</a></li>
-                    <li id="nav-manage-users-item" class="hidden"><a href="admin-users.html" id="nav-manage-users-link" class="flex items-center gap-4 text-gray-700 font-medium py-2 px-3 rounded-lg hover:bg-gray-100 transition-colors"><i class='bx bx-group text-xl text-gray-500'></i> Manage Users</a></li>
-                    <li id="nav-manage-profiles-item" class="hidden"><a href="admin-profiles.html" id="nav-manage-profiles-link" class="flex items-center gap-4 text-gray-700 font-medium py-2 px-3 rounded-lg hover:bg-gray-100 transition-colors"><i class='bx bx-id-card text-xl text-gray-500'></i> Manage Profiles</a></li>
-                    <li id="nav-global-history-item" class="hidden"><a href="admin-history.html" id="nav-global-history-link" class="flex items-center gap-4 text-gray-700 font-medium py-2 px-3 rounded-lg hover:bg-gray-100 transition-colors"><i class='bx bx-history text-xl text-gray-500'></i> Global History</a></li>
+            <nav class="main-nav">
+                <ul>
+                    <li id="nav-dashboard-item"><a href="#" id="nav-dashboard-link"><i class='bx bx-home-alt'></i> Dashboard</a></li>
+                    <li><a href="create-profile.html" id="nav-create-profile-link"><i class='bx bx-user-plus'></i> Create Profile</a></li>
+                    <li><a href="search-profiles.html" id="nav-search-profiles-link"><i class='bx bx-search'></i> Search Profiles</a></li>
+                    <li id="nav-manage-users-item" class="hidden"><a href="admin-users.html" id="nav-manage-users-link"><i class='bx bx-group'></i> Manage Users</a></li>
+                    <li id="nav-manage-profiles-item" class="hidden"><a href="admin-profiles.html" id="nav-manage-profiles-link"><i class='bx bx-id-card'></i> Manage Profiles</a></li>
+                    <li id="nav-global-history-item" class="hidden"><a href="admin-history.html" id="nav-global-history-link"><i class='bx bx-history'></i> Global History</a></li>
                 </ul>
             </nav>
-            <!-- Profile Section -->
-            <div id="profile-section" class="mt-auto pt-6 border-t border-gray-200 cursor-pointer group">
-                <div class="flex items-center gap-3">
-                    <img id="sidebar-user-avatar" src="https://via.placeholder.com/40" alt="User Avatar" class="w-10 h-10 rounded-full object-cover bg-gray-300">
-                    <div class="flex-grow min-w-0">
-                        <span id="current-user-email" class="font-semibold text-sm block truncate text-gray-800">Loading...</span>
-                        <span id="current-user-role" class="text-xs text-gray-500 block truncate">Role</span>
-                    </div>
-                    <i class='bx bx-chevron-down text-gray-500 text-xl transition-transform group-[.active]:rotate-180'></i>
-                </div>
+            <div class="profile-section" id="profile-section">
+                <div class="profile-content-wrapper"> <div class="profile-avatar"><img src="https://via.placeholder.com/40" alt="User Avatar" id="sidebar-user-avatar" style="width: 100%; height: 100%; border-radius: 50%;"></div> <div class="profile-details"> <span class="profile-name" id="current-user-email">Loading...</span> <span class="profile-email" id="current-user-role">Role</span> </div> <div class="profile-options"><i class='bx bx-chevron-down'></i></div> </div>
             </div>
-            <!-- Profile Popup -->
-            <div id="profile-popup" class="absolute bottom-[90px] left-6 right-6 bg-white rounded-xl shadow-lg border border-gray-200 p-3 z-[100] opacity-0 pointer-events-none transform scale-95 translate-y-2 transition-all duration-200 ease-out group-[.active]:opacity-100 group-[.active]:pointer-events-auto group-[.active]:scale-100 group-[.active]:translate-y-0">
-                 <div class="flex items-center gap-3 pb-3 border-b border-gray-200 mb-2">
-                     <img id="popup-user-avatar" src="https://via.placeholder.com/40" alt="User Avatar" class="w-10 h-10 rounded-full object-cover bg-gray-300">
-                     <div class="flex-grow min-w-0">
-                         <span id="popup-user-email" class="font-semibold text-sm block truncate text-gray-800">Loading...</span>
-                         <span id="popup-user-role" class="text-xs text-gray-500 block truncate">Role</span>
-                     </div>
-                 </div>
-                 <ul class="space-y-1">
-                     <li><a href="#" class="flex items-center gap-3 px-3 py-1.5 text-sm text-gray-700 rounded-md hover:bg-gray-100"><i class='bx bx-user text-base text-gray-500'></i> Profile Settings</a></li>
-                     <li><a href="#" class="logout flex items-center gap-3 px-3 py-1.5 text-sm text-red-600 rounded-md hover:bg-red-50" id="logout-btn"><i class='bx bx-log-out text-base text-red-500'></i> Logout</a></li>
-                 </ul>
+            <div class="profile-popup" id="profile-popup">
+                 <div class="popup-header"> <div class="profile-avatar"><img src="https://via.placeholder.com/40" alt="User Avatar" id="popup-user-avatar" style="width: 100%; height: 100%; border-radius: 50%;"></div> <div class="profile-details"> <span class="profile-name" id="popup-user-email">Loading...</span> <span class="profile-email" id="popup-user-role">Role</span> </div> </div> <ul class="popup-list"> <li><a href="#"><i class='bx bx-user'></i> Profile Settings</a></li> <li><a href="#" class="logout" id="logout-btn"><i class='bx bx-log-out'></i> Logout</a></li> </ul>
             </div>
         </aside>
 
-        <!-- Main Content Area -->
-        <main id="main-area" class="main-area overflow-y-auto max-h-screen">
-            <header class="sticky top-0 z-30 bg-white border-b border-gray-200 px-6 lg:px-12 py-4 flex justify-between items-center">
-                 <button id="menu-toggle" class="text-gray-700 text-2xl lg:hidden mr-4"><i class='bx bx-menu'></i></button>
-                <h1 id="main-header-title" class="text-xl font-semibold text-gray-800">View Profile</h1>
-                 <!-- Placeholder for potential header actions -->
-                 <div></div>
+        <main class="main-area">
+            <header class="main-header">
+                <i class='bx bx-menu menu-toggle' id="menu-toggle"></i>
+                <h1 id="main-header-title">View Profile</h1>
             </header>
             
-            <section class="content-body p-6 lg:p-12">
-                 <!-- Loading/Error Message -->
-                 <div id="loading-status" class="bg-blue-100 border border-blue-200 text-blue-700 px-4 py-3 rounded-lg mb-6 text-center">Loading profile...</div>
-                 
-                 <!-- Profile Content Container -->
-                 <div id="profile-view-container" class="hidden"> 
-                     <!-- Content generated by JS -->
-                     <!-- Example structure (will be replaced): -->
-                     <!-- <div class="grid lg:grid-cols-[400px_1fr] gap-8 bg-white p-8 rounded-xl shadow-sm border border-gray-200"> -->
-                         <!-- Image Gallery Column -->
-                         <!-- <div class="image-gallery"></div> -->
-                         <!-- Details Column -->
-                         <!-- <div class="profile-details-content"></div> -->
-                     <!-- </div> -->
+            <section class="content-body">
+                 <p id="loading-status" class="success-message">Loading profile...</p>
+                 <div id="profile-view-wrapper" class="profile-view-wrapper hidden"> 
+                      <div id="profile-view-container" class="profile-view-container"> 
+                           </div>
                  </div>
             </section>
         </main>
-    </div>
-
-    <!-- Feedback Toast -->
-     <div id="toast-message" class="fixed bottom-5 right-5 z-[100] px-5 py-3 rounded-lg shadow-md text-white font-medium transition-all duration-300 ease-out translate-y-16 opacity-0">
-        Copied!
     </div>
 
     <script type="module">
@@ -160,14 +254,8 @@
         import { getAuth, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js';
         import { getFirestore, collection, getDocs, doc, getDoc, query, orderBy, updateDoc, serverTimestamp, addDoc } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js';
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyAuxA-e71uX_uLDe6oyFU69q-eLfgUzbXA",
-            authDomain: "harsha-jw.firebaseapp.com",
-            projectId: "harsha-jw",
-            storageBucket: "harsha-jw.firebasestorage.app",
-            messagingSenderId: "471408120499",
-            appId: "1:471408120499:web:91e61514ad3703ce3b16c6",
-            measurementId: "G-NBC16X4R1T"
+        const firebaseConfig = { /* Keep your config here */ 
+             apiKey: "AIzaSyAuxA-e71uX_uLDe6oyFU69q-eLfgUzbXA", authDomain: "harsha-jw.firebaseapp.com", projectId: "harsha-jw", storageBucket: "harsha-jw.firebasestorage.app", messagingSenderId: "471408120499", appId: "1:471408120499:web:91e61514ad3703ce3b16c6", measurementId: "G-NBC16X4R1T" 
         };
 
         const app = initializeApp(firebaseConfig);
@@ -179,34 +267,31 @@
         const hardcodedMatrimonyGroups = [ { id: 'US', name: 'US' }, { id: 'BY_OTHERS', name: 'BY OTHERS' } ];
         let currentImageIndex = 0; 
         let photoURLs = []; 
-        let profileGlobal = null; 
+        let profileGlobal = null;
 
         // --- UI Shell Elements ---
-        const sidebarUserAvatar = document.getElementById('sidebar-user-avatar'); const popupUserAvatar = document.getElementById('popup-user-avatar'); const sidebarUserName = document.getElementById('current-user-email'); const sidebarUserRole = document.getElementById('current-user-role'); const popupUserEmail = document.getElementById('popup-user-email'); const popupUserRole = document.getElementById('popup-user-role'); const logoutBtn = document.getElementById('logout-btn'); const menuToggle = document.getElementById('menu-toggle'); const sidebar = document.getElementById('sidebar'); const sidebarCloseBtn = document.getElementById('sidebar-close-btn'); const overlay = document.getElementById('overlay'); const mainHeaderTitle = document.getElementById('main-header-title'); const navDashboardLink = document.getElementById('nav-dashboard-link'); const navCreateProfileLink = document.getElementById('nav-create-profile-link'); const navSearchProfilesLink = document.getElementById('nav-search-profiles-link'); const navManageUsersLink = document.getElementById('nav-manage-users-link'); const navManageProfilesLink = document.getElementById('nav-manage-profiles-link'); const navGlobalHistoryLink = document.getElementById('nav-global-history-link'); const navManageUsersItem = document.getElementById('nav-manage-users-item'); const navManageProfilesItem = document.getElementById('nav-manage-profiles-item'); const navGlobalHistoryItem = document.getElementById('nav-global-history-item'); const dashboardContainer = document.getElementById('dashboard-container'); const mainArea = document.getElementById('main-area');
+        const sidebarUserAvatar = document.getElementById('sidebar-user-avatar'); const popupUserAvatar = document.getElementById('popup-user-avatar'); const sidebarUserName = document.getElementById('current-user-email'); const sidebarUserRole = document.getElementById('current-user-role'); const popupUserEmail = document.getElementById('popup-user-email'); const popupUserRole = document.getElementById('popup-user-role'); const logoutBtn = document.getElementById('logout-btn'); const menuToggle = document.getElementById('menu-toggle'); const sidebar = document.getElementById('sidebar'); const sidebarCloseBtn = document.getElementById('sidebar-close-btn'); const overlay = document.getElementById('overlay'); const mainHeaderTitle = document.getElementById('main-header-title'); const navDashboardLink = document.getElementById('nav-dashboard-link'); const navCreateProfileLink = document.getElementById('nav-create-profile-link'); const navSearchProfilesLink = document.getElementById('nav-search-profiles-link'); const navManageUsersLink = document.getElementById('nav-manage-users-link'); const navManageProfilesLink = document.getElementById('nav-manage-profiles-link'); const navGlobalHistoryLink = document.getElementById('nav-global-history-link'); const navManageUsersItem = document.getElementById('nav-manage-users-item'); const navManageProfilesItem = document.getElementById('nav-manage-profiles-item'); const navGlobalHistoryItem = document.getElementById('nav-global-history-item');
 
         // --- Page Specific Elements ---
+        const profileViewWrapper = document.getElementById('profile-view-wrapper');
         const profileViewContainer = document.getElementById('profile-view-container');
         const loadingStatus = document.getElementById('loading-status');
-        const toastMessage = document.getElementById('toast-message');
+        const feedbackMessageElement = document.getElementById('feedback-message'); // For toast
 
         // --- Utility Functions ---
-        function showToast(message, isSuccess = true) {
-             toastMessage.textContent = message;
-             toastMessage.classList.remove('bg-green-500', 'bg-red-500', 'translate-y-16', 'opacity-0');
-             toastMessage.classList.add(isSuccess ? 'bg-green-500' : 'bg-red-500');
-             toastMessage.classList.add('translate-y-0', 'opacity-100'); // Show
-             setTimeout(() => {
-                 toastMessage.classList.remove('translate-y-0', 'opacity-100');
-                 toastMessage.classList.add('translate-y-16', 'opacity-0'); // Hide
-             }, 3000);
+        function showFeedback(message, isSuccess = true) {
+             if (!feedbackMessageElement) return;
+             feedbackMessageElement.textContent = message;
+             feedbackMessageElement.className = `show ${isSuccess ? 'success' : 'error'}`;
+             setTimeout(() => { feedbackMessageElement.className = feedbackMessageElement.className.replace('show', ''); }, 3000);
         }
         function getMatrimonyGroupName(groupId) { if (!groupId) return 'N/A'; const group = hardcodedMatrimonyGroups.find(g => g.id === groupId); return group ? group.name : 'Unknown'; }
         function calculateAge(dateOfBirthString) { if (!dateOfBirthString) return 'N/A'; try { const dob = new Date(dateOfBirthString); const today = new Date(); let age = today.getFullYear() - dob.getFullYear(); const m = today.getMonth() - dob.getMonth(); if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) { age--; } return age >= 0 ? age : 'N/A'; } catch (e) { return 'N/A'; } }
         function formatNumber(num) { return num !== null && num !== undefined ? num.toLocaleString('en-IN') : 'N/A'; }
         function formatStatus(status) { return status ? status.charAt(0).toUpperCase() + status.slice(1) : 'N/A'; }
-        
+
         // --- Meta Tag Update Function ---
-         function updateMetaTag(propertyOrName, content, isNameAttribute = false) { const selector = isNameAttribute ? `meta[name="${propertyOrName}"]` : `meta[property="${propertyOrName}"]`; let element = document.querySelector(selector); if (!element) { element = document.createElement('meta'); if (isNameAttribute) element.setAttribute('name', propertyOrName); else element.setAttribute('property', propertyOrName); document.head.appendChild(element); } element.setAttribute('content', content); }
+        function updateMetaTag(propertyOrName, content, isNameAttribute = false) { const selector = isNameAttribute ? `meta[name="${propertyOrName}"]` : `meta[property="${propertyOrName}"]`; let element = document.querySelector(selector); if (!element) { element = document.createElement('meta'); if (isNameAttribute) element.setAttribute('name', propertyOrName); else element.setAttribute('property', propertyOrName); document.head.appendChild(element); } element.setAttribute('content', content); }
         function updateAllMetaTags(title, description, image, url) { document.title = title; updateMetaTag('og:title', title); updateMetaTag('og:description', description); updateMetaTag('og:image', image); updateMetaTag('og:url', url); updateMetaTag('og:type', 'profile'); updateMetaTag('twitter:title', title, true); updateMetaTag('twitter:description', description, true); updateMetaTag('twitter:image', image, true); updateMetaTag('twitter:card', 'summary_large_image', true); }
 
         // --- Logging Functions ---
@@ -214,9 +299,7 @@
         async function logProfileFieldChange(profileId, fieldName, oldValue, newValue) { if (!currentUser || oldValue === newValue) return; try { await addDoc(collection(db, 'profiles', profileId, 'history'), { fieldName, oldValue: oldValue ?? null, newValue: newValue ?? null, changedByUid: currentUser.uid, changedByEmail: currentUser.email, timestamp: serverTimestamp() }); } catch (error) { console.error(`Error logging field change for ${fieldName}:`, error); } }
 
         // --- UI Shell Event Listeners ---
-        document.addEventListener('DOMContentLoaded', () => { 
-             const profileSection = document.getElementById('profile-section'); const profilePopup = document.getElementById('profile-popup'); if (profileSection) { profileSection.addEventListener('click', e => { e.stopPropagation(); profilePopup.classList.toggle('active'); profileSection.classList.toggle('active'); }); } document.addEventListener('click', e => { if (profileSection && !profileSection.contains(e.target) && profilePopup && !profilePopup.contains(e.target)) { profilePopup.classList.remove('active'); profileSection.classList.remove('active'); } }); const toggleMenu = () => { sidebar.classList.toggle('-translate-x-full'); overlay.classList.toggle('hidden'); }; if (menuToggle) menuToggle.addEventListener('click', toggleMenu); if (sidebarCloseBtn) sidebarCloseBtn.addEventListener('click', toggleMenu); if (overlay) overlay.addEventListener('click', toggleMenu); if (logoutBtn) logoutBtn.addEventListener('click', async () => { try { await signOut(auth); window.location.href = 'index.html'; } catch (error) { console.error("Error signing out:", error); } });
-        });
+        document.addEventListener('DOMContentLoaded', () => { const profileSection = document.getElementById('profile-section'); const profilePopup = document.getElementById('profile-popup'); if (profileSection) { profileSection.addEventListener('click', e => { e.stopPropagation(); if (profilePopup) profilePopup.classList.toggle('active'); if (profileSection) profileSection.classList.toggle('active'); }); } document.addEventListener('click', e => { if (profileSection && !profileSection.contains(e.target) && profilePopup && !profilePopup.contains(e.target)) { profilePopup.classList.remove('active'); profileSection.classList.remove('active'); } }); const toggleMenu = () => { if (sidebar) sidebar.classList.toggle('active'); if (overlay) overlay.classList.toggle('active'); }; if (menuToggle) menuToggle.addEventListener('click', toggleMenu); if (sidebarCloseBtn) sidebarCloseBtn.addEventListener('click', toggleMenu); if (overlay) overlay.addEventListener('click', toggleMenu); if (logoutBtn) logoutBtn.addEventListener('click', async () => { try { await signOut(auth); /* onAuthStateChanged handles redirect */ } catch (error) { console.error("Error signing out:", error); } }); });
 
         // --- Auth State Change & Initial Load ---
         onAuthStateChanged(auth, async (user) => {
@@ -225,37 +308,20 @@
             const profileId = urlParams.get('profileId');
             const sourcePage = urlParams.get('source'); 
 
-             // --- Conditional UI: Sidebar and Layout ---
-             if (!user) {
-                 sidebar?.classList.add('hidden'); // Hide sidebar completely
-                 dashboardContainer?.classList.remove('lg:grid-cols-[260px_1fr]');
-                 dashboardContainer?.classList.add('grid-cols-1'); // Make main content full width
-                 mainArea?.classList.add('col-span-1'); // Ensure it takes the span
-             } else {
-                 sidebar?.classList.remove('hidden');
-                 dashboardContainer?.classList.add('lg:grid-cols-[260px_1fr]');
-                 dashboardContainer?.classList.remove('grid-cols-1');
-                 mainArea?.classList.remove('col-span-1');
-             }
+            // Add/Remove guest-view class
+            document.body.classList.toggle('guest-view', !user);
 
             // --- Highlight Menu Item ---
             const navLinks = [navDashboardLink, navCreateProfileLink, navSearchProfilesLink, navManageUsersLink, navManageProfilesLink, navGlobalHistoryLink];
-            navLinks.forEach(link => link?.classList.remove('active', 'bg-gray-100', 'font-semibold')); // Reset styles
-            let activeLink = null;
+            navLinks.forEach(link => link?.classList.remove('active')); 
             switch (sourcePage) {
-                case 'search': activeLink = navSearchProfilesLink; break;
-                case 'admindash': activeLink = navDashboardLink; break;
-                case 'employeedash': activeLink = navDashboardLink; break;
-                case 'manageusers': activeLink = navManageUsersLink; break;
-                case 'manageprof': activeLink = navManageProfilesLink; break;
-                case 'create': activeLink = navCreateProfileLink; break; // Add if linking from create
-                default: activeLink = navDashboardLink; break; // Default to dashboard
+                 case 'search': navSearchProfilesLink?.classList.add('active'); break;
+                 case 'admindash': navDashboardLink?.classList.add('active'); break; 
+                 case 'employeedash': navDashboardLink?.classList.add('active'); break; 
+                 case 'manageusers': navManageUsersLink?.classList.add('active'); break;
+                 case 'manageprof': navManageProfilesLink?.classList.add('active'); break;
+                 default: navDashboardLink?.classList.add('active'); break; // Default to dashboard
             }
-             if (activeLink) {
-                 activeLink.classList.add('active', 'bg-gray-100', 'font-semibold');
-                 // Also style the icon if using the 'active' state for it
-                 activeLink.querySelector('i')?.classList.add('text-green-600');
-             }
 
             if (user) {
                 try {
@@ -268,7 +334,7 @@
                     if (sidebarUserRole) sidebarUserRole.textContent = currentUserRole ? formatStatus(currentUserRole) : 'N/A';
                     if (popupUserEmail) popupUserEmail.textContent = user.email;
                     if (popupUserRole) popupUserRole.textContent = currentUserRole ? formatStatus(currentUserRole) : 'N/A';
-                    const avatarUrl = user.photoURL || `https://ui-avatars.com/api/?name=${user.email?.charAt(0)}&background=random`;
+                    const avatarUrl = user.photoURL || 'https://via.placeholder.com/40';
                     if (sidebarUserAvatar) sidebarUserAvatar.src = avatarUrl;
                     if (popupUserAvatar) popupUserAvatar.src = avatarUrl;
                     if (logoutBtn) logoutBtn.classList.remove('hidden');
@@ -279,265 +345,304 @@
                     if (navManageUsersItem) navManageUsersItem.classList.toggle('hidden', currentUserRole !== 'admin');
                     if (navManageProfilesItem) navManageProfilesItem.classList.toggle('hidden', currentUserRole !== 'admin');
                     if (navGlobalHistoryItem) navGlobalHistoryItem.classList.toggle('hidden', currentUserRole !== 'admin');
-                    if (navDashboardLink) navDashboardLink.href = (currentUserRole === 'admin' ? 'admin-dashboard.html' : 'employee-dashboard.html');
 
-                } catch (error) { /* Handle error, allow viewing */ 
-                    console.error("Error fetching user role:", error); currentUserRole = null; 
-                    if (sidebarUserName) sidebarUserName.textContent = user.email; if (logoutBtn) logoutBtn.classList.remove('hidden'); 
+                } catch (error) {
+                    console.error("Error fetching user role/status:", error);
+                    currentUserRole = null; 
+                    if (sidebarUserName) sidebarUserName.textContent = user.email;
+                    if (logoutBtn) logoutBtn.classList.remove('hidden');
                 }
             } else {
-                // Not logged in (UI already handled above)
+                // Guest view setup (mostly handled by guest-view class)
                 currentUserRole = null;
-                 if (sidebarUserName) sidebarUserName.textContent = 'Guest';
-                 if (logoutBtn) logoutBtn.classList.add('hidden');
-                 [navManageUsersItem, navManageProfilesItem, navGlobalHistoryItem].forEach(item => item?.classList.add('hidden'));
+                if (sidebarUserName) sidebarUserName.textContent = 'Guest';
+                if (logoutBtn) logoutBtn.classList.add('hidden');
             }
 
-            // Load profile 
-            if (profileId) { await displayShareableProfile(profileId); } 
-            else { loadingStatus.textContent = 'Error: No profile ID provided.'; loadingStatus.className = 'text-red-600 font-medium text-center p-4 bg-red-100 border border-red-200 rounded-lg'; }
+            // Load profile
+            if (profileId) {
+                await displayShareableProfile(profileId);
+            } else {
+                loadingStatus.textContent = 'Error: No profile ID provided.';
+                loadingStatus.className = 'error-message';
+                loadingStatus.classList.remove('hidden');
+            }
         });
 
         // --- Image Gallery Functions ---
-        function updateMainImage(index) { /* ... (keep as is) ... */ }
-        function setupGalleryNavigation() { /* ... (keep as is) ... */ }
+        function updateMainImage(index) {
+            const mainImage = document.getElementById('main-profile-image');
+            const thumbnails = document.querySelectorAll('.thumbnail');
+            if (!mainImage || index < 0 || index >= photoURLs.length) return;
+
+            currentImageIndex = index;
+            mainImage.style.opacity = 0; 
+            setTimeout(() => {
+                mainImage.src = photoURLs[index];
+                mainImage.alt = `Profile Photo ${index + 1}`;
+                mainImage.style.opacity = 1; 
+            }, 150); 
+
+            thumbnails.forEach((thumb, i) => {
+                thumb.classList.toggle('active', i === index);
+                 if (i === index) { thumb.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' }); }
+            });
+            // Update nav button visibility (optional: could be done once on setup)
+             document.getElementById('gallery-prev')?.classList.toggle('hidden', photoURLs.length <= 1);
+             document.getElementById('gallery-next')?.classList.toggle('hidden', photoURLs.length <= 1);
+        }
+
+        function setupGalleryNavigation() {
+            const prevBtn = document.getElementById('gallery-prev');
+            const nextBtn = document.getElementById('gallery-next');
+            const thumbnailContainer = document.getElementById('thumbnail-container');
+
+            if (prevBtn) { prevBtn.addEventListener('click', () => { updateMainImage((currentImageIndex - 1 + photoURLs.length) % photoURLs.length); }); }
+            if (nextBtn) { nextBtn.addEventListener('click', () => { updateMainImage((currentImageIndex + 1) % photoURLs.length); }); }
+            if (thumbnailContainer) {
+                 thumbnailContainer.addEventListener('click', (e) => {
+                     if (e.target.classList.contains('thumbnail')) {
+                         updateMainImage(parseInt(e.target.dataset.index));
+                     }
+                 });
+                 // Add touchstart for mobile taps on thumbnails
+                 thumbnailContainer.addEventListener('touchstart', (e) => {
+                     if (e.target.classList.contains('thumbnail')) {
+                          e.preventDefault(); // Prevent potential double event with click
+                         updateMainImage(parseInt(e.target.dataset.index));
+                     }
+                 }, { passive: false });
+            }
+            // Initial nav button state
+            prevBtn?.classList.toggle('hidden', photoURLs.length <= 1);
+            nextBtn?.classList.toggle('hidden', photoURLs.length <= 1);
+        }
 
         // --- Display Profile Function ---
         async function displayShareableProfile(profileId) {
             loadingStatus.classList.remove('hidden');
-            profileViewContainer.classList.add('hidden');
+            profileViewWrapper.classList.add('hidden');
             profileViewContainer.innerHTML = ''; 
 
             try {
                 const profileDoc = await getDoc(doc(db, 'profiles', profileId));
-                if (!profileDoc.exists()) { loadingStatus.textContent = 'Profile not found.'; loadingStatus.className = 'text-red-600 font-medium text-center p-4 bg-red-100 border border-red-200 rounded-lg'; return; }
+                if (!profileDoc.exists()) { loadingStatus.textContent = 'Profile not found.'; loadingStatus.className = 'error-message'; return; }
                 
                 profileGlobal = { id: profileDoc.id, ...profileDoc.data() }; 
                 const profile = profileGlobal; 
                 
-                photoURLs = profile.photoURLs || (profile.photoURL ? [profile.photoURL] : []); 
+                photoURLs = profile.photoURLs || (profile.photoURL ? [profile.photoURL] : []);
                 currentImageIndex = 0; 
 
-                // --- Update Meta Tags ---
+                // Update Meta Tags
                 const currentAge = calculateAge(profile.dateOfBirth);
                 const pageTitle = `Profile: ${profile.name} (${currentAge}, ${profile.city || profile.location || 'N/A'})`;
-                const pageDescription = `${formatStatus(profile.maritalStatus)}, ${profile.religion || ''} ${profile.cast || ''}. ${profile.education || ''}, ${profile.profession || ''}. View full profile.`;
-                const imageUrl = photoURLs.length > 0 ? photoURLs[0] : `https://ui-avatars.com/api/?name=${profile.name?.split(' ').join('+')}&background=random&size=1200`;
+                const pageDescription = `${formatStatus(profile.maritalStatus)}, ${profile.religion || ''} ${profile.cast || ''}. ${profile.education || ''}, ${profile.profession || ''}. ${profile.bio ? profile.bio.substring(0, 150) + '...' : 'View full profile.'}`;
+                const imageUrl = photoURLs.length > 0 ? photoURLs[0] : `https://via.placeholder.com/1200x630.png?text=No+Photo`;
                 const canonicalUrl = `${window.location.origin}${window.location.pathname}?profileId=${profile.id}`;
                 updateAllMetaTags(pageTitle, pageDescription, imageUrl, canonicalUrl);
                 if (mainHeaderTitle) mainHeaderTitle.textContent = `View Profile: ${profile.name}`;
 
-                // --- Build HTML with Tailwind ---
-                const imageGalleryHTML = `
+                // Build HTML
+                const imageGalleryHTML = photoURLs.length > 0 ? `
                     <div class="image-gallery">
-                        <div class="relative w-full aspect-square bg-gray-100 rounded-lg overflow-hidden mb-4 border border-gray-200">
-                            <img id="main-profile-image" class="absolute inset-0 w-full h-full object-contain transition-opacity duration-150" src="${photoURLs.length > 0 ? photoURLs[0] : 'https://via.placeholder.com/400?text=No+Photo'}" alt="Profile Photo 1">
-                             <button class="gallery-nav prev absolute top-1/2 left-2 transform -translate-y-1/2 w-9 h-9 bg-black/40 text-white rounded-full text-2xl cursor-pointer flex items-center justify-center transition hover:bg-black/60 z-[5] ${photoURLs.length <= 1 ? 'hidden' : ''}" id="gallery-prev"><i class='bx bx-chevron-left'></i></button>
-                             <button class="gallery-nav next absolute top-1/2 right-2 transform -translate-y-1/2 w-9 h-9 bg-black/40 text-white rounded-full text-2xl cursor-pointer flex items-center justify-center transition hover:bg-black/60 z-[5] ${photoURLs.length <= 1 ? 'hidden' : ''}" id="gallery-next"><i class='bx bx-chevron-right'></i></button>
+                        <div class="main-image-container">
+                            <img id="main-profile-image" class="main-image" src="${photoURLs[0]}" alt="Profile Photo 1">
+                             <button class="gallery-nav prev hidden" id="gallery-prev" aria-label="Previous image"><i class='bx bx-chevron-left'></i></button>
+                             <button class="gallery-nav next hidden" id="gallery-next" aria-label="Next image"><i class='bx bx-chevron-right'></i></button>
                         </div>
-                        <div class="thumbnail-container flex gap-3 overflow-x-auto pb-1.5" id="thumbnail-container">
-                             ${photoURLs.map((url, index) => `
-                                 <img src="${url}" alt="Thumbnail ${index + 1}" class="thumbnail w-[60px] h-[60px] object-cover rounded-md border-2 border-transparent cursor-pointer flex-shrink-0 transition opacity-70 hover:opacity-100 ${index === 0 ? 'active border-green-500 opacity-100' : ''}" data-index="${index}">
-                             `).join('')}
-                             ${photoURLs.length === 0 ? '<p class="text-sm text-gray-500">No photos available.</p>' : ''}
+                        <div class="thumbnail-container" id="thumbnail-container">
+                             ${photoURLs.map((url, index) => `<img src="${url}" alt="Thumbnail ${index + 1}" class="thumbnail ${index === 0 ? 'active' : ''}" data-index="${index}">`).join('')}
                         </div>
-                    </div>`;
-
-                 // Helper to create detail items, handling N/A
-                const detailItem = (label, value) => value ? `<div class="detail-item text-sm"><strong class="block text-gray-500 font-medium text-xs mb-1">${label}:</strong> <span class="text-gray-800">${value}</span></div>` : '';
+                    </div>
+                ` : `
+                     <div class="image-gallery">
+                         <div class="main-image-container">
+                              <img id="main-profile-image" class="main-image" src="https://via.placeholder.com/400?text=No+Photo" alt="No Profile Photo">
+                         </div>
+                     </div>
+                `;
 
                 const profileDetailsHTML = `
                     <div class="profile-details-content">
-                        <div class="flex items-center mb-4">
-                            <h2 class="text-2xl font-semibold text-gray-900">${profile.name}</h2>
-                             <span class="profile-status-badge ml-3 capitalize text-xs font-semibold px-2.5 py-0.5 rounded-full ${
-                                profile.profileStatus === 'active' ? 'bg-green-100 text-green-800' : 
-                                profile.profileStatus === 'inactive' ? 'bg-yellow-100 text-yellow-800' : 
-                                profile.profileStatus === 'married' ? 'bg-orange-100 text-orange-800' : 'bg-gray-100 text-gray-800'
-                             }">${formatStatus(profile.profileStatus || 'N/A')}</span>
+                        <div class="profile-header">
+                            <h2>${profile.name}</h2>
+                            <span class="profile-status-badge ${profile.profileStatus || 'inactive'}">${formatStatus(profile.profileStatus || 'N/A')}</span>
                         </div>
 
-                        <div class="space-y-6"> 
-                            <!-- Sections using Tailwind -->
-                            <div class="details-section">
-                                <h3 class="text-sm font-semibold text-green-700 mb-3 pb-2 border-b border-gray-200">Personal Details</h3>
-                                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-3">
-                                    ${detailItem('Gender', formatStatus(profile.gender))}
-                                    ${detailItem('Age / DOB', `${currentAge} / ${profile.dateOfBirth || 'N/A'}`)}
-                                    ${detailItem('Marital Status', formatStatus(profile.maritalStatus))}
-                                    ${detailItem('Height', profile.height ? profile.height + ' cm' : 'N/A')}
-                                    ${detailItem('Weight', profile.weight ? profile.weight + ' kg' : 'N/A')}
-                                    ${detailItem('Body Type', formatStatus(profile.bodyType))}
-                                    ${detailItem('Complexion', formatStatus(profile.complexion))}
-                                    ${detailItem('Mother Tongue', profile.motherTongue)}
-                                </div>
+                        <div class="details-section">
+                            <h3>Personal Details</h3>
+                            <div class="details-grid">
+                                <div class="detail-item"><strong>Gender:</strong> <span>${formatStatus(profile.gender) || 'N/A'}</span></div>
+                                <div class="detail-item"><strong>Age / DOB:</strong> <span>${currentAge} / ${profile.dateOfBirth || 'N/A'}</span></div>
+                                <div class="detail-item"><strong>Marital Status:</strong> <span>${formatStatus(profile.maritalStatus)}</span></div>
+                                <div class="detail-item"><strong>Height:</strong> <span>${profile.height ? profile.height + ' cm' : 'N/A'}</span></div>
+                                <div class="detail-item"><strong>Weight:</strong> <span>${profile.weight ? profile.weight + ' kg' : 'N/A'}</span></div>
+                                <div class="detail-item"><strong>Body Type:</strong> <span>${formatStatus(profile.bodyType) || 'N/A'}</span></div>
+                                <div class="detail-item"><strong>Complexion:</strong> <span>${formatStatus(profile.complexion) || 'N/A'}</span></div>
+                                <div class="detail-item"><strong>Mother Tongue:</strong> <span>${formatStatus(profile.motherTongue) || 'N/A'}</span></div>
                             </div>
-                            
-                            <div class="details-section">
-                                <h3 class="text-sm font-semibold text-green-700 mb-3 pb-2 border-b border-gray-200">Contact Details</h3>
-                                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-3">
-                                     ${detailItem('Primary Phone', profile.phonePrimary)}
-                                     ${detailItem('Secondary Phone', profile.phoneSecondary)}
-                                     ${detailItem('Email', profile.email)}
-                                </div>
-                            </div>
+                        </div>
+
+                         <div class="details-section">
+                             <h3>Contact Details</h3>
+                             <div class="details-grid">
+                                 <div class="detail-item"><strong>Primary Phone:</strong> <span>${profile.phonePrimary || 'N/A'}</span></div>
+                                 <div class="detail-item"><strong>Secondary Phone:</strong> <span>${profile.phoneSecondary || 'N/A'}</span></div>
+                                 <div class="detail-item"><strong>Email:</strong> <span>${profile.email || 'N/A'}</span></div>
+                             </div>
+                         </div>
                         
-                            <div class="details-section">
-                                <h3 class="text-sm font-semibold text-green-700 mb-3 pb-2 border-b border-gray-200">Professional & Education</h3>
-                                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-3">
-                                    ${detailItem('Education', profile.education)}
-                                    ${detailItem('Profession', profile.profession)}
-                                    ${detailItem('Annual Income', profile.annualIncome ? '₹ ' + formatNumber(profile.annualIncome) : 'N/A')}
-                                </div>
+                         <div class="details-section">
+                             <h3>Professional & Education</h3>
+                             <div class="details-grid">
+                                 <div class="detail-item"><strong>Education:</strong> <span>${profile.education || 'N/A'}</span></div>
+                                 <div class="detail-item"><strong>Profession:</strong> <span>${profile.profession || 'N/A'}</span></div>
+                                 <div class="detail-item"><strong>Annual Income:</strong> <span>${profile.annualIncome ? '₹' + formatNumber(profile.annualIncome) : 'N/A'}</span></div>
                             </div>
-
-                            <div class="details-section">
-                                <h3 class="text-sm font-semibold text-green-700 mb-3 pb-2 border-b border-gray-200">Location</h3>
-                                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-3">
-                                    ${detailItem('Current Location', profile.location)}
-                                    ${detailItem('City', profile.city)}
-                                    ${detailItem('State', profile.state)}
-                                    ${detailItem('Country', profile.country)}
-                                </div>
-                            </div>
-                            
-                            <div class="details-section">
-                                <h3 class="text-sm font-semibold text-green-700 mb-3 pb-2 border-b border-gray-200">Religious & Horoscope</h3>
-                                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-3">
-                                     ${detailItem('Religion', profile.religion)}
-                                     ${detailItem('Cast', profile.cast)}
-                                     ${detailItem('Subcast', profile.subcast)}
-                                     ${detailItem('Gotram/Gothra', profile.gotram)}
-                                     ${detailItem('Star (Nakshatra)', profile.star)}
-                                     ${detailItem('Rasi (Moon Sign)', profile.rasi)}
-                                     ${detailItem('Dosham', formatStatus(profile.dosham))}
-                                </div>
-                            </div>
-
-                            <div class="details-section">
-                                <h3 class="text-sm font-semibold text-green-700 mb-3 pb-2 border-b border-gray-200">Family Details</h3>
-                                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-3">
-                                    ${detailItem("Father's Name", profile.fatherName)}
-                                    ${detailItem("Father's Status", formatStatus(profile.fatherStatus))}
-                                    ${detailItem("Mother's Name", profile.motherName)}
-                                    ${detailItem("Mother's Status", formatStatus(profile.motherStatus))}
-                                    ${detailItem('Brothers', profile.brothers ?? 'N/A')}
-                                    ${detailItem('Sisters', profile.sisters ?? 'N/A')}
-                                </div>
-                            </div>
-                            
-                            <div class="details-section">
-                                <h3 class="text-sm font-semibold text-green-700 mb-3 pb-2 border-b border-gray-200">Lifestyle</h3>
-                                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-3">
-                                    ${detailItem('Eating Habits', formatStatus(profile.eatingHabits))}
-                                    ${detailItem('Smoking Habit', formatStatus(profile.smokingHabit))}
-                                    ${detailItem('Drinking Habit', formatStatus(profile.drinkingHabit))}
-                                </div>
-                            </div>
-
-                            <div class="details-section">
-                                <h3 class="text-sm font-semibold text-green-700 mb-3 pb-2 border-b border-gray-200">About & Group</h3>
-                                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-3 mb-4">
-                                     ${detailItem('Matrimony Group', getMatrimonyGroupName(profile.matrimonyGroupId))}
-                                </div>
-                                <p class="profile-bio text-gray-600 text-sm leading-relaxed">${profile.bio || 'No bio provided.'}</p>
-                            </div>
-
-                            <!-- Action Buttons Container -->
-                            <div class="action-buttons-container mt-8 pt-6 border-t border-gray-200 flex flex-wrap gap-3">
-                                <!-- Share buttons (only if logged in) -->
-                                ${currentUser ? `
-                                <button id="copy-link-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-lg flex items-center gap-2 transition duration-150 ease-in-out">
-                                    <i class='bx bx-link text-lg'></i><span class="btn-text">Copy Share Link</span>
-                                </button>
-                                <button id="copy-details-btn" class="bg-gray-500 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded-lg flex items-center gap-2 transition duration-150 ease-in-out">
-                                    <i class='bx bx-copy text-lg'></i><span class="btn-text">Copy Basic Details</span>
-                                </button>
-                                ` : ''}
-                                
-                                <!-- Status action buttons (only if staff) -->
-                                <div id="profile-status-actions" class="flex flex-wrap gap-3"></div>
-                            </div>
-
-                             <!-- History (only if staff) -->
-                            <div id="field-change-history" class="mt-8 pt-6 border-t border-gray-200"></div>
                         </div>
-                    </div>`;
 
-                 // Use Tailwind classes for the main container
-                profileViewContainer.className = 'grid lg:grid-cols-[400px_1fr] gap-8 bg-white p-6 lg:p-8 rounded-xl shadow-sm border border-gray-200';
+                        <div class="details-section">
+                            <h3>Location</h3>
+                            <div class="details-grid">
+                                <div class="detail-item"><strong>Current Location:</strong> <span>${profile.location || 'N/A'}</span></div>
+                                <div class="detail-item"><strong>City:</strong> <span>${profile.city || 'N/A'}</span></div>
+                                <div class="detail-item"><strong>State:</strong> <span>${profile.state || 'N/A'}</span></div>
+                                <div class="detail-item"><strong>Country:</strong> <span>${profile.country || 'N/A'}</span></div>
+                            </div>
+                        </div>
+                        
+                        <div class="details-section">
+                             <h3>Religious & Horoscope</h3>
+                             <div class="details-grid">
+                                 <div class="detail-item"><strong>Religion:</strong> <span>${profile.religion || 'N/A'}</span></div>
+                                 <div class="detail-item"><strong>Cast:</strong> <span>${profile.cast || 'N/A'}</span></div>
+                                 <div class="detail-item"><strong>Subcast:</strong> <span>${profile.subcast || 'N/A'}</span></div>
+                                 <div class="detail-item"><strong>Gotram/Gothra:</strong> <span>${profile.gotram || 'N/A'}</span></div>
+                                 <div class="detail-item"><strong>Star (Nakshatra):</strong> <span>${profile.star || 'N/A'}</span></div>
+                                 <div class="detail-item"><strong>Rasi (Moon Sign):</strong> <span>${profile.rasi || 'N/A'}</span></div>
+                                 <div class="detail-item"><strong>Dosham:</strong> <span>${formatStatus(profile.dosham) || 'N/A'}</span></div>
+                             </div>
+                        </div>
+
+                        <div class="details-section">
+                            <h3>Family Details</h3>
+                            <div class="details-grid">
+                                <div class="detail-item"><strong>Father's Name:</strong> <span>${profile.fatherName || 'N/A'}</span></div>
+                                <div class="detail-item"><strong>Father's Status:</strong> <span>${formatStatus(profile.fatherStatus) || 'N/A'}</span></div>
+                                <div class="detail-item"><strong>Mother's Name:</strong> <span>${profile.motherName || 'N/A'}</span></div>
+                                <div class="detail-item"><strong>Mother's Status:</strong> <span>${formatStatus(profile.motherStatus) || 'N/A'}</span></div>
+                                <div class="detail-item"><strong>Brothers:</strong> <span>${profile.brothers ?? 'N/A'}</span></div>
+                                <div class="detail-item"><strong>Sisters:</strong> <span>${profile.sisters ?? 'N/A'}</span></div>
+                            </div>
+                        </div>
+                        
+                         <div class="details-section">
+                            <h3>Lifestyle</h3>
+                            <div class="details-grid">
+                                <div class="detail-item"><strong>Eating Habits:</strong> <span>${formatStatus(profile.eatingHabits) || 'N/A'}</span></div>
+                                <div class="detail-item"><strong>Smoking Habit:</strong> <span>${formatStatus(profile.smokingHabit) || 'N/A'}</span></div>
+                                <div class="detail-item"><strong>Drinking Habit:</strong> <span>${formatStatus(profile.drinkingHabit) || 'N/A'}</span></div>
+                            </div>
+                        </div>
+
+                        <div class="details-section">
+                             <h3>About & Group</h3>
+                              <div class="details-grid">
+                                   <div class="detail-item"><strong>Matrimony Group:</strong> <span>${getMatrimonyGroupName(profile.matrimonyGroupId)}</span></div>
+                              </div>
+                             <div class="profile-bio"><strong>About ${profile.name.split(' ')[0]}:</strong> ${profile.bio || 'No bio provided.'}</div>
+                        </div>
+
+                        <div class="action-buttons-container">
+                            <div id="share-actions" class="action-group">
+                                 <h4>Share Profile</h4>
+                                <button id="copy-link-btn"><i class='bx bx-link'></i>Copy Share Link</button>
+                                <button id="copy-details-btn"><i class='bx bx-copy'></i>Copy Basic Details</button>
+                            </div>
+                            <div id="profile-status-actions" class="action-group"></div>
+                        </div>
+
+                        <div id="field-change-history"></div>
+                    </div>
+                `;
+
                 profileViewContainer.innerHTML = imageGalleryHTML + profileDetailsHTML;
-                profileViewContainer.classList.remove('hidden');
+                profileViewWrapper.classList.remove('hidden'); // Show the main wrapper
                 loadingStatus.classList.add('hidden');
 
-                // --- Add Gallery Listeners ---
-                 const thumbnails = profileViewContainer.querySelectorAll('.thumbnail');
-                 thumbnails.forEach(thumb => { thumb.addEventListener('click', (e) => updateMainImage(parseInt(e.target.dataset.index))); });
+                // Add Gallery Listeners AFTER HTML is in the DOM
                  setupGalleryNavigation(); 
 
-                // --- Add Staff Actions & History (Conditional) ---
+                // Add Staff Actions & History (Conditional)
                 if (currentUser && (currentUserRole === 'admin' || currentUserRole === 'employee')) {
                     const statusActionsContainer = document.getElementById('profile-status-actions');
                     if(statusActionsContainer) {
+                         statusActionsContainer.insertAdjacentHTML('beforebegin', '<h4>Staff Actions</h4>'); // Add heading
                          let statusButtonsHTML = '';
-                          // Add Tailwind classes to status buttons
-                          if (profile.profileStatus !== 'married') statusButtonsHTML += `<button id="mark-married-btn" class="bg-orange-500 hover:bg-orange-600 text-white font-medium py-2 px-4 rounded-lg transition" data-id="${profile.id}" data-status="married">Mark as Married</button>`;
-                          if (profile.profileStatus !== 'inactive') statusButtonsHTML += `<button id="deactivate-btn" class="bg-yellow-500 hover:bg-yellow-600 text-white font-medium py-2 px-4 rounded-lg transition" data-id="${profile.id}" data-status="inactive">Deactivate Profile</button>`;
-                          if (profile.profileStatus !== 'active') statusButtonsHTML += `<button id="reactivate-btn" class="bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-4 rounded-lg transition" data-id="${profile.id}" data-status="active">Reactivate Profile</button>`;
+                          if (profile.profileStatus !== 'married') statusButtonsHTML += `<button id="mark-married-btn" class="married" data-id="${profile.id}" data-status="married"><i class='bx bx-check-double'></i>Mark Married</button>`;
+                          if (profile.profileStatus !== 'inactive') statusButtonsHTML += `<button id="deactivate-btn" class="deactivate" data-id="${profile.id}" data-status="inactive"><i class='bx bx-user-x'></i>Deactivate</button>`;
+                          if (profile.profileStatus !== 'active') statusButtonsHTML += `<button id="reactivate-btn" class="reactivate" data-id="${profile.id}" data-status="active"><i class='bx bx-user-check'></i>Reactivate</button>`;
                           statusActionsContainer.innerHTML = statusButtonsHTML;
 
-                         // Re-attach event listeners
-                         if (document.getElementById('mark-married-btn')) document.getElementById('mark-married-btn').addEventListener('click', (e) => updateProfileStatus(e.target.dataset.id, e.target.dataset.status));
-                         if (document.getElementById('deactivate-btn')) document.getElementById('deactivate-btn').addEventListener('click', (e) => updateProfileStatus(e.target.dataset.id, e.target.dataset.status));
-                         if (document.getElementById('reactivate-btn')) document.getElementById('reactivate-btn').addEventListener('click', (e) => updateProfileStatus(e.target.dataset.id, e.target.dataset.status));
+                         // Re-attach event listeners for status buttons
+                         document.getElementById('mark-married-btn')?.addEventListener('click', (e) => updateProfileStatus(e.target.dataset.id, e.target.dataset.status));
+                         document.getElementById('deactivate-btn')?.addEventListener('click', (e) => updateProfileStatus(e.target.dataset.id, e.target.dataset.status));
+                         document.getElementById('reactivate-btn')?.addEventListener('click', (e) => updateProfileStatus(e.target.dataset.id, e.target.dataset.status));
                     }
                     
                     // Fetch and display history
                     const historyContainer = document.getElementById('field-change-history');
                     if (historyContainer) {
-                        const historySnapshot = await getDocs(query(collection(db, 'profiles', profileId, 'history'), orderBy('timestamp', 'desc')));
-                        const fieldHistory = historySnapshot.docs.map(doc => doc.data());
-                        if (fieldHistory.length > 0) {
-                            historyContainer.innerHTML = `
-                                <h3 class="text-lg font-semibold text-gray-800 mb-4">Field Change History</h3>
-                                <ul class="space-y-2">
-                                    ${fieldHistory.map(entry => `
-                                        <li class="bg-gray-50 border border-gray-200 rounded-md p-3 text-xs">
-                                             <span class="float-right text-gray-400">${entry.timestamp ? new Date(entry.timestamp.toDate()).toLocaleString() : ''}</span>
-                                            <strong class="text-blue-600">${entry.changedByEmail || 'System'}</strong> changed 
-                                            <strong class="text-gray-700">${entry.fieldName}</strong> from
-                                            <code class="text-red-600 bg-red-50 px-1 rounded text-xs">${JSON.stringify(entry.oldValue) ?? '""'}</code> to
-                                            <code class="text-green-600 bg-green-50 px-1 rounded text-xs">${JSON.stringify(entry.newValue) ?? '""'}</code>
-                                        </li>
-                                    `).join('')}
-                                </ul>`;
-                        } else {
-                             historyContainer.innerHTML = '<h3 class="text-lg font-semibold text-gray-800 mb-4">Field Change History</h3><p class="text-sm text-gray-500">No changes recorded.</p>';
+                        try {
+                             const historySnapshot = await getDocs(query(collection(db, 'profiles', profileId, 'history'), orderBy('timestamp', 'desc')));
+                             const fieldHistory = historySnapshot.docs.map(doc => doc.data());
+                             if (fieldHistory.length > 0) {
+                                 historyContainer.innerHTML = `
+                                     <h3>Field Change History</h3>
+                                     <ul>
+                                         ${fieldHistory.map(entry => `
+                                             <li>
+                                                  <div>
+                                                       <strong>${entry.changedByEmail || 'System'}</strong> changed <strong>${entry.fieldName}</strong> from
+                                                       <span class="change-detail">${JSON.stringify(entry.oldValue) ?? '""'}</span> to
+                                                       <span class="change-detail">${JSON.stringify(entry.newValue) ?? '""'}</span>
+                                                  </div>
+                                                  <span class="timestamp">${entry.timestamp ? new Date(entry.timestamp.toDate()).toLocaleString() : 'N/A'}</span>
+                                             </li>
+                                         `).join('')}
+                                     </ul>`;
+                             } else { historyContainer.innerHTML = '<h3>Field Change History</h3><p>No changes recorded.</p>'; }
+                        } catch(histError) {
+                             console.error("Error fetching history:", histError);
+                              historyContainer.innerHTML = '<h3>Field Change History</h3><p class="error-message">Could not load history.</p>';
                         }
                     }
                 }
 
-                // Add Share Button Listeners (only if logged in)
-                if (currentUser) {
-                    document.getElementById('copy-link-btn')?.addEventListener('click', (e) => copyShareLink(profile, e.currentTarget));
-                    document.getElementById('copy-details-btn')?.addEventListener('click', (e) => copyBasicDetails(profile, e.currentTarget));
-                }
+                // Add Share Button Listeners (Always add, CSS handles visibility)
+                document.getElementById('copy-link-btn')?.addEventListener('click', () => copyShareLink(profile));
+                document.getElementById('copy-details-btn')?.addEventListener('click', () => copyBasicDetails(profile));
 
             } catch (error) {
                 console.error("Error displaying profile:", error);
-                loadingStatus.textContent = `Error: ${error.message}`;
-                loadingStatus.className = 'text-red-600 font-medium text-center p-4 bg-red-100 border border-red-200 rounded-lg';
+                loadingStatus.textContent = `Error displaying profile: ${error.message}`;
+                loadingStatus.className = 'error-message';
+                loadingStatus.classList.remove('hidden');
+                profileViewWrapper.classList.add('hidden');
             }
         }
 
         // --- Action Functions ---
-        async function updateProfileStatus(profileId, newStatus) { /* ... (Keep existing logic, maybe update toast) ... */ 
-             if (!currentUser || (!['admin', 'employee'].includes(currentUserRole))) { showToast('Permission denied.', false); return; }
-             if (currentUserRole !== 'admin' && newStatus === 'active') { showToast('Only Admins can reactivate.', false); return; }
-             // Replace confirm with a proper modal in a real app
-             if (!confirm(`Are you sure you want to change status to '${newStatus.toUpperCase()}'?`)) return; 
+        async function updateProfileStatus(profileId, newStatus) {
+            if (!currentUser || (!['admin', 'employee'].includes(currentUserRole))) { showFeedback('Permission denied.', false); return; }
+            if (currentUserRole !== 'admin' && newStatus === 'active') { showFeedback('Only Admins can reactivate.', false); return; }
+            if (!confirm(`Are you sure you want to change status to '${newStatus.toUpperCase()}'?`)) return;
 
-             try {
+            const statusButton = document.querySelector(`button[data-status="${newStatus}"]`);
+            if (statusButton) statusButton.disabled = true; // Disable button during update
+
+            try {
                 const profileRef = doc(db, 'profiles', profileId);
                 const oldProfileDoc = await getDoc(profileRef);
                 const oldStatus = oldProfileDoc.exists() ? oldProfileDoc.data().profileStatus : 'unknown';
@@ -546,53 +651,39 @@
                 await logChange('update_profile_status', 'profile', profileId, { oldStatus: oldStatus, newStatus: newStatus });
                 await logProfileFieldChange(profileId, 'profileStatus', oldStatus, newStatus);
 
-                showToast(`Status updated to '${newStatus}'!`, true);
+                showFeedback(`Status updated to '${newStatus}'!`, true);
                 await displayShareableProfile(profileId); // Refresh view
-            } catch (error) { console.error("Error updating status:", error); showToast(`Error: ${error.message}`, false); }
+            } catch (error) { 
+                console.error("Error updating status:", error); 
+                showFeedback(`Error: ${error.message}`, false); 
+                if (statusButton) statusButton.disabled = false; // Re-enable button on error
+            }
         }
 
-        function showCopyFeedback(buttonElement) {
-            const originalText = buttonElement.querySelector('.btn-text').textContent;
-            const originalIcon = buttonElement.querySelector('i').className;
-            
-            buttonElement.querySelector('.btn-text').textContent = 'Copied!';
-            buttonElement.querySelector('i').className = 'bx bx-check text-lg';
-            buttonElement.disabled = true;
-
-            setTimeout(() => {
-                 buttonElement.querySelector('.btn-text').textContent = originalText;
-                 buttonElement.querySelector('i').className = originalIcon;
-                 buttonElement.disabled = false;
-            }, 2000); // Revert after 2 seconds
-        }
-
-        function copyShareLink(profile, buttonElement) {
+        function copyShareLink(profile) {
              const shareUrl = `${window.location.origin}${window.location.pathname}?profileId=${profile.id}`;
              navigator.clipboard.writeText(shareUrl)
-                 .then(() => {
-                      showCopyFeedback(buttonElement);
-                      // showToast('Share link copied!', true); // Optional: Keep toast too
-                 })
-                 .catch(err => { console.error('Copy failed: ', err); showToast('Copy failed.', false); });
+                 .then(() => showFeedback('Share link copied!', true))
+                 .catch(err => { console.error('Copy failed: ', err); showFeedback('Copy failed.', false); });
         }
 
-        function copyBasicDetails(profile, buttonElement) {
+        function copyBasicDetails(profile) {
             const currentAge = calculateAge(profile.dateOfBirth);
-            // --- UPDATED: Removed link from details ---
+            // --- UPDATED: Cleaner details string ---
             const basicDetails = `
-Name: ${profile.name || 'N/A'}
+*Matrimony Profile*
+Name: ${profile.name}
 Age: ${currentAge}
-Location: ${profile.location || 'N/A'}
+Location: ${profile.location || profile.city || 'N/A'}
 Education: ${profile.education || 'N/A'}
 Profession: ${profile.profession || 'N/A'}
-Status: ${formatStatus(profile.profileStatus || 'N/A')} 
-            `.trim();
+
+View full profile: ${window.location.origin}${window.location.pathname}?profileId=${profile.id}
+            `.trim().replace(/\n+/g, '\n'); // Ensure single newlines
+            
             navigator.clipboard.writeText(basicDetails)
-                .then(() => {
-                      showCopyFeedback(buttonElement);
-                     // showToast('Basic details copied!', true); // Optional: Keep toast too
-                })
-                .catch(err => { console.error('Copy failed: ', err); showToast('Copy failed.', false); });
+                .then(() => showFeedback('Basic details copied!', true))
+                .catch(err => { console.error('Copy failed: ', err); showFeedback('Copy failed.', false); });
         }
 
     </script>
