@@ -4,60 +4,107 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Matrimony Portal - Employee Dashboard</title>
-    <!-- Firebase SDKs - CDN (ES module versions) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     <script type="module" src="https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js"></script>
     <script type="module" src="https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js"></script>
     <script type="module" src="https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js"></script>
     <script type="module" src="https://www.gstatic.com/firebasejs/12.4.0/firebase-storage.js"></script>
 
     <style>
-        /* General Styles */
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background: #f4f7f6; color: #333; }
-        .container { max-width: 1200px; margin: 20px auto; background: #fff; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); padding: 30px; }
-        h1, h2, h3 { color: #2c3e50; margin-top: 0; }
-        button { background-color: #3498db; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; transition: background-color 0.2s ease; }
-        button:hover { background-color: #2980b9; }
-        button:disabled { background-color: #cccccc; cursor: not-allowed; }
-        input[type="text"], input[type="email"], input[type="password"], input[type="number"], input[type="date"], textarea, select {
-            width: calc(100% - 22px); padding: 10px; margin: 8px 0; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; font-size: 16px;
+        :root { --body-bg: #F9FAFB; --widget-bg: #FFFFFF; --border-color: #E5E7EB; --text-primary: #002726; --text-secondary: #6B7280; --brand-green: #33C375; --hover-bg: #F3F4F6; --warning-color: #F59E0B; --danger-color: #EF4444; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'IBM Plex Sans', sans-serif; background-color: var(--body-bg); color: var(--text-primary); font-size: 14px; overflow: hidden; }
+        .dashboard-container { display: grid; grid-template-columns: 260px 1fr; height: 100vh; position: relative; }
+
+        .sidebar { background-color: var(--widget-bg); border-right: 1px solid var(--border-color); padding: 2rem 1.5rem; display: flex; flex-direction: column; position: relative; transition: transform 0.3s ease-in-out; }
+        .sidebar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem; }
+        .logo-image { height: 40px; background-color: #f0f0f0; border-radius: 8px; width: 120px; display: flex; align-items: center; justify-content: center; font-weight: bold; color: var(--text-secondary); }
+        .main-nav { flex-grow: 1; }
+        .main-nav ul { list-style: none; display: flex; flex-direction: column; gap: 0.5rem; }
+        .main-nav a { display: flex; align-items: center; gap: 1rem; text-decoration: none; color: var(--text-primary); font-weight: 500; padding: 0.75rem 1rem; border-radius: 8px; transition: background-color 0.2s ease, color 0.2s ease; }
+        .main-nav a i { font-size: 1.5rem; color: var(--text-secondary); transition: color 0.2s ease; }
+        .main-nav a:hover { background-color: var(--hover-bg); }
+        .main-nav a.active { background-color: var(--hover-bg); font-weight: 600; }
+        .main-nav a.active i { color: var(--brand-green); }
+
+        .profile-section { margin-top: auto; padding-top: 1.5rem; border-top: 1px solid var(--border-color); display: flex; align-items: center; gap: 0.75rem; cursor: pointer; }
+        .profile-content-wrapper { display: flex; align-items: center; gap: 0.75rem; width: 100%; }
+        .profile-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; flex-shrink: 0; background-color: #e2e8f0; }
+        .profile-details { flex-grow: 1; min-width: 0; }
+        .profile-name { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+        .profile-email { font-size: 0.8rem; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+        .profile-options i { font-size: 1.5rem; color: var(--text-secondary); transition: transform 0.2s ease; }
+        .profile-section.active .profile-options i { transform: rotate(180deg); }
+        .profile-popup { position: absolute; bottom: 90px; left: 1.5rem; right: 1.5rem; background-color: var(--widget-bg); border-radius: 12px; box-shadow: 0 10px 30px -5px rgba(0,0,0,0.1); border: 1px solid var(--border-color); padding: 0.75rem; z-index: 100; opacity: 0; pointer-events: none; transform: translateY(10px) scale(0.95); transition: opacity 0.2s ease, transform 0.2s ease; }
+        .profile-popup.active { opacity: 1; pointer-events: all; transform: translateY(0) scale(1); }
+        .popup-header { display: flex; align-items: center; gap: 0.75rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border-color); }
+        .popup-list { list-style: none; padding-top: 0.5rem; }
+        .popup-list a { display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem; border-radius: 6px; text-decoration: none; color: var(--text-primary); }
+        .popup-list a:hover { background-color: var(--hover-bg); }
+        .popup-list a i { font-size: 1.2rem; color: var(--text-secondary); }
+        .popup-list a.logout i { color: var(--danger-color); }
+        .popup-list a.logout { color: var(--danger-color); }
+
+        /* Main Content Area */
+        .main-area { display: flex; flex-direction: column; overflow-y: auto; background-color: var(--body-bg); }
+        .main-header { padding: 1.25rem 3rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background-color: var(--widget-bg); position: sticky; top: 0; z-index: 10; }
+        .main-header h1 { font-size: 1.5rem; font-weight: 600; }
+        .content-body { padding: 2rem 3rem; display: grid; grid-template-columns: 1fr; gap: 2rem; align-items: flex-start; margin-top: 0; }
+        .column { display: flex; flex-direction: column; gap: 2rem; }
+
+        /* Widget Styles */
+        .widget { background-color: var(--widget-bg); border-radius: 16px; border: 1px solid var(--border-color); padding: 1.5rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.03), 0 2px 4px -1px rgba(0,0,0,0.02); }
+        .widget-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+        .widget-header h3 { font-size: 1.1rem; font-weight: 600; color: var(--text-primary); }
+        .widget-header a { font-size: 0.9rem; color: var(--brand-green); text-decoration: none; font-weight: 500; }
+        .widget-header a:hover { text-decoration: underline; }
+
+        /* Custom Buttons */
+        .button-primary {
+            display: inline-block;
+            background-color: var(--brand-green);
+            color: white;
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.9rem;
+            transition: background-color 0.2s ease;
+            border: none;
+            cursor: pointer;
         }
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; color: #555; }
-        .error-message { color: #e74c3c; margin-top: 10px; font-weight: bold; }
-        .success-message { color: #2ecc71; margin-top: 10px; font-weight: bold; }
+        .button-primary:hover { background-color: #2fb165; }
+
+        /* Messages */
+        .error-message { color: var(--danger-color); font-weight: bold; }
+        .success-message { color: var(--brand-green); font-weight: bold; }
         .hidden { display: none !important; }
 
-        /* Header and Navigation */
-        #app-header { background: #34495e; color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #3498db; }
-        #app-header h1 { margin: 0; font-size: 24px; }
-        #app-header nav ul { list-style: none; margin: 0; padding: 0; display: flex; }
-        #app-header nav li { margin-left: 20px; }
-        #app-header nav a { color: white; text-decoration: none; font-weight: bold; font-size: 17px; transition: color 0.2s ease; }
-        #app-header nav a:hover, #app-header nav a.active { color: #3498db; }
-        #user-info { display: flex; align-items: center; }
-        #user-info span { margin-right: 15px; font-size: 15px; }
-        #user-info button { background-color: #e74c3c; }
-        #user-info button:hover { background-color: #c0392b; }
-
-        /* Employee Dashboard specific styles */
-        #employee-dashboard-section h2 { margin-bottom: 20px; }
-        #employee-dashboard-section .dashboard-section-block { background: #fdfdfd; border: 1px solid #eee; border-radius: 8px; padding: 25px; margin-bottom: 20px; }
-        #employee-dashboard-section .dashboard-section-block h3 { margin-top: 0; color: #3498db; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 20px; }
-
         /* Profile Card & List for Employee View */
-        .profile-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; margin-top: 20px; }
+        .profile-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-top: 20px; }
         .profile-card { background: #f9f9f9; border: 1px solid #e0e0e0; border-radius: 8px; padding: 20px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .profile-card img { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; margin-bottom: 15px; border: 3px solid #3498db; }
+        .profile-card img { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; margin-bottom: 15px; border: 3px solid var(--brand-green); }
         .profile-card h3 { margin-top: 0; margin-bottom: 10px; color: #3498db; }
         .profile-card p { margin: 5px 0; font-size: 15px; color: #555; }
-        .profile-card .actions button { margin-top: 15px; margin-right: 10px; }
-        .profile-card .actions button.edit { background-color: #f39c12; }
-        .profile-card .actions button.edit:hover { background-color: #e67e22; }
-        .profile-card .actions button.married { background-color: #e67e22; }
-        .profile-card .actions button.married:hover { background-color: #d35400; }
-        .profile-card .actions button.deactivate { background-color: #f39c12; }
-        .profile-card .actions button.deactivate:hover { background-color: #e67e22; }
-        .no-profiles { text-align: center; color: #777; font-style: italic; margin-top: 30px; }
+        .profile-card .actions { margin-top: 15px; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+        .profile-card .actions button, .profile-card .actions a.button {
+            padding: 8px 12px;
+            font-size: 0.8em;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+            color: white;
+        }
+        .profile-card .actions .view { background-color: #3498db; }
+        .profile-card .actions .edit { background-color: #f39c12; }
+        .profile-card .actions .married { background-color: #e67e22; }
+        .profile-card .actions .deactivate { background-color: var(--warning-color); }
+        .profile-card .actions .reactivate { background-color: var(--brand-green); }
+        .profile-card .actions .delete { background-color: var(--danger-color); }
 
         /* Status Badges */
         .status-badge {
@@ -98,57 +145,119 @@
             font-size: 1em;
             color: #555;
         }
+        
+        .no-records { text-align: center; color: #777; font-style: italic; margin-top: 30px; }
+
+        /* Responsive Adjustments */
+        .menu-toggle { display: none; }
+        .sidebar-close-btn { display: none; }
+        
+        @media (max-width: 1024px) {
+            .dashboard-container { grid-template-columns: 1fr; }
+            .sidebar { position: fixed; top: 0; left: 0; height: 100%; width: 80%; max-width: 300px; z-index: 1000; transform: translateX(-100%); box-shadow: 0 0 30px rgba(0,0,0,0.1); }
+            .sidebar.active { transform: translateX(0); }
+            .main-header { padding: 1.25rem 1.5rem; }
+            .content-body { padding: 1.5rem; }
+            .menu-toggle { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; font-size: 1.5rem; color: var(--text-primary); cursor: pointer; background: none; border: none; }
+            .sidebar-close-btn { display: flex; align-items: center; justify-content: center; position: absolute; top: 1.5rem; right: 1.5rem; font-size: 1.75rem; color: var(--danger-color); cursor: pointer; border: none; background: none; }
+            .overlay {
+                position: fixed; inset: 0; background-color: rgba(0,0,0,0.4); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+                z-index: 999;
+                opacity: 0;
+                visibility: hidden;
+                pointer-events: none;
+                transition: opacity 0.3s ease, visibility 0.3s ease;
+            }
+            .overlay.active {
+                opacity: 1;
+                visibility: visible;
+                pointer-events: auto;
+            }
+        }
     </style>
 </head>
 <body>
-    <div id="app-content">
-        <header id="app-header">
-            <h1>Matrimony Portal</h1>
-            <nav>
+    <div class="overlay" id="overlay"></div>
+    <div class="dashboard-container">
+        <aside class="sidebar" id="sidebar">
+            <button class="sidebar-close-btn" id="sidebar-close-btn"><i class='bx bx-x'></i></button>
+            <div class="sidebar-header">
+                <div class="logo-image">Matrimony Portal</div>
+            </div>
+            <nav class="main-nav">
                 <ul>
-                    <li><a href="create-profile.html" id="nav-create-profile">Create Profile</a></li>
-                    <li><a href="search-profiles.html" id="nav-search-profile">Search Profiles</a></li>
-                    <li id="nav-admin-panel-item" class="hidden"><a href="admin-dashboard.html" id="nav-admin-panel">Admin Dashboard</a></li>
+                    <li id="nav-dashboard-item"><a href="#" id="nav-dashboard-link" class="active"><i class='bx bx-home-alt'></i> Dashboard</a></li>
+                    <li><a href="create-profile.html"><i class='bx bx-user-plus'></i> Create Profile</a></li>
+                    <li><a href="search-profiles.html"><i class='bx bx-search'></i> Search Profiles</a></li>
+                    <!-- Admin specific links are hidden by default -->
+                    <li id="nav-manage-users-item" class="hidden"><a href="admin-users.html"><i class='bx bx-group'></i> Manage Users</a></li>
+                    <li id="nav-manage-profiles-item" class="hidden"><a href="admin-profiles.html"><i class='bx bx-id-card'></i> Manage Profiles</a></li>
+                    <li id="nav-global-history-item" class="hidden"><a href="admin-history.html"><i class='bx bx-history'></i> Global History</a></li>
                 </ul>
             </nav>
-            <div id="user-info">
-                <span>Welcome, <strong id="current-user-email"></strong> (<span id="current-user-role"></span>)</span>
-                <button id="logout-btn">Logout</button>
+            <div class="profile-section" id="profile-section">
+                <div class="profile-content-wrapper">
+                    <div class="profile-avatar"><img src="https://via.placeholder.com/40" alt="User Avatar" id="sidebar-user-avatar" style="width: 100%; height: 100%; border-radius: 50%;"></div>
+                    <div class="profile-details">
+                        <span class="profile-name" id="current-user-email">Loading...</span>
+                        <span class="profile-email" id="current-user-role">Role</span>
+                    </div>
+                    <div class="profile-options"><i class='bx bx-chevron-down'></i></div>
+                </div>
             </div>
-        </header>
-
-        <div class="container">
-            <section id="employee-dashboard-section">
-                <h2>Employee Dashboard</h2>
-                <p id="employee-global-message" class="success-message hidden"></p>
-
-                <div class="dashboard-section-block">
-                    <h3>Dashboard Metrics</h3>
-                    <div class="metrics-grid">
-                        <div class="metric-card">
-                            <div class="value" id="total-profiles-metric">0</div>
-                            <div class="label">Total Profiles</div>
-                        </div>
-                        <div class="metric-card">
-                            <div class="value" id="active-profiles-metric">0</div>
-                            <div class="label">Active Profiles</div>
-                        </div>
-                        <div class="metric-card">
-                            <div class="value" id="married-profiles-metric">0</div>
-                            <div class="label">Married Profiles</div>
-                        </div>
+            <div class="profile-popup" id="profile-popup">
+                <div class="popup-header">
+                    <div class="profile-avatar"><img src="https://via.placeholder.com/40" alt="User Avatar" id="popup-user-avatar" style="width: 100%; height: 100%; border-radius: 50%;"></div>
+                    <div class="profile-details">
+                        <span class="profile-name" id="popup-user-email">Loading...</span>
+                        <span class="profile-email" id="popup-user-role">Role</span>
                     </div>
                 </div>
+                <ul class="popup-list">
+                    <li><a href="#"><i class='bx bx-user'></i> Profile Settings</a></li>
+                    <li><a href="#" class="logout" id="logout-btn"><i class='bx bx-log-out'></i> Logout</a></li>
+                </ul>
+            </div>
+        </aside>
+        <main class="main-area">
+            <header class="main-header">
+                <i class='bx bx-menu menu-toggle' id="menu-toggle"></i>
+                <h1>Employee Dashboard</h1>
+            </header>
+            <section class="content-body">
+                <div class="column">
+                    <div class="widget">
+                        <h3>Dashboard Metrics</h3>
+                        <p id="employee-global-message" class="success-message hidden"></p>
+                        <div class="metrics-grid">
+                            <div class="metric-card">
+                                <div class="value" id="total-profiles-metric">0</div>
+                                <div class="label">Total Profiles</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="value" id="active-profiles-metric">0</div>
+                                <div class="label">Active Profiles</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="value" id="married-profiles-metric">0</div>
+                                <div class="label">Married Profiles</div>
+                            </div>
+                        </div>
+                    </div>
 
-                <div class="dashboard-section-block">
-                    <h3>All Profiles</h3>
-                    <p id="employee-profile-message" class="success-message hidden"></p>
-                    <div id="all-profiles-list" class="profile-list">
-                        <p class="no-profiles">Loading profiles...</p>
+                    <div class="widget">
+                        <div class="widget-header">
+                            <h3>All Profiles</h3>
+                            <a href="create-profile.html" class="button-primary"><i class='bx bx-plus'></i> Add New Profile</a>
+                        </div>
+                        <p id="employee-profile-message" class="success-message hidden"></p>
+                        <div id="all-profiles-list" class="profile-list">
+                            <p class="no-records">Loading profiles...</p>
+                        </div>
                     </div>
                 </div>
             </section>
-        </div>
+        </main>
     </div>
 
     <script type="module">
@@ -179,27 +288,86 @@
             { id: 'BY_OTHERS', name: 'BY OTHERS' }
         ];
 
-        const currentUserEmailSpan = document.getElementById('current-user-email');
-        const currentUserRoleSpan = document.getElementById('current-user-role');
-        const logoutBtn = document.getElementById('logout-btn');
+        let sidebarUserAvatar, popupUserAvatar, sidebarUserName, sidebarUserRole, popupUserEmail, popupUserRole;
+        let logoutBtn, navAdminPanelItem;
+        let menuToggle, sidebar, sidebarCloseBtn, overlay;
+        let navDashboardLink, navManageUsersItem, navManageProfilesItem, navGlobalHistoryItem;
 
-        const navAdminPanelItem = document.getElementById('nav-admin-panel-item');
+        let employeeGlobalMessage, totalProfilesMetric, activeProfilesMetric, marriedProfilesMetric, allProfilesList, employeeProfileMessage;
 
-        const employeeGlobalMessage = document.getElementById('employee-global-message');
+        document.addEventListener('DOMContentLoaded', function() {
+            // UI Shell Element Assignments
+            sidebarUserAvatar = document.getElementById('sidebar-user-avatar');
+            popupUserAvatar = document.getElementById('popup-user-avatar');
+            sidebarUserName = document.getElementById('current-user-email');
+            sidebarUserRole = document.getElementById('current-user-role');
+            popupUserEmail = document.getElementById('popup-user-email');
+            popupUserRole = document.getElementById('popup-user-role');
+            logoutBtn = document.getElementById('logout-btn');
+            menuToggle = document.getElementById('menu-toggle');
+            sidebar = document.getElementById('sidebar');
+            sidebarCloseBtn = document.getElementById('sidebar-close-btn');
+            overlay = document.getElementById('overlay');
 
-        const totalProfilesMetric = document.getElementById('total-profiles-metric');
-        const activeProfilesMetric = document.getElementById('active-profiles-metric');
-        const marriedProfilesMetric = document.getElementById('married-profiles-metric');
+            navDashboardLink = document.getElementById('nav-dashboard-link');
+            navManageUsersItem = document.getElementById('nav-manage-users-item');
+            navManageProfilesItem = document.getElementById('nav-manage-profiles-item');
+            navGlobalHistoryItem = document.getElementById('nav-global-history-item');
 
-        const allProfilesListDiv = document.getElementById('all-profiles-list');
-        const employeeProfileMessage = document.getElementById('employee-profile-message');
+            // Page specific elements
+            employeeGlobalMessage = document.getElementById('employee-global-message');
+            totalProfilesMetric = document.getElementById('total-profiles-metric');
+            activeProfilesMetric = document.getElementById('active-profiles-metric');
+            marriedProfilesMetric = document.getElementById('married-profiles-metric');
+            allProfilesList = document.getElementById('all-profiles-list');
+            employeeProfileMessage = document.getElementById('employee-profile-message');
+
+
+            // UI Shell Event Listeners
+            const profileSection = document.getElementById('profile-section');
+            const profilePopup = document.getElementById('profile-popup');
+
+            if (profileSection) {
+                profileSection.addEventListener('click', e => {
+                    e.stopPropagation();
+                    if (profilePopup) profilePopup.classList.toggle('active');
+                    if (profileSection) profileSection.classList.toggle('active');
+                });
+            }
+            document.addEventListener('click', e => {
+                if (profileSection && !profileSection.contains(e.target) && profilePopup && !profilePopup.contains(e.target)) {
+                    profilePopup.classList.remove('active');
+                    profileSection.classList.remove('active');
+                }
+            });
+            const toggleMenu = () => {
+                if (sidebar) sidebar.classList.toggle('active');
+                if (overlay) overlay.classList.toggle('active');
+            };
+            if (menuToggle) menuToggle.addEventListener('click', toggleMenu);
+            if (sidebarCloseBtn) sidebarCloseBtn.addEventListener('click', toggleMenu);
+            if (overlay) overlay.addEventListener('click', toggleMenu);
+
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', async () => {
+                    try {
+                        await signOut(auth);
+                        window.location.href = 'index.html';
+                    } catch (error) {
+                        console.error("Error signing out:", error);
+                    }
+                });
+            }
+        });
 
         function showMessage(element, message, isSuccess = true) {
-            element.textContent = message;
-            element.classList.remove('hidden');
-            element.classList.toggle('success-message', isSuccess);
-            element.classList.toggle('error-message', !isSuccess);
-            setTimeout(() => element.classList.add('hidden'), 5000);
+            if (element) {
+                element.textContent = message;
+                element.classList.remove('hidden');
+                element.classList.toggle('success-message', isSuccess);
+                element.classList.toggle('error-message', !isSuccess);
+                setTimeout(() => element.classList.add('hidden'), 5000);
+            }
         }
 
         async function logChange(action, entityType, entityId, details = {}) {
@@ -271,7 +439,10 @@
                     } else if (userStatus === 'denied' || userStatus === 'suspended') {
                         window.location.href = 'denied.html';
                         return;
-                    } else if (currentUserRole !== 'employee' && currentUserRole !== 'admin') {
+                    } else if (currentUserRole === 'admin') {
+                        window.location.href = 'admin-dashboard.html';
+                        return;
+                    } else if (currentUserRole !== 'employee') {
                          alert('You do not have sufficient permissions to access the Employee Dashboard. Redirecting to login.');
                          await signOut(auth);
                          window.location.href = 'index.html';
@@ -285,29 +456,29 @@
                     return;
                 }
 
-                currentUserEmailSpan.textContent = user.email;
-                currentUserRoleSpan.textContent = currentUserRole;
+                if (sidebarUserName) sidebarUserName.textContent = user.email;
+                if (sidebarUserRole) sidebarUserRole.textContent = currentUserRole ? currentUserRole.charAt(0).toUpperCase() + currentUserRole.slice(1) : 'Employee';
+                if (popupUserEmail) popupUserEmail.textContent = user.email;
+                if (popupUserRole) popupUserRole.textContent = currentUserRole ? currentUserRole.charAt(0).toUpperCase() + currentUserRole.slice(1) : 'Employee';
 
-                if (currentUserRole === 'admin') {
-                    navAdminPanelItem.classList.remove('hidden');
-                } else {
-                    navAdminPanelItem.classList.add('hidden');
-                }
+                const avatarUrl = user.photoURL || 'https://via.placeholder.com/40';
+                if (sidebarUserAvatar) sidebarUserAvatar.src = avatarUrl;
+                if (popupUserAvatar) popupUserAvatar.src = avatarUrl;
+
+                if (logoutBtn) logoutBtn.classList.remove('hidden');
+
+                // Dynamic Navigation for Employee
+                if (navDashboardLink) navDashboardLink.href = 'employee-dashboard.html';
+                if (navManageUsersItem) navManageUsersItem.classList.add('hidden');
+                if (navManageProfilesItem) navManageProfilesItem.classList.add('hidden');
+                if (navGlobalHistoryItem) navGlobalHistoryItem.classList.add('hidden');
+
 
                 fetchDashboardMetrics();
                 fetchAllProfilesForEmployee();
 
             } else {
                 window.location.href = 'index.html';
-            }
-        });
-
-        logoutBtn.addEventListener('click', async () => {
-            try {
-                await signOut(auth);
-                window.location.href = 'index.html';
-            } catch (error) {
-                console.error("Error signing out:", error);
             }
         });
 
@@ -326,35 +497,36 @@
                     if (status === 'married') marriedProfiles++;
                 });
 
-                totalProfilesMetric.textContent = totalProfiles;
-                activeProfilesMetric.textContent = activeProfiles;
-                marriedProfilesMetric.textContent = marriedProfiles;
+                if (totalProfilesMetric) totalProfilesMetric.textContent = totalProfiles;
+                if (activeProfilesMetric) activeProfilesMetric.textContent = activeProfiles;
+                if (marriedProfilesMetric) marriedProfilesMetric.textContent = marriedProfiles;
 
             } catch (error) {
                 console.error("Error fetching dashboard metrics:", error);
-                showMessage(employeeGlobalMessage, `Error loading metrics: ${error.message}`, false);
+                if (employeeGlobalMessage) showMessage(employeeGlobalMessage, `Error loading metrics: ${error.message}`, false);
             }
         }
 
 
         // --- All Profiles Management for Employees ---
         async function fetchAllProfilesForEmployee() {
-            allProfilesListDiv.innerHTML = '<p class="no-profiles">Loading all profiles...</p>';
+            if (allProfilesList) allProfilesList.innerHTML = '<p class="no-records">Loading all profiles...</p>';
             try {
                 const q = query(collection(db, 'profiles'), orderBy('name'));
                 const snapshot = await getDocs(q);
                 // Employees can only edit, not delete. `showEmployeeActions` controls this.
-                renderProfiles(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })), allProfilesListDiv, true);
+                renderProfiles(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })), allProfilesList, true);
             } catch (error) {
                 console.error("Error fetching all profiles:", error);
-                employeeProfileMessage.innerHTML = `<p class="error-message">Error loading profiles: ${error.message}</p>`;
+                if (employeeProfileMessage) showMessage(employeeProfileMessage, `Error loading profiles: ${error.message}`, false);
             }
         }
 
         function renderProfiles(profiles, targetDiv, showEmployeeActions = false) {
+            if (!targetDiv) return;
             targetDiv.innerHTML = '';
             if (profiles.length === 0) {
-                targetDiv.innerHTML = '<p class="no-profiles">No profiles found.</p>';
+                targetDiv.innerHTML = '<p class="no-records">No profiles found.</p>';
                 return;
             }
             profiles.forEach(profile => {
@@ -371,34 +543,22 @@
                 const profileCard = document.createElement('div');
                 profileCard.className = 'profile-card';
                 profileCard.innerHTML = `
-                    <img src="${profile.photoURL || 'https://via.placeholder.com/120'}" alt="${profile.name}">
+                    <img src="${(profile.photoURLs && profile.photoURLs[0]) || 'https://via.placeholder.com/120'}" alt="${profile.name}">
                     <h3>${profile.name}</h3>
                     <p><strong>Age:</strong> ${age}</p>
                     <p><strong>Location:</strong> ${profile.location}</p>
                     <p><strong>Group:</strong> ${matrimonyGroupName}</p>
                     <p><strong>Status:</strong> <span class="status-badge ${statusClass}">${profile.profileStatus || 'N/A'}</span></p>
-                    <p>${profile.bio ? profile.bio.substring(0, 70) + '...' : 'No bio provided.'}</p>
                     <div class="actions">
-                        <button class="view-profile-btn" data-id="${profile.id}">View Details</button>
-                        ${showEmployeeActions && (currentUserRole === 'admin' || currentUserRole === 'employee') ? `<button class="edit-profile-btn edit" data-id="${profile.id}">Edit</button>` : ''}
-                        ${showEmployeeActions && (currentUserRole === 'admin' || currentUserRole === 'employee') && profile.profileStatus !== 'married' ? `<button class="married" data-id="${profile.id}" data-status="married">Mark Married</button>` : ''}
-                        ${showEmployeeActions && (currentUserRole === 'admin' || currentUserRole === 'employee') && profile.profileStatus !== 'inactive' ? `<button class="deactivate" data-id="${profile.id}" data-status="inactive">Deactivate</button>` : ''}
-                        <!-- Reactivate and Delete buttons are Admin-only -->
+                        <a href="view-profile.html?profileId=${profile.id}" class="button view">View</a>
+                        ${showEmployeeActions ? `<a href="create-profile.html?profileId=${profile.id}" class="button edit">Edit</a>` : ''}
+                        ${showEmployeeActions && profile.profileStatus !== 'married' ? `<button class="married" data-id="${profile.id}" data-status="married">Mark Married</button>` : ''}
+                        ${showEmployeeActions && profile.profileStatus !== 'inactive' ? `<button class="deactivate" data-id="${profile.id}" data-status="inactive">Deactivate</button>` : ''}
                     </div>
                 `;
                 targetDiv.appendChild(profileCard);
             });
 
-            targetDiv.querySelectorAll('.view-profile-btn').forEach(button => {
-                button.addEventListener('click', (e) => {
-                    window.location.href = `view-profile.html?profileId=${e.target.dataset.id}`;
-                });
-            });
-            targetDiv.querySelectorAll('.edit-profile-btn').forEach(button => {
-                button.addEventListener('click', (e) => {
-                    window.location.href = `create-profile.html?profileId=${e.target.dataset.id}`;
-                });
-            });
             targetDiv.querySelectorAll('.actions button.married').forEach(button => {
                 button.addEventListener('click', (e) => updateProfileStatus(e.target.dataset.id, e.target.dataset.status));
             });
@@ -408,11 +568,11 @@
         }
 
         async function updateProfileStatus(profileId, newStatus) {
-            if (!currentUser || (!['admin', 'employee'].includes(currentUserRole))) {
+            if (!currentUser || (currentUserRole !== 'admin' && currentUserRole !== 'employee')) {
                 showMessage(employeeProfileMessage, 'You do not have permission to change profile status.', false);
                 return;
             }
-            if (currentUserRole !== 'admin' && newStatus === 'active') { // Only admin can reactivate
+            if (currentUserRole !== 'admin' && newStatus === 'active') {
                 showMessage(employeeProfileMessage, 'Only an admin can reactivate a profile.', false);
                 return;
             }
