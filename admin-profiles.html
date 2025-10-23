@@ -14,11 +14,11 @@
     <script type="module" src="https://www.gstatic.com/firebasejs/12.4.0/firebase-storage.js"></script>
 
     <style>
-        :root { --body-bg: #F9FAFB; --widget-bg: #FFFFFF; --border-color: #E5E7EB; --text-primary: #002726; --text-secondary: #6B7280; --brand-green: #33C375; --hover-bg: #F3F4F6; --warning-color: #F59E0B; --danger-color: #EF4444; }
+        /* --- Base Dashboard Styles --- */
+        :root { --body-bg: #F9FAFB; --widget-bg: #FFFFFF; --border-color: #E5E7EB; --text-primary: #002726; --text-secondary: #6B7280; --brand-green: #33C375; --hover-bg: #F3F4F6; --warning-color: #F59E0B; --danger-color: #EF4444; --info-color: #3B82F6; /* Action Buttons */ --color-view: #3B82F6; --color-edit: #ca8a04; --color-married: #ea580c; --color-deactivate: #F59E0B; --color-reactivate: #22c55e; --color-delete: #EF4444; --danger-bg-light: #FEF2F2; --danger-text-dark: #991B1B;}
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'IBM Plex Sans', sans-serif; background-color: var(--body-bg); color: var(--text-primary); font-size: 14px; overflow: hidden; }
         .dashboard-container { display: grid; grid-template-columns: 260px 1fr; height: 100vh; position: relative; }
-
         .sidebar { background-color: var(--widget-bg); border-right: 1px solid var(--border-color); padding: 2rem 1.5rem; display: flex; flex-direction: column; position: relative; transition: transform 0.3s ease-in-out; }
         .sidebar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem; }
         .logo-image { height: 40px; background-color: #f0f0f0; border-radius: 8px; width: 120px; display: flex; align-items: center; justify-content: center; font-weight: bold; color: var(--text-secondary); }
@@ -29,7 +29,6 @@
         .main-nav a:hover { background-color: var(--hover-bg); }
         .main-nav a.active { background-color: var(--hover-bg); font-weight: 600; }
         .main-nav a.active i { color: var(--brand-green); }
-
         .profile-section { margin-top: auto; padding-top: 1.5rem; border-top: 1px solid var(--border-color); display: flex; align-items: center; gap: 0.75rem; cursor: pointer; }
         .profile-content-wrapper { display: flex; align-items: center; gap: 0.75rem; width: 100%; }
         .profile-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; flex-shrink: 0; background-color: #e2e8f0; }
@@ -47,159 +46,107 @@
         .popup-list a i { font-size: 1.2rem; color: var(--text-secondary); }
         .popup-list a.logout i { color: var(--danger-color); }
         .popup-list a.logout { color: var(--danger-color); }
-
-        /* Main Content Area */
         .main-area { display: flex; flex-direction: column; overflow-y: auto; background-color: var(--body-bg); }
         .main-header { padding: 1.25rem 3rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background-color: var(--widget-bg); position: sticky; top: 0; z-index: 10; }
         .main-header h1 { font-size: 1.5rem; font-weight: 600; }
         .content-body { padding: 2rem 3rem; display: grid; grid-template-columns: 1fr; gap: 2rem; align-items: flex-start; margin-top: 0; }
-        .column { display: flex; flex-direction: column; gap: 2rem; }
-
-        /* Widget Styles */
         .widget { background-color: var(--widget-bg); border-radius: 16px; border: 1px solid var(--border-color); padding: 1.5rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.03), 0 2px 4px -1px rgba(0,0,0,0.02); }
         .widget-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
         .widget-header h3 { font-size: 1.1rem; font-weight: 600; color: var(--text-primary); }
         .widget-header a { font-size: 0.9rem; color: var(--brand-green); text-decoration: none; font-weight: 500; }
         .widget-header a:hover { text-decoration: underline; }
-
-        /* Custom Buttons */
-        .button-primary {
-            display: inline-block;
-            background-color: var(--brand-green);
-            color: white;
-            padding: 0.6rem 1.2rem;
-            border-radius: 8px;
-            text-decoration: none;
-            font-weight: 500;
-            font-size: 0.9rem;
-            transition: background-color 0.2s ease;
-            border: none;
-            cursor: pointer;
-        }
+        .button-primary { display: inline-flex; align-items: center; gap: 0.4rem; background-color: var(--brand-green); color: white; padding: 0.6rem 1.2rem; border-radius: 8px; text-decoration: none; font-weight: 500; font-size: 0.9rem; transition: background-color 0.2s ease; border: none; cursor: pointer; }
+        .button-primary i { font-size: 1.1em; }
         .button-primary:hover { background-color: #2fb165; }
-
-        /* Messages */
         .error-message { color: var(--danger-color); font-weight: bold; }
         .success-message { color: var(--brand-green); font-weight: bold; }
         .hidden { display: none !important; }
-
-        /* Profile Card & List for Admin View */
-        .profile-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-top: 20px; }
-        .profile-card { background: #f9f9f9; border: 1px solid #e0e0e0; border-radius: 8px; padding: 20px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .profile-card img { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; margin-bottom: 15px; border: 3px solid var(--brand-green); }
-        .profile-card h3 { margin-top: 0; margin-bottom: 10px; color: #3498db; }
-        .profile-card p { margin: 5px 0; font-size: 15px; color: #555; }
-        .profile-card .actions { margin-top: 15px; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
-        .profile-card .actions button, .profile-card .actions a.button {
-            padding: 8px 12px;
-            font-size: 0.8em;
-            border-radius: 6px;
-            border: none;
-            cursor: pointer;
-            text-decoration: none;
-            color: white;
-        }
-        .profile-card .actions .view { background-color: #3498db; }
-        .profile-card .actions .edit { background-color: #f39c12; }
-        .profile-card .actions .married { background-color: #e67e22; }
-        .profile-card .actions .deactivate { background-color: var(--warning-color); }
-        .profile-card .actions .reactivate { background-color: var(--brand-green); }
-        .profile-card .actions .delete { background-color: var(--danger-color); }
-
-        /* Status Badges */
-        .status-badge {
-            display: inline-block;
-            min-width: 70px;
-            text-align: center;
-            font-weight: bold;
-            color: white;
-            padding: 3px 8px;
-            border-radius: 4px;
-            font-size: 0.85em;
-        }
-        .status-badge.active { background-color: #2ecc71; }
-        .status-badge.married { background-color: #e67e22; }
-        .status-badge.inactive { background-color: #f39c12; }
-
-        .no-records { text-align: center; color: #777; font-style: italic; margin-top: 30px; }
-
-        /* Responsive Adjustments */
         .menu-toggle { display: none; }
         .sidebar-close-btn { display: none; }
-        
-        @media (max-width: 1024px) {
-            .dashboard-container { grid-template-columns: 1fr; }
-            .sidebar { position: fixed; top: 0; left: 0; height: 100%; width: 80%; max-width: 300px; z-index: 1000; transform: translateX(-100%); box-shadow: 0 0 30px rgba(0,0,0,0.1); }
-            .sidebar.active { transform: translateX(0); }
-            .main-header { padding: 1.25rem 1.5rem; }
-            .content-body { padding: 1.5rem; }
-            .menu-toggle { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; font-size: 1.5rem; color: var(--text-primary); cursor: pointer; background: none; border: none; }
-            .sidebar-close-btn { display: flex; align-items: center; justify-content: center; position: absolute; top: 1.5rem; right: 1.5rem; font-size: 1.75rem; color: var(--danger-color); cursor: pointer; border: none; background: none; }
-            .overlay {
-                position: fixed; inset: 0; background-color: rgba(0,0,0,0.4); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
-                z-index: 999;
-                opacity: 0;
-                visibility: hidden;
-                pointer-events: none;
-                transition: opacity 0.3s ease, visibility 0.3s ease;
-            }
-            .overlay.active {
-                opacity: 1;
-                visibility: visible;
-                pointer-events: auto;
-            }
-        }
-
-        /* Skeleton Loading Styles */
+        @media (max-width: 1024px) { .dashboard-container { grid-template-columns: 1fr; } .sidebar { position: fixed; top: 0; left: 0; height: 100%; width: 80%; max-width: 300px; z-index: 1000; transform: translateX(-100%); box-shadow: 0 0 30px rgba(0,0,0,0.1); } .sidebar.active { transform: translateX(0); } .main-header { padding: 1.25rem 1.5rem; } .content-body { padding: 1.5rem; } .menu-toggle { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; font-size: 1.5rem; color: var(--text-primary); cursor: pointer; background: none; border: none; } .sidebar-close-btn { display: flex; align-items: center; justify-content: center; position: absolute; top: 1.5rem; right: 1.5rem; font-size: 1.75rem; color: var(--danger-color); cursor: pointer; border: none; background: none; } .overlay { position: fixed; inset: 0; background-color: rgba(0,0,0,0.4); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); z-index: 999; opacity: 0; visibility: hidden; pointer-events: none; transition: opacity 0.3s ease, visibility 0.3s ease; } .overlay.active { opacity: 1; visibility: visible; pointer-events: auto; } }
         @keyframes shimmer { 100% { transform: translateX(100%); } }
-        .skeleton { background-color: #e2e8f0; position: relative; overflow: hidden; }
+        .skeleton { background-color: #e2e8f0; position: relative; overflow: hidden; border-radius: 12px; }
         .skeleton::after { content: ''; position: absolute; top: 0; right: 0; bottom: 0; left: 0; transform: translateX(-100%); background-image: linear-gradient(90deg, rgba(255, 255, 255, 0) 0, rgba(255, 255, 255, 0.2) 20%, rgba(255, 255, 255, 0.5) 60%, rgba(255, 255, 255, 0)); animation: shimmer 2s infinite; }
-        .skeleton-avatar { width: 40px; height: 40px; border-radius: 50%; }
-        .skeleton-line { height: 14px; border-radius: 4px; }
-        .profile-card.skeleton { height: 350px; }
+        .skeleton-line { height: 14px; border-radius: 4px; background-color: #cbd5e1; margin-bottom: 0.75rem; }
+        .profile-card.skeleton { height: 88px; }
+        .no-records { text-align: center; color: var(--text-secondary); font-style: italic; margin-top: 1rem; grid-column: 1 / -1; }
+
+        /* --- REDESIGNED Profile Card & List Styles --- */
+        .profile-list { display: grid; grid-template-columns: 1fr; gap: 1rem; margin-top: 1rem; }
+        .profile-card { background: var(--widget-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.04); display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 1rem; position: relative; transition: box-shadow 0.2s ease; }
+        .profile-card:hover { box-shadow: 0 4px 8px rgba(0,0,0,0.06); }
+        .profile-card .profile-image { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 2px solid var(--border-color); } /* Slightly larger image */
+        .profile-card .profile-info { text-align: left; min-width: 0; }
+        .profile-card .profile-info h3 { margin: 0 0 0.2rem 0; color: var(--text-primary); font-size: 1rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .profile-card .profile-info p { margin: 0; font-size: 0.8rem; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .profile-card .profile-info .status-badge { margin-top: 0.25rem; }
+        .status-badge { display: inline-block; text-align: center; font-weight: 500; color: white; padding: 0.2rem 0.6rem; border-radius: 20px; font-size: 0.7rem; line-height: 1.2; text-transform: capitalize; }
+        .status-badge.active { background-color: #10B981; } .status-badge.married { background-color: #F97316; } .status-badge.inactive { background-color: #F59E0B; }
+
+        /* --- Action Buttons (Desktop & Shared Style) --- */
+         .profile-card .desktop-actions { display: flex; align-items: center; gap: 0.6rem; }
+         .action-button, .actionsheet-menu button, .actionsheet-menu a { display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem; padding: 6px 10px; font-size: 0.8rem; border-radius: 6px; border: 1px solid transparent; cursor: pointer; text-decoration: none; font-weight: 500; transition: all 0.2s ease; white-space: nowrap; line-height: 1.2; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+         .action-button i, .actionsheet-menu button i, .actionsheet-menu a i { font-size: 1.1em; }
+         .action-button:hover, .actionsheet-menu a:hover, .actionsheet-menu button:hover { box-shadow: 0 2px 4px rgba(0,0,0,0.1); filter: brightness(1.1); }
+         /* Specific Button Styles */
+         .action-button.view, .actionsheet-menu .view { background-color: var(--color-view); color: white; border-color: var(--color-view); } .action-button.view:hover, .actionsheet-menu .view:hover { background-color: #2563EB; border-color: #2563EB;}
+         .action-button.edit, .actionsheet-menu .edit { background-color: var(--color-edit); color: white; border-color: var(--color-edit); } .action-button.edit:hover, .actionsheet-menu .edit:hover { background-color: #a16207; border-color: #a16207; }
+         .action-button.married, .actionsheet-menu .married { background-color: var(--color-married); color: white; border-color: var(--color-married); } .action-button.married:hover, .actionsheet-menu .married:hover { background-color: #c2410c; border-color: #c2410c;}
+         .action-button.deactivate, .actionsheet-menu .deactivate { background-color: var(--color-deactivate); color: white; border-color: var(--color-deactivate); } .action-button.deactivate:hover, .actionsheet-menu .deactivate:hover { background-color: #d97706; border-color: #d97706; }
+         .action-button.reactivate, .actionsheet-menu .reactivate { background-color: var(--color-reactivate); color: white; border-color: var(--color-reactivate); } .action-button.reactivate:hover, .actionsheet-menu .reactivate:hover { background-color: #16a34a; border-color: #16a34a; }
+         .action-button.delete, .actionsheet-menu .delete { background-color: var(--color-delete); color: white; border-color: var(--color-delete); } .action-button.delete:hover, .actionsheet-menu .delete:hover { background-color: #b91c1c; border-color: #b91c1c;}
+        
+        /* --- Mobile Specific: Manage Button & Menu --- */
+         .profile-card .mobile-manage-btn { display: none; background-color: var(--text-secondary); color: white; padding: 8px; /* Square padding */ border-radius: 50%; flex-shrink: 0; border: none; cursor: pointer; transition: background-color 0.2s ease; line-height: 0; /* Align icon better */ }
+         .profile-card .mobile-manage-btn:hover { background-color: var(--text-primary); }
+         .profile-card .mobile-manage-btn i { font-size: 1.4em; /* Slightly larger icon */ margin: 0; vertical-align: middle; }
+
+         /* --- Actionsheet Styles --- */
+         .actionsheet-overlay { position: fixed; inset: 0; background-color: rgba(17, 24, 39, 0.6); z-index: 2000; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; backdrop-filter: blur(4px); }
+         .actionsheet-overlay.show { opacity: 1; pointer-events: auto; }
+         .actionsheet-menu { position: fixed; bottom: 0; left: 0; right: 0; background-color: var(--widget-bg); border-top-left-radius: 1rem; border-top-right-radius: 1rem; padding: 1rem; z-index: 2001; transform: translateY(100%); transition: transform 0.3s ease-out; box-shadow: 0 -5px 15px rgba(0,0,0,0.1); }
+         .actionsheet-menu.show { transform: translateY(0); }
+         .actionsheet-header { text-align: center; padding-bottom: 0.5rem; /* Reduced padding */ position: relative; } /* Added relative for handle positioning */
+         .actionsheet-header::before { content: ''; display: block; width: 40px; height: 4px; background-color: var(--border-color); border-radius: 2px; margin: 0 auto 0.75rem; /* Reduced margin */ }
+         .actionsheet-title { font-size: 1rem; font-weight: 600; color: var(--text-secondary); } /* Title styling */
+         .actionsheet-profile-name { font-size: 1.1rem; font-weight: 600; color: var(--text-primary); margin-top: 0.25rem; } /* Profile name style */
+
+         .actionsheet-content ul { list-style: none; padding: 0; margin: 0; margin-top: 1rem; border-top: 1px solid var(--border-color); padding-top: 1rem; }
+         .actionsheet-content li { margin-bottom: 0.5rem; }
+         .actionsheet-content li:last-child { margin-bottom: 0; }
+         .actionsheet-content a, .actionsheet-content button { width: 100%; justify-content: flex-start; text-align: left; background-color: transparent; color: var(--text-primary); border: none; box-shadow: none; padding: 0.75rem 0.5rem; border-radius: 6px; }
+         /* Hover effects for menu items */
+         .actionsheet-content a.view:hover, .actionsheet-content button.view:hover { background-color: #EFF6FF; color: var(--color-view); }
+         .actionsheet-content a.edit:hover, .actionsheet-content button.edit:hover { background-color: #FEFCE8; color: var(--color-edit); } /* Adjusted edit hover color */
+         .actionsheet-content button.married:hover { background-color: #FFF7ED; color: var(--color-married); }
+         .actionsheet-content button.deactivate:hover { background-color: #FFFBEB; color: var(--color-deactivate); }
+         .actionsheet-content button.reactivate:hover { background-color: #F0FDF4; color: var(--color-reactivate); }
+         .actionsheet-content button.delete:hover { background-color: #FEF2F2; color: var(--color-delete); }
+         .actionsheet-cancel button { width: 100%; background-color: var(--hover-bg); color: var(--text-secondary); font-weight: 600; padding: 0.9rem; border: none; cursor: pointer; border-radius: 12px; transition: background-color 0.2s ease; margin-top: 1rem; }
+         .actionsheet-cancel button:hover { background-color: var(--border-color); }
+
+        /* Responsive Breakpoint for Mobile Card */
+         @media (max-width: 768px) {
+              .profile-card { grid-template-columns: auto 1fr auto; }
+              .profile-card .desktop-actions { display: none; }
+              .profile-card .mobile-manage-btn { display: inline-flex; }
+              .profile-card .profile-info p.desktop-only { display: none; }
+              .profile-card .profile-info .status-badge { display: none; } /* Also hide status badge on mobile card itself */
+              .content-body { padding: 1rem; }
+              .widget { padding: 1rem; }
+         }
+         @media (max-width: 400px) {
+             .profile-card .profile-image { width: 48px; height: 48px; }
+             .profile-card .profile-info h3 { font-size: 0.95rem; }
+         }
+
     </style>
 </head>
 <body>
     <div class="overlay" id="overlay"></div>
     <div class="dashboard-container">
         <aside class="sidebar" id="sidebar">
-            <button class="sidebar-close-btn" id="sidebar-close-btn"><i class='bx bx-x'></i></button>
-            <div class="sidebar-header">
-                <div class="logo-image">Matrimony Admin</div>
-            </div>
-            <nav class="main-nav">
-                <ul>
-                    <li id="nav-dashboard-item"><a href="#" id="nav-dashboard-link"><i class='bx bx-home-alt'></i> Dashboard</a></li>
-                    <li><a href="create-profile.html"><i class='bx bx-user-plus'></i> Create Profile</a></li>
-                    <li><a href="search-profiles.html"><i class='bx bx-search'></i> Search Profiles</a></li>
-                    <li id="nav-manage-users-item"><a href="admin-users.html"><i class='bx bx-group'></i> Manage Users</a></li>
-                    <li id="nav-manage-profiles-item"><a href="admin-profiles.html" class="active"><i class='bx bx-id-card'></i> Manage Profiles</a></li>
-                    <li id="nav-global-history-item"><a href="admin-history.html"><i class='bx bx-history'></i> Global History</a></li>
-                </ul>
-            </nav>
-            <div class="profile-section" id="profile-section">
-                <div class="profile-content-wrapper">
-                    <div class="profile-avatar"><img src="https://via.placeholder.com/40" alt="User Avatar" id="sidebar-user-avatar" style="width: 100%; height: 100%; border-radius: 50%;"></div>
-                    <div class="profile-details">
-                        <span class="profile-name" id="current-user-email">Loading...</span>
-                        <span class="profile-email" id="current-user-role">Role</span>
-                    </div>
-                    <div class="profile-options"><i class='bx bx-chevron-down'></i></div>
-                </div>
-            </div>
-            <div class="profile-popup" id="profile-popup">
-                <div class="popup-header">
-                    <div class="profile-avatar"><img src="https://via.placeholder.com/40" alt="User Avatar" id="popup-user-avatar" style="width: 100%; height: 100%; border-radius: 50%;"></div>
-                    <div class="profile-details">
-                        <span class="profile-name" id="popup-user-email">Loading...</span>
-                        <span class="profile-email" id="popup-user-role">Role</span>
-                    </div>
-                </div>
-                <ul class="popup-list">
-                    <li><a href="#"><i class='bx bx-user'></i> Profile Settings</a></li>
-                    <li><a href="#" class="logout" id="logout-btn"><i class='bx bx-log-out'></i> Logout</a></li>
-                </ul>
-            </div>
+            <button class="sidebar-close-btn" id="sidebar-close-btn"><i class='bx bx-x'></i></button> <div class="sidebar-header"><div class="logo-image">Matrimony Admin</div></div> <nav class="main-nav"> <ul> <li id="nav-dashboard-item"><a href="#" id="nav-dashboard-link"><i class='bx bx-home-alt'></i> Dashboard</a></li> <li><a href="create-profile.html"><i class='bx bx-user-plus'></i> Create Profile</a></li> <li><a href="search-profiles.html"><i class='bx bx-search'></i> Search Profiles</a></li> <li id="nav-manage-users-item"><a href="admin-users.html"><i class='bx bx-group'></i> Manage Users</a></li> <li id="nav-manage-profiles-item"><a href="admin-profiles.html" class="active"><i class='bx bx-id-card'></i> Manage Profiles</a></li> <li id="nav-global-history-item"><a href="admin-history.html"><i class='bx bx-history'></i> Global History</a></li> </ul> </nav> <div class="profile-section" id="profile-section"> <div class="profile-content-wrapper"> <div class="profile-avatar"><img src="https://via.placeholder.com/40" alt="User Avatar" id="sidebar-user-avatar" style="width: 100%; height: 100%; border-radius: 50%;"></div> <div class="profile-details"> <span class="profile-name" id="current-user-email">Loading...</span> <span class="profile-email" id="current-user-role">Role</span> </div> <div class="profile-options"><i class='bx bx-chevron-down'></i></div> </div> </div> <div class="profile-popup" id="profile-popup"> <div class="popup-header"> <div class="profile-avatar"><img src="https://via.placeholder.com/40" alt="User Avatar" id="popup-user-avatar" style="width: 100%; height: 100%; border-radius: 50%;"></div> <div class="profile-details"> <span class="profile-name" id="popup-user-email">Loading...</span> <span class="profile-email" id="popup-user-role">Role</span> </div> </div> <ul class="popup-list"> <li><a href="#"><i class='bx bx-user'></i> Profile Settings</a></li> <li><a href="#" class="logout" id="logout-btn"><i class='bx bx-log-out'></i> Logout</a></li> </ul> </div>
         </aside>
         <main class="main-area">
             <header class="main-header">
@@ -207,25 +154,36 @@
                 <h1>Manage All Profiles</h1>
             </header>
             <section class="content-body">
-                <div class="column">
-                    <div class="widget">
-                        <div class="widget-header">
-                            <h3>All Profiles</h3>
-                            <a href="create-profile.html" class="button-primary"><i class='bx bx-plus'></i> Add New Profile</a>
-                        </div>
-                        <p id="admin-profile-message" class="success-message hidden"></p>
-                        <div id="all-profiles-list" class="profile-list">
-                            <div class="profile-card skeleton"></div>
-                            <div class="profile-card skeleton"></div>
-                            <div class="profile-card skeleton"></div>
-                            <div class="profile-card skeleton"></div>
-                            <p class="no-records hidden">No profiles found.</p>
-                        </div>
+                <div class="widget">
+                    <div class="widget-header">
+                        <h3>All Profiles</h3>
+                        <a href="create-profile.html" class="button-primary"><i class='bx bx-plus'></i> Add New Profile</a>
+                    </div>
+                    <p id="admin-profile-message" class="success-message hidden"></p>
+                    <div id="all-profiles-list" class="profile-list">
+                        <div class="profile-card skeleton"><div style="width: 60px; height: 60px; border-radius: 50%; background-color: #cbd5e1; flex-shrink: 0;"></div><div style="flex-grow: 1;"><div class="skeleton-line" style="width: 60%;"></div><div class="skeleton-line" style="width: 80%; height: 12px;"></div></div></div>
+                        <div class="profile-card skeleton"><div style="width: 60px; height: 60px; border-radius: 50%; background-color: #cbd5e1; flex-shrink: 0;"></div><div style="flex-grow: 1;"><div class="skeleton-line" style="width: 50%;"></div><div class="skeleton-line" style="width: 70%; height: 12px;"></div></div></div>
+                        <div class="profile-card skeleton"><div style="width: 60px; height: 60px; border-radius: 50%; background-color: #cbd5e1; flex-shrink: 0;"></div><div style="flex-grow: 1;"><div class="skeleton-line" style="width: 70%;"></div><div class="skeleton-line" style="width: 90%; height: 12px;"></div></div></div>
+                        <p class="no-records hidden">No profiles found.</p>
                     </div>
                 </div>
             </section>
         </main>
     </div>
+
+    <div class="actionsheet-overlay" id="actionsheet-overlay"></div>
+     <div class="actionsheet-menu" id="mobile-profile-actions-menu">
+         <div class="actionsheet-header">
+            <div class="actionsheet-title">Manage Profile</div>
+            <div class="actionsheet-profile-name" id="actionsheet-profile-name">Profile Name</div>
+         </div>
+         <div class="actionsheet-content">
+             <ul id="actionsheet-list">
+                 </ul>
+         </div>
+          <div class="actionsheet-cancel"><button id="actionsheet-cancel-btn">Cancel</button></div>
+     </div>
+
 
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js';
@@ -233,15 +191,9 @@
         import { getFirestore, collection, addDoc, getDoc, getDocs, updateDoc, deleteDoc, doc, query, where, orderBy, serverTimestamp, writeBatch } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js';
         import { getStorage, ref, deleteObject } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-storage.js';
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyAuxA-e71uX_uLDe6oyFU69q-eLfgUzbXA",
-            authDomain: "harsha-jw.firebaseapp.com",
-            projectId: "harsha-jw",
-            storageBucket: "harsha-jw.firebasestorage.app",
-            messagingSenderId: "471408120499",
-            appId: "1:471408120499:web:91e61514ad3703ce3b16c6",
-            measurementId: "G-NBC16X4R1T"
-        };
+        const firebaseConfig = { /* Your Config */
+            apiKey: "AIzaSyAuxA-e71uX_uLDe6oyFU69q-eLfgUzbXA", authDomain: "harsha-jw.firebaseapp.com", projectId: "harsha-jw", storageBucket: "harsha-jw.firebasestorage.app", messagingSenderId: "471408120499", appId: "1:471408120499:web:91e61514ad3703ce3b16c6", measurementId: "G-NBC16X4R1T"
+         };
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
@@ -250,336 +202,257 @@
 
         let currentUser = null;
         let currentUserRole = null;
-        const hardcodedMatrimonyGroups = [
-            { id: 'US', name: 'US' },
-            { id: 'BY_OTHERS', name: 'BY OTHERS' }
-        ];
+        const hardcodedMatrimonyGroups = [ { id: 'US', name: 'US' }, { id: 'BY_OTHERS', name: 'BY OTHERS' } ];
 
+        // --- UI Elements ---
         let sidebarUserAvatar, popupUserAvatar, sidebarUserName, sidebarUserRole, popupUserEmail, popupUserRole;
-        let logoutBtn;
-        let menuToggle, sidebar, sidebarCloseBtn, overlay;
-        let navDashboardLink, navManageUsersItem, navManageProfilesItem, navGlobalHistoryItem;
+        let logoutBtn, navAdminPanelItem, navDashboardLink, navManageUsersItem, navManageProfilesItem, navGlobalHistoryItem;
         let allProfilesList, adminProfileMessage;
+        let menuToggle, sidebar, sidebarCloseBtn, overlay;
+        let actionsheetOverlay, actionsheetMenu, actionsheetProfileName, actionsheetList, actionsheetCancelBtn;
 
         document.addEventListener('DOMContentLoaded', function() {
-            // UI Shell Element Assignments
-            sidebarUserAvatar = document.getElementById('sidebar-user-avatar');
-            popupUserAvatar = document.getElementById('popup-user-avatar');
-            sidebarUserName = document.getElementById('current-user-email');
-            sidebarUserRole = document.getElementById('current-user-role');
-            popupUserEmail = document.getElementById('popup-user-email');
-            popupUserRole = document.getElementById('popup-user-role');
-            logoutBtn = document.getElementById('logout-btn');
-            menuToggle = document.getElementById('menu-toggle');
-            sidebar = document.getElementById('sidebar');
-            sidebarCloseBtn = document.getElementById('sidebar-close-btn');
-            overlay = document.getElementById('overlay');
-
-            navDashboardLink = document.getElementById('nav-dashboard-link');
-            navManageUsersItem = document.getElementById('nav-manage-users-item');
-            navManageProfilesItem = document.getElementById('nav-manage-profiles-item');
-            navGlobalHistoryItem = document.getElementById('nav-global-history-item');
-
-            allProfilesList = document.getElementById('all-profiles-list');
-            adminProfileMessage = document.getElementById('admin-profile-message');
-
+            // Assign Elements
+            sidebarUserAvatar = document.getElementById('sidebar-user-avatar'); popupUserAvatar = document.getElementById('popup-user-avatar'); sidebarUserName = document.getElementById('current-user-email'); sidebarUserRole = document.getElementById('current-user-role'); popupUserEmail = document.getElementById('popup-user-email'); popupUserRole = document.getElementById('popup-user-role'); logoutBtn = document.getElementById('logout-btn'); menuToggle = document.getElementById('menu-toggle'); sidebar = document.getElementById('sidebar'); sidebarCloseBtn = document.getElementById('sidebar-close-btn'); overlay = document.getElementById('overlay'); navDashboardLink = document.getElementById('nav-dashboard-link'); navManageUsersItem = document.getElementById('nav-manage-users-item'); navManageProfilesItem = document.getElementById('nav-manage-profiles-item'); navGlobalHistoryItem = document.getElementById('nav-global-history-item'); allProfilesList = document.getElementById('all-profiles-list'); adminProfileMessage = document.getElementById('admin-profile-message');
+            actionsheetOverlay = document.getElementById('actionsheet-overlay'); actionsheetMenu = document.getElementById('mobile-profile-actions-menu'); actionsheetProfileName = document.getElementById('actionsheet-profile-name'); actionsheetList = document.getElementById('actionsheet-list'); actionsheetCancelBtn = document.getElementById('actionsheet-cancel-btn');
 
             // UI Shell Event Listeners
-            const profileSection = document.getElementById('profile-section');
-            const profilePopup = document.getElementById('profile-popup');
+            const profileSection=document.getElementById('profile-section'); const profilePopup=document.getElementById('profile-popup'); if(profileSection){ profileSection.addEventListener('click',e=>{ e.stopPropagation(); if(profilePopup)profilePopup.classList.toggle('active'); if(profileSection)profileSection.classList.toggle('active'); }); } document.addEventListener('click',e=>{ if(profileSection&&!profileSection.contains(e.target)&&profilePopup&&!profilePopup.contains(e.target)){ profilePopup.classList.remove('active'); profileSection.classList.remove('active'); } }); const toggleMenu=()=>{ if(sidebar)sidebar.classList.toggle('active'); if(overlay)overlay.classList.toggle('active'); }; if(menuToggle)menuToggle.addEventListener('click',toggleMenu); if(sidebarCloseBtn)sidebarCloseBtn.addEventListener('click',toggleMenu); if(overlay)overlay.addEventListener('click',toggleMenu); if(logoutBtn){ logoutBtn.addEventListener('click',async()=>{ try{ await signOut(auth); window.location.href='index.html'; }catch(error){ console.error("Error signing out:",error); } }); }
 
-            if (profileSection) {
-                profileSection.addEventListener('click', e => {
-                    e.stopPropagation();
-                    if (profilePopup) profilePopup.classList.toggle('active');
-                    if (profileSection) profileSection.classList.toggle('active');
-                });
-            }
-            document.addEventListener('click', e => {
-                if (profileSection && !profileSection.contains(e.target) && profilePopup && !profilePopup.contains(e.target)) {
-                    profilePopup.classList.remove('active');
-                    profileSection.classList.remove('active');
-                }
-            });
-            const toggleMenu = () => {
-                if (sidebar) sidebar.classList.toggle('active');
-                if (overlay) overlay.classList.toggle('active');
-            };
-            if (menuToggle) menuToggle.addEventListener('click', toggleMenu);
-            if (sidebarCloseBtn) sidebarCloseBtn.addEventListener('click', toggleMenu);
-            if (overlay) overlay.addEventListener('click', toggleMenu);
+             // Actionsheet event listeners
+             if (actionsheetCancelBtn) actionsheetCancelBtn.addEventListener('click', closeActionsheet);
+             if (actionsheetOverlay) actionsheetOverlay.addEventListener('click', closeActionsheet);
+             if (actionsheetMenu) actionsheetMenu.addEventListener('click', e => e.stopPropagation());
 
-            if (logoutBtn) {
-                logoutBtn.addEventListener('click', async () => {
-                    try {
-                        await signOut(auth);
-                        window.location.href = 'index.html';
-                    } catch (error) {
-                        console.error("Error signing out:", error);
-                    }
-                });
-            }
+             // Close actionsheet clicking outside card/menu
+             document.addEventListener('click', (e) => { if (!e.target.closest('.profile-card') && !e.target.closest('.actionsheet-menu')) { closeActionsheet(); } });
         });
 
-        function showMessage(element, message, isSuccess = true) {
-            if (element) {
-                element.textContent = message;
-                element.classList.remove('hidden');
-                element.classList.toggle('success-message', isSuccess);
-                element.classList.toggle('error-message', !isSuccess);
-                setTimeout(() => element.classList.add('hidden'), 5000);
-            }
-        }
+        // --- Utility Functions ---
+        function showMessage(element, message, isSuccess = true) { if (element) { element.textContent = message; element.classList.remove('hidden'); element.classList.toggle('success-message', isSuccess); element.classList.toggle('error-message', !isSuccess); setTimeout(() => element.classList.add('hidden'), 5000); } }
+        async function logChange(action, entityType, entityId, details = {}) { if (!currentUser) return; try { await addDoc(collection(db, 'changeHistory'), { action, entityType, entityId, userId: currentUser.uid, userEmail: currentUser.email, timestamp: serverTimestamp(), details: JSON.stringify(details) }); } catch (error) { console.error("Error logging global change:", error); } }
+        async function logProfileFieldChange(profileId, fieldName, oldValue, newValue) { if (!currentUser || oldValue === newValue) return; try { await addDoc(collection(db, 'profiles', profileId, 'history'), { fieldName, oldValue: oldValue ?? null, newValue: newValue ?? null, changedByUid: currentUser.uid, changedByEmail: currentUser.email, timestamp: serverTimestamp(), }); } catch (error) { console.error(`Error logging field change for ${fieldName}:`, error); } }
+        function getMatrimonyGroupName(groupId) { if (!groupId) return 'N/A'; const group = hardcodedMatrimonyGroups.find(g => g.id === groupId); return group ? group.name : 'Unknown'; }
+        function calculateAge(dateOfBirthString) { if (!dateOfBirthString) return 'N/A'; try { const dob = new Date(dateOfBirthString); const today = new Date(); let age = today.getFullYear() - dob.getFullYear(); const m = today.getMonth() - dob.getMonth(); if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) { age--; } return age >= 0 ? age : 'N/A'; } catch (e) { return 'N/A'; } }
+        function formatStatus(status) { return status ? status.charAt(0).toUpperCase() + status.slice(1) : 'N/A'; }
 
-        async function logChange(action, entityType, entityId, details = {}) {
-            if (!currentUser) return;
-            try {
-                await addDoc(collection(db, 'changeHistory'), {
-                    action,
-                    entityType,
-                    entityId,
-                    userId: currentUser.uid,
-                    userEmail: currentUser.email,
-                    timestamp: serverTimestamp(),
-                    details: JSON.stringify(details)
-                });
-            } catch (error) {
-                console.error("Error logging global change:", error);
-            }
-        }
-
-        async function logProfileFieldChange(profileId, fieldName, oldValue, newValue) {
-            if (!currentUser || oldValue === newValue) return;
-
-            try {
-                await addDoc(collection(db, 'profiles', profileId, 'history'), {
-                    fieldName,
-                    oldValue,
-                    newValue,
-                    changedByUid: currentUser.uid,
-                    changedByEmail: currentUser.email,
-                    timestamp: serverTimestamp(),
-                });
-            } catch (error) {
-                console.error(`Error logging field change for ${fieldName}:`, error);
-            }
-        }
-        
-        function getMatrimonyGroupName(groupId) {
-            if (!groupId) {
-                return 'Not Specified';
-            }
-            const group = hardcodedMatrimonyGroups.find(g => g.id === groupId);
-            return group ? group.name : 'Unknown Group';
-        }
-
-        function calculateAge(dateOfBirthString) {
-            if (!dateOfBirthString) return 'N/A';
-            const dob = new Date(dateOfBirthString);
-            const today = new Date();
-            let age = today.getFullYear() - dob.getFullYear();
-            const monthDiff = today.getMonth() - dob.getMonth();
-            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
-                age--;
-            }
-            return age;
-        }
-
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                currentUser = user;
-                try {
-                    const userDoc = await getDoc(doc(db, 'users', user.uid));
-                    const userData = userDoc.exists() ? userDoc.data() : {};
-                    currentUserRole = userData.role;
-                    const userStatus = userData.status;
-
-                    if (userStatus === 'pending') {
-                        window.location.href = 'pending.html';
-                        return;
-                    } else if (userStatus === 'denied' || userStatus === 'suspended') {
-                        window.location.href = 'denied.html';
-                        return;
-                    } else if (currentUserRole !== 'admin') {
-                        alert('You do not have sufficient permissions to access this page. Redirecting to employee dashboard.');
-                        window.location.href = 'employee-dashboard.html';
-                        return;
-                    }
-                } catch (error) {
-                    console.error("Error fetching user role/status:", error);
-                    alert('Error verifying user role. Redirecting to login.');
-                    await signOut(auth);
-                    window.location.href = 'index.html';
-                    return;
-                }
-
-                if (sidebarUserName) sidebarUserName.textContent = user.email;
-                if (sidebarUserRole) sidebarUserRole.textContent = currentUserRole ? currentUserRole.charAt(0).toUpperCase() + currentUserRole.slice(1) : 'Admin';
-                if (popupUserEmail) popupUserEmail.textContent = user.email;
-                if (popupUserRole) popupUserRole.textContent = currentUserRole ? currentUserRole.charAt(0).toUpperCase() + currentUserRole.slice(1) : 'Admin';
-
-                const avatarUrl = user.photoURL || 'https://via.placeholder.com/40';
-                if (sidebarUserAvatar) sidebarUserAvatar.src = avatarUrl;
-                if (popupUserAvatar) popupUserAvatar.src = avatarUrl;
-
-                if (logoutBtn) logoutBtn.classList.remove('hidden');
-
-                if (navDashboardLink) navDashboardLink.href = 'admin-dashboard.html';
-                if (navManageUsersItem) navManageUsersItem.classList.remove('hidden');
-                if (navManageProfilesItem) navManageProfilesItem.classList.remove('hidden');
-                if (navGlobalHistoryItem) navGlobalHistoryItem.classList.remove('hidden');
-
-                fetchAllProfilesForAdmin();
-
-            } else {
-                window.location.href = 'index.html';
-            }
-        });
+        // --- Auth & Initial Load ---
+        onAuthStateChanged(auth, async (user) => { if (user) { currentUser = user; try { const userDoc = await getDoc(doc(db, 'users', user.uid)); const userData = userDoc.exists() ? userDoc.data() : {}; currentUserRole = userData.role; const userStatus = userData.status; if (userStatus === 'pending') { window.location.href = 'pending.html'; return; } else if (userStatus === 'denied' || userStatus === 'suspended') { window.location.href = 'denied.html'; return; } else if (currentUserRole !== 'admin') { alert('Permission Denied.'); window.location.href = 'employee-dashboard.html'; return; } } catch (error) { console.error("Error fetching user role/status:", error); alert('Auth Error.'); await signOut(auth); window.location.href = 'index.html'; return; } if (sidebarUserName) sidebarUserName.textContent = user.email; if (sidebarUserRole) sidebarUserRole.textContent = currentUserRole ? formatStatus(currentUserRole) : 'Admin'; if (popupUserEmail) popupUserEmail.textContent = user.email; if (popupUserRole) popupUserRole.textContent = currentUserRole ? formatStatus(currentUserRole) : 'Admin'; const avatarUrl = user.photoURL || 'https://via.placeholder.com/40'; if (sidebarUserAvatar) sidebarUserAvatar.src = avatarUrl; if (popupUserAvatar) popupUserAvatar.src = avatarUrl; if (logoutBtn) logoutBtn.classList.remove('hidden'); if (navDashboardLink) navDashboardLink.href = 'admin-dashboard.html'; if (navManageUsersItem) navManageUsersItem.classList.remove('hidden'); if (navManageProfilesItem) navManageProfilesItem.classList.remove('hidden'); if (navGlobalHistoryItem) navGlobalHistoryItem.classList.remove('hidden'); fetchAllProfilesForAdmin(); } else { window.location.href = 'index.html'; } });
 
         // --- All Profiles Management ---
         async function fetchAllProfilesForAdmin() {
-            if (allProfilesList) allProfilesList.innerHTML = `
-                <div class="profile-card skeleton"></div><div class="profile-card skeleton"></div>
-                <div class="profile-card skeleton"></div><div class="profile-card skeleton"></div>
-            `;
+             if (!allProfilesList) return;
+             const skeletonHTML = Array(4).fill(`
+                <div class="profile-card skeleton">
+                     <div style="width: 60px; height: 60px; border-radius: 50%; background-color: #cbd5e1; flex-shrink: 0;"></div>
+                     <div style="flex-grow: 1;">
+                          <div class="skeleton-line" style="width: 60%; margin-bottom: 0.5rem;"></div>
+                          <div class="skeleton-line" style="width: 80%; height: 12px; margin-bottom: 0;"></div>
+                     </div>
+                </div>`).join('');
+             allProfilesList.innerHTML = skeletonHTML;
+
             try {
                 const q = query(collection(db, 'profiles'), orderBy('name'));
                 const snapshot = await getDocs(q);
-
-                if (allProfilesList) allProfilesList.innerHTML = '';
-                if (snapshot.empty) {
-                    if (allProfilesList) allProfilesList.innerHTML = '<p class="no-records">No profiles found.</p>';
-                    return;
-                }
-
+                
+                if (snapshot.empty) { allProfilesList.innerHTML = '<p class="no-records">No profiles found.</p>'; return; }
                 renderProfiles(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })), allProfilesList, true);
             } catch (error) {
                 console.error("Error fetching all profiles:", error);
                 if (adminProfileMessage) showMessage(adminProfileMessage, `Error loading profiles: ${error.message}`, false);
+                 allProfilesList.innerHTML = '<p class="no-records error-message">Could not load profiles.</p>';
             }
         }
 
+        // --- Helper to Create Action Buttons HTML ---
+         function createActionButtonsHTML(profile, isMobileMenu = false) {
+             const profileId = profile.id;
+             const currentStatus = profile.profileStatus || 'inactive';
+             const viewLink = `view-profile.html?profileId=${profileId}&source=manageprof`;
+             const editLink = `create-profile.html?profileId=${profileId}`;
+             const buttonClass = isMobileMenu ? '' : 'action-button';
+             const tag = isMobileMenu ? 'button' : 'a'; // Use buttons in menu for consistent event handling
+
+             // Generate individual button/link HTML strings conditionally
+             const viewHTML = `<a href="${viewLink}" target="_blank" class="${buttonClass} view" data-action="view" data-id="${profileId}"><i class='bx bx-show'></i>View</a>`;
+             const editHTML = `<a href="${editLink}" class="${buttonClass} edit" data-action="edit" data-id="${profileId}"><i class='bx bx-edit-alt'></i>Edit</a>`;
+             const marriedHTML = currentStatus !== 'married' ? `<button class="${buttonClass} married" data-action="status" data-id="${profileId}" data-status="married"><i class='bx bx-check-double'></i>Married</button>` : '';
+             const deactivateHTML = currentStatus !== 'inactive' ? `<button class="${buttonClass} deactivate" data-action="status" data-id="${profileId}" data-status="inactive"><i class='bx bx-user-x'></i>Deactivate</button>` : '';
+             const reactivateHTML = (currentStatus === 'married' || currentStatus === 'inactive') ? `<button class="${buttonClass} reactivate" data-action="status" data-id="${profileId}" data-status="active"><i class='bx bx-user-check'></i>Reactivate</button>` : '';
+             const deleteHTML = currentUserRole === 'admin' ? `<button class="${buttonClass} delete" data-action="delete" data-id="${profileId}"><i class='bx bx-trash'></i>Delete</button>` : '';
+
+             // Combine based on context
+             let allButtonsHTML = [viewHTML, editHTML, marriedHTML, deactivateHTML, reactivateHTML, deleteHTML].filter(Boolean); // Filter out empty strings
+
+             if (isMobileMenu) {
+                 return allButtonsHTML.map(item => `<li>${item}</li>`).join(''); // Wrap in <li>
+             }
+             return allButtonsHTML.join(''); // Join directly for desktop
+         };
+
+        // --- Render Profiles ---
         function renderProfiles(profiles, targetDiv, showAdminActions) {
             if (!targetDiv) return;
             targetDiv.innerHTML = '';
+
             profiles.forEach(profile => {
-                const matrimonyGroupName = getMatrimonyGroupName(profile.matrimonyGroupId);
                 const age = calculateAge(profile.dateOfBirth);
-                let statusClass = '';
-                switch (profile.profileStatus) {
-                    case 'active': statusClass = 'active'; break;
-                    case 'married': statusClass = 'married'; break;
-                    case 'inactive': statusClass = 'inactive'; break;
-                    default: statusClass = ''; break;
-                }
+                const statusClass = profile.profileStatus || 'inactive';
+                const displayPhoto = (profile.photoURLs && profile.photoURLs[0]) ? profile.photoURLs[0] : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(profile.name || '?') + '&background=random&color=fff&size=60';
 
                 const profileCard = document.createElement('div');
                 profileCard.className = 'profile-card';
+                profileCard.dataset.profileId = profile.id;
+                profileCard.dataset.profileName = profile.name || 'Unnamed Profile';
+
                 profileCard.innerHTML = `
-                    <img src="${(profile.photoURLs && profile.photoURLs[0]) || 'https://via.placeholder.com/120'}" alt="${profile.name}">
-                    <h3>${profile.name}</h3>
-                    <p><strong>Age:</strong> ${age}</p>
-                    <p><strong>Location:</strong> ${profile.location}</p>
-                    <p><strong>Group:</strong> ${matrimonyGroupName}</p>
-                    <p><strong>Status:</strong> <span class="status-badge ${statusClass}">${profile.profileStatus || 'N/A'}</span></p>
-                    <div class="actions">
-                        <a href="view-profile.html?profileId=${profile.id}" class="button view">View</a>
-                        ${showAdminActions ? `<a href="create-profile.html?profileId=${profile.id}" class="button edit">Edit</a>` : ''}
-                        ${showAdminActions && profile.profileStatus !== 'married' ? `<button class="married" data-id="${profile.id}" data-status="married">Mark Married</button>` : ''}
-                        ${showAdminActions && profile.profileStatus !== 'inactive' ? `<button class="deactivate" data-id="${profile.id}" data-status="inactive">Deactivate</button>` : ''}
-                        ${showAdminActions && (profile.profileStatus === 'married' || profile.profileStatus === 'inactive') ? `<button class="reactivate" data-id="${profile.id}" data-status="active">Reactivate</button>` : ''}
-                        ${showAdminActions && currentUserRole === 'admin' ? `<button class="delete" data-id="${profile.id}">Delete</button>` : ''}
+                    <img src="${displayPhoto}" alt="${profile.name}" class="profile-image">
+                    <div class="profile-info">
+                        <h3>${profile.name || 'No Name'}</h3>
+                        <p class="desktop-only">Age: ${age} | Loc: ${profile.location || 'N/A'} | Grp: ${getMatrimonyGroupName(profile.matrimonyGroupId)}</p>
+                        <span class="status-badge ${statusClass}">${formatStatus(profile.profileStatus)}</span>
                     </div>
+                    <div class="desktop-actions">
+                         ${createActionButtonsHTML(profile, false)}
+                    </div>
+                    <button class="mobile-manage-btn" aria-label="Manage Profile"><i class='bx bx-dots-vertical-rounded'></i></button>
                 `;
                 targetDiv.appendChild(profileCard);
             });
 
-            targetDiv.querySelectorAll('.delete').forEach(button => {
-                button.addEventListener('click', (e) => deleteProfile(e.target.dataset.id));
+            // Add Event Listeners AFTER rendering
+            targetDiv.querySelectorAll('.mobile-manage-btn').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const card = e.target.closest('.profile-card');
+                    const profileData = profiles.find(p => p.id === card.dataset.profileId);
+                    if (profileData) { openActionsheet(profileData); }
+                    else { console.error("Could not find profile data:", card.dataset.profileId); }
+                });
             });
-            targetDiv.querySelectorAll('.actions button.married').forEach(button => {
-                button.addEventListener('click', (e) => updateProfileStatus(e.target.dataset.id, e.target.dataset.status));
-            });
-            targetDiv.querySelectorAll('.actions button.deactivate').forEach(button => {
-                button.addEventListener('click', (e) => updateProfileStatus(e.target.dataset.id, e.target.dataset.status));
-            });
-            targetDiv.querySelectorAll('.actions button.reactivate').forEach(button => {
-                button.addEventListener('click', (e) => updateProfileStatus(e.target.dataset.id, e.target.dataset.status));
+
+            targetDiv.querySelectorAll('.desktop-actions button[data-action]').forEach(button => {
+                 const action = button.dataset.action;
+                 const profileId = button.dataset.id;
+                 const status = button.dataset.status;
+                 button.addEventListener('click', (e) => {
+                      e.stopPropagation();
+                      if (action === 'delete') deleteProfile(profileId);
+                      else if (action === 'status') updateProfileStatus(profileId, status);
+                 });
             });
         }
 
-        async function updateProfileStatus(profileId, newStatus) {
-            if (!currentUser || (currentUserRole !== 'admin' && newStatus === 'active')) {
-                showMessage(adminProfileMessage, 'You do not have permission for this action.', false);
-                return;
-            }
+        // --- Actionsheet Functions ---
+        function openActionsheet(profile) {
+            closeActionsheet();
+            if (!actionsheetMenu || !actionsheetList || !actionsheetProfileName || !actionsheetOverlay || !profile) return;
 
-            const confirmationMessage = `Are you sure you want to change this profile's status to '${newStatus.toUpperCase()}'?`;
-            if (!confirm(confirmationMessage)) return;
+            actionsheetMenu.dataset.profileId = profile.id; // Store ID for reference if needed
+            actionsheetProfileName.textContent = profile.name || 'Profile Actions'; // Set the name in the header
+            actionsheetList.innerHTML = ''; // Clear previous
+
+            const actionItemsHTML = createActionButtonsHTML(profile, true); // Generate <li> wrapped buttons/links
+            actionsheetList.innerHTML = actionItemsHTML;
+
+            // Add listeners to the NEWLY created buttons/links in the actionsheet
+            actionsheetList.querySelectorAll('button[data-action], a[data-action]').forEach(element => {
+                 const action = element.dataset.action;
+                 const id = element.dataset.id;
+                 const status = element.dataset.status;
+
+                 // Combined handler for touch and click
+                 let fired = false;
+                 const handleAction = (e) => {
+                      if(fired) return;
+                      fired = true;
+                      setTimeout(() => { fired = false }, 300); // Debounce
+
+                      e.preventDefault();
+                      e.stopPropagation();
+
+                      if (action === 'delete') deleteProfile(id);
+                      else if (action === 'status') updateProfileStatus(id, status);
+                      else if ((action === 'view' || action === 'edit') && element.tagName === 'A' && element.href) {
+                           window.open(element.href, '_blank'); // Open view/edit links
+                      }
+                      
+                      closeActionsheet();
+                 };
+                 element.addEventListener('touchstart', handleAction, { passive: false });
+                 element.addEventListener('click', handleAction);
+            });
+
+            actionsheetOverlay.classList.add('show');
+            actionsheetMenu.classList.add('show');
+        }
+
+        function closeActionsheet() {
+            if (actionsheetOverlay) actionsheetOverlay.classList.remove('show');
+            if (actionsheetMenu) actionsheetMenu.classList.remove('show');
+        }
+
+        // --- Action Handlers (Update Status, Delete) ---
+        async function updateProfileStatus(profileId, newStatus) {
+            if (!currentUser || (currentUserRole !== 'admin' && newStatus === 'active')) { showMessage(adminProfileMessage, 'Permission Denied.', false); return; }
+            if (!confirm(`Confirm status change to '${newStatus.toUpperCase()}' for this profile?`)) return;
+
+            const buttonsToDisable = document.querySelectorAll(`[data-id="${profileId}"][data-action="status"][data-status="${newStatus}"]`);
+            buttonsToDisable.forEach(btn => btn.disabled = true);
 
             try {
                 const profileRef = doc(db, 'profiles', profileId);
                 const oldProfileDoc = await getDoc(profileRef);
                 const oldStatus = oldProfileDoc.exists() ? oldProfileDoc.data().profileStatus : 'unknown';
 
-                await updateDoc(profileRef, {
-                    profileStatus: newStatus,
-                    updatedAt: serverTimestamp(),
-                    updatedBy: currentUser.uid,
-                });
-                await logChange('update_profile_status', 'profile', profileId, { oldStatus: oldStatus, newStatus: newStatus });
+                await updateDoc(profileRef, { profileStatus: newStatus, updatedAt: serverTimestamp(), updatedBy: currentUser.uid });
+                await logChange('update_profile_status', 'profile', profileId, { oldStatus, newStatus });
                 await logProfileFieldChange(profileId, 'profileStatus', oldStatus, newStatus);
 
-                showMessage(adminProfileMessage, `Profile status updated to '${newStatus}' successfully!`, true);
-                fetchAllProfilesForAdmin();
-            } catch (error) {
-                console.error("Error updating profile status:", error);
-                showMessage(adminProfileMessage, `Error updating profile status: ${error.message}`, false);
-            }
+                showMessage(adminProfileMessage, `Status updated to '${newStatus}'!`, true);
+                fetchAllProfilesForAdmin(); // Refresh list
+            } catch (error) { console.error("Error updating status:", error); showMessage(adminProfileMessage, `Error: ${error.message}`, false); }
+             finally { buttonsToDisable.forEach(btn => btn.disabled = false); }
         }
 
         async function deleteProfile(profileId) {
-            if (currentUserRole !== 'admin') {
-                showMessage(adminProfileMessage, 'You do not have permission to delete profiles.', false);
-                return;
-            }
-            if (!confirm("Are you sure you want to delete this profile? This action cannot be undone.")) return;
+            if (currentUserRole !== 'admin') { showMessage(adminProfileMessage, 'Permission Denied.', false); return; }
+            if (!confirm("DELETE this profile permanently? This includes photos and history. Cannot be undone.")) return;
+
+             const buttonsToDisable = document.querySelectorAll(`[data-id="${profileId}"][data-action="delete"]`);
+             buttonsToDisable.forEach(btn => btn.disabled = true);
 
             try {
                 const profileDocRef = doc(db, 'profiles', profileId);
                 const profileDoc = await getDoc(profileDocRef);
                 const profileData = profileDoc.exists() ? profileDoc.data() : {};
 
-                // Delete profile photos from storage
+                // Delete Photos
                 if (profileData.photoURLs && profileData.photoURLs.length > 0) {
                     for (const urlToDelete of profileData.photoURLs) {
                         try {
-                            const photoRef = ref(storage, urlToDelete);
-                            await deleteObject(photoRef);
-                        } catch (deleteError) {
-                            console.warn("Could not delete a profile photo from storage:", deleteError);
-                        }
+                            const urlPathRegex = /https:\/\/firebasestorage\.googleapis\.com\/v0\/b\/[^/]+\/o\/(.+)\?alt=media/;
+                            const match = urlToDelete.match(urlPathRegex);
+                            if (match && match[1]) {
+                                const filePath = decodeURIComponent(match[1]);
+                                const photoRef = ref(storage, filePath);
+                                await deleteObject(photoRef);
+                            } else { console.warn(`Could not extract path from URL: ${urlToDelete}`); }
+                        } catch (deleteError) { if (deleteError.code !== 'storage/object-not-found') { console.warn("Could not delete photo:", deleteError); } }
                     }
                 }
-
-                // Delete profile field history subcollection
+                // Delete History Subcollection
                 const historySnapshot = await getDocs(collection(db, 'profiles', profileId, 'history'));
-                const batch = writeBatch(db); // Corrected: use writeBatch()
-                historySnapshot.forEach(doc => {
-                    batch.delete(doc.ref);
-                });
-                await batch.commit();
-
-                // Finally delete the profile document
+                if (!historySnapshot.empty) { const batch = writeBatch(db); historySnapshot.forEach(doc => batch.delete(doc.ref)); await batch.commit(); }
+                // Delete Profile Doc
                 await deleteDoc(profileDocRef);
                 await logChange('delete', 'profile', profileId, { deletedData: profileData });
                 
                 showMessage(adminProfileMessage, 'Profile deleted successfully!', true);
                 fetchAllProfilesForAdmin();
-            } catch (error) {
-                console.error("Error deleting profile:", error);
-                showMessage(adminProfileMessage, `Error deleting profile: ${error.message}`, false);
-            }
+            } catch (error) { console.error("Error deleting profile:", error); showMessage(adminProfileMessage, `Error deleting: ${error.message}`, false); }
+             finally { buttonsToDisable.forEach(btn => btn.disabled = false); }
         }
     </script>
 </body>
