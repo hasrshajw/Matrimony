@@ -53,19 +53,26 @@
     .content-body { padding: 2rem 3rem; margin-top: 0; }
     
     .form-group { margin-bottom: 15px; }
-    .form-group label { display: block; margin-bottom: 5px; font-weight: bold; color: #555; }
-    input[type="text"], input[type="email"], input[type="password"], input[type="number"], input[type="date"], textarea, select {
+    .form-group label { display: block; margin-bottom: 5px; font-weight: bold; color: #555; font-size: 0.875rem; }
+    input[type="text"], input[type="email"], input[type="tel"], input[type="password"], input[type="number"], input[type="date"], textarea, select {
         width: 100%; 
         padding: 10px; 
         margin: 0; 
-        border: 1px solid #ddd; 
-        border-radius: 5px; 
+        border: 1px solid var(--border-color); 
+        border-radius: 8px; 
         box-sizing: border-box; 
-        font-size: 14px;
+        font-size: 0.95rem;
         font-family: 'IBM Plex Sans', sans-serif;
+        background-color: var(--body-bg);
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
     }
+     input[type="text"]:focus, input[type="email"]:focus, input[type="tel"]:focus, input[type="password"]:focus, input[type="number"]:focus, input[type="date"]:focus, textarea:focus, select:focus {
+         border-color: var(--brand-green);
+         outline: none;
+         box-shadow: 0 0 0 3px rgba(51, 195, 117, 0.2);
+     }
     
-    button { background-color: var(--brand-green); color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; transition: background-color 0.2s ease; }
+    button { background-color: var(--brand-green); color: white; padding: 10px 15px; border: none; border-radius: 8px; cursor: pointer; font-size: 1rem; transition: background-color 0.2s ease; font-weight: 500; }
     button:hover { background-color: #2fb165; }
     button:disabled { background-color: #cccccc; cursor: not-allowed; }
 
@@ -77,12 +84,12 @@
         border: 4px solid #f3f3f3;
         border-top: 4px solid var(--brand-green);
         border-radius: 50%;
-        width: 20px;
-        height: 20px;
+        width: 18px; 
+        height: 18px;
         animation: spin 1s linear infinite;
         display: inline-block;
         vertical-align: middle;
-        margin-left: 10px;
+        margin-left: 8px; 
     }
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
@@ -97,19 +104,8 @@
         .content-body { padding: 1.5rem; }
         .menu-toggle { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; font-size: 1.5rem; color: var(--text-primary); cursor: pointer; background: none; border: none; }
         .sidebar-close-btn { display: flex; align-items: center; justify-content: center; position: absolute; top: 1.5rem; right: 1.5rem; font-size: 1.75rem; color: var(--danger-color); cursor: pointer; border: none; background: none; }
-        .overlay {
-            position: fixed; inset: 0; background-color: rgba(0,0,0,0.4); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
-            z-index: 999;
-            opacity: 0;
-            visibility: hidden;
-            pointer-events: none;
-            transition: opacity 0.3s ease, visibility 0.3s ease;
-        }
-        .overlay.active {
-            opacity: 1;
-            visibility: visible;
-            pointer-events: auto;
-        }
+        .overlay { position: fixed; inset: 0; background-color: rgba(0,0,0,0.4); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); z-index: 999; opacity: 0; visibility: hidden; pointer-events: none; transition: opacity 0.3s ease, visibility 0.3s ease; }
+        .overlay.active { opacity: 1; visibility: visible; pointer-events: auto; }
     }
 
     .profile-list { 
@@ -124,57 +120,22 @@
         border-radius: 8px; 
         padding: 20px; 
         box-shadow: 0 2px 5px rgba(0,0,0,0.05); 
-        transition: box-shadow 0.2s ease;
-        /* --- NEW: Dim profiles that are not 100% match --- */
-        opacity: 1;
-        transition: opacity 0.3s ease;
-    }
-    .profile-card.partial-match {
-        opacity: 0.85;
-        border-style: dashed;
-    }
-    .profile-card.partial-match:hover {
+        transition: box-shadow 0.2s ease, opacity 0.3s ease;
         opacity: 1;
     }
-
-    .profile-card img { 
-        width: 100%;
-        height: 200px;
-        border-radius: 6px;
-        object-fit: cover; 
-        margin-bottom: 15px; 
-        border: 1px solid var(--border-color);
-    }
-    .profile-card h3 { 
-        margin-top: 0; 
-        margin-bottom: 10px; 
-        color: var(--text-primary); 
-        font-size: 1.2rem;
-    }
-    .profile-card p { 
-        margin: 5px 0; 
-        font-size: 0.9rem; 
-        color: var(--text-secondary); 
-        line-height: 1.4;
-    }
-    .profile-card p strong {
-        color: var(--text-primary);
-        font-weight: 500;
-    }
-    .profile-card .actions {
-        margin-top: 15px;
-    }
-    .no-profiles { 
-        text-align: center; 
-        color: var(--text-secondary); 
-        font-style: italic; 
-        margin-top: 30px; 
-        grid-column: 1 / -1;
-    }
+    .profile-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+    .profile-card.partial-match { opacity: 0.85; border-style: dashed; }
+    .profile-card.partial-match:hover { opacity: 1; }
+    .profile-card img { width: 100%; height: 200px; border-radius: 6px; object-fit: cover; margin-bottom: 15px; border: 1px solid var(--border-color); }
+    .profile-card h3 { margin-top: 0; margin-bottom: 10px; color: var(--text-primary); font-size: 1.2rem; }
+    .profile-card p { margin: 5px 0; font-size: 0.9rem; color: var(--text-secondary); line-height: 1.4; }
+    .profile-card p strong { color: var(--text-primary); font-weight: 500; }
+    .profile-card .actions { margin-top: 15px; }
+    .no-profiles { text-align: center; color: var(--text-secondary); font-style: italic; margin-top: 30px; grid-column: 1 / -1; }
 
     .search-filters-container {
         display: grid;
-        grid-template-columns: 2fr 1fr;
+        grid-template-columns: 2.5fr 1fr; /* Give more space to filters */
         gap: 30px;
         margin-bottom: 30px;
         padding: 25px;
@@ -183,103 +144,44 @@
         border-radius: 12px;
         box-shadow: 0 4px 6px -1px rgba(0,0,0,0.03), 0 2px 4px -1px rgba(0,0,0,0.02);
     }
-    .filter-block {
-        padding: 0;
-    }
-    .filter-block h3 {
-        color: var(--text-primary);
-        font-weight: 600;
-        margin-top: 0;
-        border-bottom: 1px solid var(--border-color);
-        padding-bottom: 10px;
-        margin-bottom: 15px;
-    }
+    .filter-block { padding: 0; }
+    .filter-block h3 { color: var(--text-primary); font-weight: 600; margin-top: 0; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; margin-bottom: 15px; font-size: 1.1rem; }
     
-    /* --- NEW: Changed grid to 2 columns for better layout --- */
-    .filter-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 15px;
-    }
-    .filter-grid .form-group {
-        margin-bottom: 0; /* Remove double margin */
-    }
-    .filter-block h4 {
-        font-size: 0.9rem;
-        color: var(--text-secondary);
-        font-weight: 600;
-        margin-top: 15px;
-        margin-bottom: 5px;
-    }
+    /* --- UPDATED: 3 columns for filter grid --- */
+    .filter-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; }
+    .filter-grid .form-group { margin-bottom: 0; }
+    .filter-block h4 { font-size: 0.9rem; color: var(--text-secondary); font-weight: 600; margin-top: 20px; /* Increased top margin */ margin-bottom: 10px; /* Increased bottom margin */ }
 
-    .smart-search-block .form-group textarea {
-        min-height: 150px;
-        resize: vertical;
-    }
+    .smart-search-block .form-group textarea { min-height: 120px; /* Adjusted height */ resize: vertical; }
     
-    .action-buttons {
-        grid-column: 1 / -1;
-        display: flex;
-        justify-content: flex-end;
-        gap: 15px;
-        padding-top: 20px;
-        border-top: 1px solid var(--border-color);
-        margin-top: 15px;
-    }
-    .action-buttons button {
-        width: auto;
-        padding: 10px 25px;
-    }
+    .action-buttons { grid-column: 1 / -1; display: flex; justify-content: flex-end; gap: 15px; padding-top: 20px; border-top: 1px solid var(--border-color); margin-top: 25px; /* Increased margin */ }
+    .action-buttons button { width: auto; padding: 10px 25px; }
     
+    @media (max-width: 1400px) { /* Adjust breakpoint for 3->2 columns */
+         .filter-grid {
+             grid-template-columns: 1fr 1fr; 
+         }
+     }
     @media (max-width: 1200px) {
-        .search-filters-container {
-            grid-template-columns: 1fr;
-        }
+        .search-filters-container { grid-template-columns: 1fr; }
     }
     @media (max-width: 768px) {
-        .filter-grid {
-            grid-template-columns: 1fr 1fr;
-        }
+        .filter-grid { grid-template-columns: 1fr 1fr; } /* Keep 2 cols on tablet */
         .main-header { padding: 1.25rem 1.5rem; }
         .content-body { padding: 1.5rem; }
     }
     @media (max-width: 500px) {
-        .filter-grid {
-            grid-template-columns: 1fr;
-        }
+        .filter-grid { grid-template-columns: 1fr; } /* 1 col on mobile */
     }
     
-    /* --- NEW: Styles for match details on cards --- */
-    .profile-card del {
-        color: var(--danger-color);
-        opacity: 0.8;
-        text-decoration-thickness: 1.5px;
-    }
-    .profile-card .match-details {
-        border-top: 1px dashed var(--border-color);
-        padding-top: 10px;
-        margin-top: 10px;
-    }
-    .profile-card .match-details p {
-        font-size: 0.85rem;
-        color: var(--text-secondary);
-    }
-    .profile-card .bx-check-circle {
-        vertical-align: middle;
-        color: var(--brand-green);
-        font-size: 1.1em;
-    }
-    .profile-card .match-percentage {
-        font-weight: 600;
-        font-size: 1.1rem;
-        margin-bottom: 10px !important; /* Override default p margin */
-    }
-    .profile-card .match-percentage.full-match {
-        color: var(--brand-green);
-    }
-    .profile-card .match-percentage.partial-match {
-        color: var(--warning-color);
-    }
+    /* Styles for match details on cards */
+    .profile-card del { color: var(--danger-color); opacity: 0.8; text-decoration-thickness: 1.5px; }
+    .profile-card .match-details { border-top: 1px dashed var(--border-color); padding-top: 10px; margin-top: 10px; }
+    .profile-card .match-details p { font-size: 0.85rem; color: var(--text-secondary); }
+    .profile-card .bx-check-circle { vertical-align: middle; color: var(--brand-green); font-size: 1.1em; }
+    .profile-card .match-percentage { font-weight: 600; font-size: 1.1rem; margin-bottom: 10px !important; }
+    .profile-card .match-percentage.full-match { color: var(--brand-green); }
+    .profile-card .match-percentage.partial-match { color: var(--warning-color); }
     
     </style>
 </head>
@@ -339,22 +241,31 @@
                     <div class="filter-block">
                         <h3>Standard Filters</h3>
                         
-                        <h4>Must-Have Filters (Age & Income)</h4>
+                        <h4>Must-Have Filters (Age, Gender, Income)</h4>
                         <div class="filter-grid">
                             <div class="form-group">
+                                <label for="search-gender">Gender:</label>
+                                <select id="search-gender">
+                                    <option value="">Any</option>
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                             <div class="form-group">
                                 <label for="search-age-min">Min Age:</label>
-                                <input type="number" id="search-age-min" min="18" value="18">
+                                <input type="number" id="search-age-min" min="18" placeholder="e.g., 25">
                             </div>
                             <div class="form-group">
                                 <label for="search-age-max">Max Age:</label>
-                                <input type="number" id="search-age-max" min="18" value="99">
+                                <input type="number" id="search-age-max" min="18" placeholder="e.g., 30">
                             </div>
                             <div class="form-group">
-                                <label for="search-income-min">Min Annual Income:</label>
+                                <label for="search-income-min">Min Annual Income (INR):</label>
                                 <input type="number" id="search-income-min" min="0" placeholder="e.g., 500000">
                             </div>
                             <div class="form-group">
-                                <label for="search-income-max">Max Annual Income:</label>
+                                <label for="search-income-max">Max Annual Income (INR):</label>
                                 <input type="number" id="search-income-max" min="0" placeholder="e.g., 1000000">
                             </div>
                         </div>
@@ -362,7 +273,25 @@
                         <h4>Nice-to-Have Filters (Preferences)</h4>
                         <div class="filter-grid">
                             <div class="form-group">
-                                <label for="search-location">Location:</label>
+                                <label for="search-marital-status">Marital Status:</label>
+                                <select id="search-marital-status">
+                                    <option value="">Any</option>
+                                    <option value="Single">Single</option>
+                                    <option value="Divorced">Divorced</option>
+                                    <option value="Widowed">Widowed</option>
+                                    <option value="Awaiting Divorce">Awaiting Divorce</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="search-height-min">Min Height (cm):</label>
+                                <input type="number" id="search-height-min" min="0" placeholder="e.g., 160">
+                            </div>
+                             <div class="form-group">
+                                <label for="search-height-max">Max Height (cm):</label>
+                                <input type="number" id="search-height-max" min="0" placeholder="e.g., 180">
+                            </div>
+                            <div class="form-group">
+                                <label for="search-location">Location (City/Area):</label>
                                 <input type="text" id="search-location" placeholder="e.g., Chennai">
                             </div>
                              <div class="form-group">
@@ -373,14 +302,60 @@
                                 <label for="search-religion">Religion:</label>
                                 <input type="text" id="search-religion" placeholder="e.g., Hindu">
                             </div>
+                             <div class="form-group">
+                                <label for="search-mother-tongue">Mother Tongue:</label>
+                                <input type="text" id="search-mother-tongue" placeholder="e.g., Tamil">
+                            </div>
                             <div class="form-group">
                                 <label for="search-education">Education:</label>
                                 <input type="text" id="search-education" placeholder="e.g., B.Tech">
                             </div>
+                             <div class="form-group">
+                                <label for="search-profession">Profession:</label>
+                                <input type="text" id="search-profession" placeholder="e.g., Software Engineer">
+                            </div>
+                             <div class="form-group">
+                                <label for="search-eating-habits">Eating Habits:</label>
+                                <select id="search-eating-habits">
+                                    <option value="">Any</option>
+                                    <option value="Vegetarian">Vegetarian</option>
+                                    <option value="Non-Vegetarian">Non-Vegetarian</option>
+                                    <option value="Eggetarian">Eggetarian</option>
+                                    <option value="Jain">Jain</option>
+                                    <option value="Vegan">Vegan</option>
+                                </select>
+                            </div>
+                             <div class="form-group">
+                                <label for="search-smoking-habit">Smoking Habit:</label>
+                                <select id="search-smoking-habit">
+                                    <option value="">Any</option>
+                                    <option value="No">No</option>
+                                    <option value="Yes">Yes</option>
+                                    <option value="Occasionally">Occasionally</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="search-drinking-habit">Drinking Habit:</label>
+                                <select id="search-drinking-habit">
+                                    <option value="">Any</option>
+                                    <option value="No">No</option>
+                                    <option value="Yes">Yes</option>
+                                    <option value="Occasionally">Occasionally</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="search-dosham">Dosham:</label>
+                                <select id="search-dosham">
+                                    <option value="">Any</option>
+                                    <option value="Yes">Yes</option>
+                                    <option value="No">No</option>
+                                    <option value="Don't Know">Don't Know</option>
+                                </select>
+                            </div>
                             <div class="form-group">
                                 <label for="search-matrimony-group">Matrimony Group:</label>
                                 <select id="search-matrimony-group">
-                                </select>
+                                    </select>
                             </div>
                         </div>
                     </div>
@@ -388,7 +363,7 @@
                     <div class="filter-block smart-search-block">
                         <h3>Smart Paragraph Search</h3>
                         <div class="form-group full-width">
-                            <textarea id="smart-search-paragraph" placeholder="e.g., Looking for a partner born between 1990 and 1995 from London, preferably with a Bachelor's degree, Brahmin cast, earning over 8LPA." rows="4"></textarea>
+                            <textarea id="smart-search-paragraph" placeholder="e.g., Looking for a Male, 28-32 yrs, Brahmin from Chennai, B.Tech, earning over 8LPA, non-smoker, vegetarian..." rows="4"></textarea>
                             <button type="button" id="smart-search-btn" style="margin-top: 10px;">Smart Search <span class="loading-spinner hidden" id="smart-search-spinner"></span></button>
                         </div>
                     </div>
@@ -432,52 +407,51 @@
         let currentUser = null;
         let currentUserRole = null;
         const hardcodedMatrimonyGroups = [
-            { id: '', name: 'Any' },
+            { id: '', name: 'Any' }, // Added 'Any' option
             { id: 'US', name: 'US' },
             { id: 'BY_OTHERS', name: 'BY OTHERS' }
         ];
 
-        // UI Shell Elements
+        // UI Shell Elements (Keep as is)
         let sidebarUserAvatar, popupUserAvatar, sidebarUserName, sidebarUserRole, popupUserEmail, popupUserRole;
         let logoutBtn;
         let menuToggle, sidebar, sidebarCloseBtn, overlay, mainHeaderTitle;
         let navDashboardItem, navDashboardLink, navManageUsersItem, navManageProfilesItem, navGlobalHistoryItem;
         
-        // Search Page Elements
-        let searchAgeMinInput, searchAgeMaxInput, searchLocationInput, searchReligionInput, searchEducationInput, searchMatrimonyGroupSelect;
-        let smartSearchParagraphInput, smartSearchBtn, smartSearchSpinner, applyFiltersBtn, resetFiltersBtn, searchResultsDiv, searchMessage;
+        // Search Page Elements (Add new ones)
+        let searchGenderSelect, searchAgeMinInput, searchAgeMaxInput, searchIncomeMinInput, searchIncomeMaxInput; // Hard Filters
+        let searchMaritalStatusSelect, searchHeightMinInput, searchHeightMaxInput, searchLocationInput, searchCastInput, searchReligionInput, searchMotherTongueInput, searchEducationInput, searchProfessionInput, searchEatingHabitsSelect, searchSmokingHabitSelect, searchDrinkingHabitSelect, searchDoshamSelect, searchMatrimonyGroupSelect; // Soft Filters
         
-        // New Filter Elements
-        let searchCastInput, searchIncomeMinInput, searchIncomeMaxInput;
+        let smartSearchParagraphInput, smartSearchBtn, smartSearchSpinner, applyFiltersBtn, resetFiltersBtn, searchResultsDiv, searchMessage;
 
 
         document.addEventListener('DOMContentLoaded', function() {
-            // UI Shell Element Assignments
-            sidebarUserAvatar = document.getElementById('sidebar-user-avatar');
-            popupUserAvatar = document.getElementById('popup-user-avatar');
-            sidebarUserName = document.getElementById('current-user-email');
-            sidebarUserRole = document.getElementById('current-user-role');
-            popupUserEmail = document.getElementById('popup-user-email');
-            popupUserRole = document.getElementById('popup-user-role');
-            logoutBtn = document.getElementById('logout-btn');
-            menuToggle = document.getElementById('menu-toggle');
-            sidebar = document.getElementById('sidebar');
-            sidebarCloseBtn = document.getElementById('sidebar-close-btn');
-            overlay = document.getElementById('overlay');
-            mainHeaderTitle = document.getElementById('main-header-title');
-            navDashboardItem = document.getElementById('nav-dashboard-item');
-            navDashboardLink = document.getElementById('nav-dashboard-link');
-            navManageUsersItem = document.getElementById('nav-manage-users-item');
-            navManageProfilesItem = document.getElementById('nav-manage-profiles-item');
-            navGlobalHistoryItem = document.getElementById('nav-global-history-item');
+            // UI Shell Element Assignments (Keep as is)
+            sidebarUserAvatar = document.getElementById('sidebar-user-avatar'); popupUserAvatar = document.getElementById('popup-user-avatar'); sidebarUserName = document.getElementById('current-user-email'); sidebarUserRole = document.getElementById('current-user-role'); popupUserEmail = document.getElementById('popup-user-email'); popupUserRole = document.getElementById('popup-user-role'); logoutBtn = document.getElementById('logout-btn'); menuToggle = document.getElementById('menu-toggle'); sidebar = document.getElementById('sidebar'); sidebarCloseBtn = document.getElementById('sidebar-close-btn'); overlay = document.getElementById('overlay'); mainHeaderTitle = document.getElementById('main-header-title'); navDashboardItem = document.getElementById('nav-dashboard-item'); navDashboardLink = document.getElementById('nav-dashboard-link'); navManageUsersItem = document.getElementById('nav-manage-users-item'); navManageProfilesItem = document.getElementById('nav-manage-profiles-item'); navGlobalHistoryItem = document.getElementById('nav-global-history-item');
 
-            // Search Page Element Assignments
+            // Search Page Element Assignments (Add new ones)
+            // Hard
+            searchGenderSelect = document.getElementById('search-gender');
             searchAgeMinInput = document.getElementById('search-age-min');
             searchAgeMaxInput = document.getElementById('search-age-max');
+            searchIncomeMinInput = document.getElementById('search-income-min');
+            searchIncomeMaxInput = document.getElementById('search-income-max');
+            // Soft
+            searchMaritalStatusSelect = document.getElementById('search-marital-status');
+            searchHeightMinInput = document.getElementById('search-height-min');
+            searchHeightMaxInput = document.getElementById('search-height-max');
             searchLocationInput = document.getElementById('search-location');
+            searchCastInput = document.getElementById('search-cast');
             searchReligionInput = document.getElementById('search-religion');
+            searchMotherTongueInput = document.getElementById('search-mother-tongue');
             searchEducationInput = document.getElementById('search-education');
+            searchProfessionInput = document.getElementById('search-profession');
+            searchEatingHabitsSelect = document.getElementById('search-eating-habits');
+            searchSmokingHabitSelect = document.getElementById('search-smoking-habit');
+            searchDrinkingHabitSelect = document.getElementById('search-drinking-habit');
+            searchDoshamSelect = document.getElementById('search-dosham');
             searchMatrimonyGroupSelect = document.getElementById('search-matrimony-group');
+            // Other
             smartSearchParagraphInput = document.getElementById('smart-search-paragraph');
             smartSearchBtn = document.getElementById('smart-search-btn');
             smartSearchSpinner = document.getElementById('smart-search-spinner');
@@ -485,430 +459,331 @@
             resetFiltersBtn = document.getElementById('reset-filters-btn');
             searchResultsDiv = document.getElementById('search-results');
             searchMessage = document.getElementById('search-message');
-            
-            // New Filter Assignments
-            searchCastInput = document.getElementById('search-cast');
-            searchIncomeMinInput = document.getElementById('search-income-min');
-            searchIncomeMaxInput = document.getElementById('search-income-max');
 
+            // UI Shell Event Listeners (Keep as is)
+            const profileSection = document.getElementById('profile-section'); const profilePopup = document.getElementById('profile-popup'); if (profileSection) { profileSection.addEventListener('click', e => { e.stopPropagation(); if (profilePopup) profilePopup.classList.toggle('active'); if (profileSection) profileSection.classList.toggle('active'); }); } document.addEventListener('click', e => { if (profileSection && !profileSection.contains(e.target) && profilePopup && !profilePopup.contains(e.target)) { profilePopup.classList.remove('active'); profileSection.classList.remove('active'); } }); const toggleMenu = () => { if (sidebar) sidebar.classList.toggle('active'); if (overlay) overlay.classList.toggle('active'); }; if (menuToggle) menuToggle.addEventListener('click', toggleMenu); if (sidebarCloseBtn) sidebarCloseBtn.addEventListener('click', toggleMenu); if (overlay) overlay.addEventListener('click', toggleMenu); if (logoutBtn) logoutBtn.addEventListener('click', async () => { try { await signOut(auth); window.location.href = 'index.html'; } catch (error) { console.error("Error signing out:", error); } });
 
-            // UI Shell Event Listeners
-            const profileSection = document.getElementById('profile-section');
-            const profilePopup = document.getElementById('profile-popup');
-            if (profileSection) {
-                profileSection.addEventListener('click', e => {
-                    e.stopPropagation();
-                    if (profilePopup) profilePopup.classList.toggle('active');
-                    if (profileSection) profileSection.classList.toggle('active');
-                });
-            }
-            document.addEventListener('click', e => {
-                if (profileSection && !profileSection.contains(e.target) && profilePopup && !profilePopup.contains(e.target)) {
-                    profilePopup.classList.remove('active');
-                    profileSection.classList.remove('active');
-                }
-            });
-            const toggleMenu = () => {
-                if (sidebar) sidebar.classList.toggle('active');
-                if (overlay) overlay.classList.toggle('active');
-            };
-            if (menuToggle) menuToggle.addEventListener('click', toggleMenu);
-            if (sidebarCloseBtn) sidebarCloseBtn.addEventListener('click', toggleMenu);
-            if (overlay) overlay.addEventListener('click', toggleMenu);
-
-            if (logoutBtn) logoutBtn.addEventListener('click', async () => {
-                try {
-                    await signOut(auth);
-                    window.location.href = 'index.html';
-                } catch (error) {
-                    console.error("Error signing out:", error);
-                }
-            });
-
-            // Search Page Event Listeners
+            // Search Page Event Listeners (Update Reset)
             if (applyFiltersBtn) applyFiltersBtn.addEventListener('click', () => searchProfiles(false));
             if (smartSearchBtn) smartSearchBtn.addEventListener('click', () => searchProfiles(true));
             if (resetFiltersBtn) resetFiltersBtn.addEventListener('click', () => {
-                if (searchAgeMinInput) searchAgeMinInput.value = 18;
-                if (searchAgeMaxInput) searchAgeMaxInput.value = 99;
-                if (searchLocationInput) searchLocationInput.value = '';
-                if (searchReligionInput) searchReligionInput.value = '';
-                if (searchEducationInput) searchEducationInput.value = '';
-                if (searchMatrimonyGroupSelect) searchMatrimonyGroupSelect.value = '';
-                if (smartSearchParagraphInput) smartSearchParagraphInput.value = '';
-                
-                if (searchCastInput) searchCastInput.value = '';
+                // Reset Hard Filters
+                if (searchGenderSelect) searchGenderSelect.value = '';
+                if (searchAgeMinInput) searchAgeMinInput.value = ''; // Clear instead of default 18
+                if (searchAgeMaxInput) searchAgeMaxInput.value = ''; // Clear instead of default 99
                 if (searchIncomeMinInput) searchIncomeMinInput.value = '';
                 if (searchIncomeMaxInput) searchIncomeMaxInput.value = '';
+                // Reset Soft Filters
+                if (searchMaritalStatusSelect) searchMaritalStatusSelect.value = '';
+                if (searchHeightMinInput) searchHeightMinInput.value = '';
+                if (searchHeightMaxInput) searchHeightMaxInput.value = '';
+                if (searchLocationInput) searchLocationInput.value = '';
+                if (searchCastInput) searchCastInput.value = '';
+                if (searchReligionInput) searchReligionInput.value = '';
+                if (searchMotherTongueInput) searchMotherTongueInput.value = '';
+                if (searchEducationInput) searchEducationInput.value = '';
+                if (searchProfessionInput) searchProfessionInput.value = '';
+                if (searchEatingHabitsSelect) searchEatingHabitsSelect.value = '';
+                if (searchSmokingHabitSelect) searchSmokingHabitSelect.value = '';
+                if (searchDrinkingHabitSelect) searchDrinkingHabitSelect.value = '';
+                if (searchDoshamSelect) searchDoshamSelect.value = '';
+                if (searchMatrimonyGroupSelect) searchMatrimonyGroupSelect.value = '';
+                // Reset Other
+                if (smartSearchParagraphInput) smartSearchParagraphInput.value = '';
                 
                 searchProfiles(false);
             });
         });
 
-        // --- Utility Functions ---
+        // --- Utility Functions (Keep as is)---
+        function showMessage(element, message, isSuccess = true) { if (element) { element.textContent = message; element.classList.remove('hidden'); element.classList.toggle('success-message', isSuccess); element.classList.toggle('error-message', !isSuccess); setTimeout(() => element.classList.add('hidden'), 5000); } }
+        function showSpinner(spinnerElement, buttonElement, show) { if (spinnerElement) spinnerElement.classList.toggle('hidden', !show); if (buttonElement) buttonElement.disabled = show; }
+        function populateMatrimonyGroupSelects() { if (!searchMatrimonyGroupSelect) return; searchMatrimonyGroupSelect.innerHTML = ''; hardcodedMatrimonyGroups.forEach(group => { const option = document.createElement('option'); option.value = group.id; option.textContent = group.name; searchMatrimonyGroupSelect.appendChild(option); }); }
+        function getMatrimonyGroupName(groupId) { if (!groupId) return 'N/A'; const group = hardcodedMatrimonyGroups.find(g => g.id === groupId); return group ? group.name : 'Unknown'; }
+        function calculateAge(dateOfBirthString) { if (!dateOfBirthString) return 'N/A'; try { const dob = new Date(dateOfBirthString); const today = new Date(); let age = today.getFullYear() - dob.getFullYear(); const m = today.getMonth() - dob.getMonth(); if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) { age--; } return age >= 0 ? age : 'N/A'; } catch (e) { return 'N/A'; } }
+        function getDobFromAge(age, isMinAge = true) { if (isNaN(age)) return null; const today = new Date(); const y = today.getFullYear(); const m = (today.getMonth() + 1).toString().padStart(2, '0'); const d = today.getDate().toString().padStart(2, '0'); const dobYear = isMinAge ? y - age : y - (age + 1); return `${dobYear}-${m}-${d}`; }
 
-        function showMessage(element, message, isSuccess = true) {
-            if (element) {
-                element.textContent = message;
-                element.classList.remove('hidden');
-                element.classList.toggle('success-message', isSuccess);
-                element.classList.toggle('error-message', !isSuccess);
-                setTimeout(() => element.classList.add('hidden'), 5000);
-            }
-        }
+        // --- Auth & Page Load (Keep as is)---
+         onAuthStateChanged(auth, async (user) => { if (user) { currentUser = user; try { const userDoc = await getDoc(doc(db, 'users', user.uid)); const userData = userDoc.exists() ? userDoc.data() : {}; currentUserRole = userData.role; const userStatus = userData.status; if (userStatus === 'pending') { window.location.href = 'pending.html'; return; } else if (userStatus === 'denied' || userStatus === 'suspended') { window.location.href = 'denied.html'; return; } else if (currentUserRole !== 'admin' && currentUserRole !== 'employee') { alert('Your account is not approved or has an invalid role. Redirecting to login.'); await signOut(auth); window.location.href = 'index.html'; return; } } catch (error) { console.error("Error fetching user role/status:", error); alert('Error verifying user role. Redirecting to login.'); await signOut(auth); window.location.href = 'index.html'; return; } if (sidebarUserName) sidebarUserName.textContent = user.email; if (sidebarUserRole) sidebarUserRole.textContent = currentUserRole ? currentUserRole.charAt(0).toUpperCase() + currentUserRole.slice(1) : 'User'; if (popupUserEmail) popupUserEmail.textContent = user.email; if (popupUserRole) popupUserRole.textContent = currentUserRole ? currentUserRole.charAt(0).toUpperCase() + currentUserRole.slice(1) : 'User'; const avatarUrl = user.photoURL || 'https://via.placeholder.com/40'; if (sidebarUserAvatar) sidebarUserAvatar.src = avatarUrl; if (popupUserAvatar) popupUserAvatar.src = avatarUrl; if (logoutBtn) logoutBtn.classList.remove('hidden'); if (navDashboardLink) { navDashboardLink.href = (currentUserRole === 'admin') ? 'admin-dashboard.html' : 'employee-dashboard.html'; } if (navManageUsersItem) navManageUsersItem.classList.toggle('hidden', currentUserRole !== 'admin'); if (navManageProfilesItem) navManageProfilesItem.classList.toggle('hidden', currentUserRole !== 'admin'); if (navGlobalHistoryItem) navGlobalHistoryItem.classList.toggle('hidden', currentUserRole !== 'admin'); populateMatrimonyGroupSelects(); searchProfiles(); } else { window.location.href = 'index.html'; } });
 
-        function showSpinner(spinnerElement, buttonElement, show) {
-            if (spinnerElement) spinnerElement.classList.toggle('hidden', !show);
-            if (buttonElement) buttonElement.disabled = show;
-        }
-        
-        function populateMatrimonyGroupSelects() {
-            if (!searchMatrimonyGroupSelect) return;
-            searchMatrimonyGroupSelect.innerHTML = '';
-            hardcodedMatrimonyGroups.forEach(group => {
-                const option2 = document.createElement('option');
-                option2.value = group.id;
-                option2.textContent = group.name;
-                searchMatrimonyGroupSelect.appendChild(option2);
-            });
-        }
-
-        function getMatrimonyGroupName(groupId) {
-            if (!groupId) {
-                return 'Not Specified';
-            }
-            const group = hardcodedMatrimonyGroups.find(g => g.id === groupId);
-            return group ? group.name : 'Unknown Group';
-        }
-
-        function calculateAge(dateOfBirthString) {
-            if (!dateOfBirthString) return 'N/A';
-            try {
-                const dob = new Date(dateOfBirthString);
-                const today = new Date();
-                let age = today.getFullYear() - dob.getFullYear();
-                const monthDiff = today.getMonth() - dob.getMonth();
-                if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
-                    age--;
-                }
-                return age;
-            } catch (e) {
-                return 'N/A';
-            }
-        }
-
-        function getDobFromAge(age, isMinAge = true) {
-            if (isNaN(age)) return null;
-            const today = new Date();
-            const year = today.getFullYear();
-            const month = (today.getMonth() + 1).toString().padStart(2, '0');
-            const day = today.getDate().toString().padStart(2, '0');
-
-            if (isMinAge) {
-                const dobYear = year - age;
-                return `${dobYear}-${month}-${day}`;
-            } else {
-                const dobYear = year - (age + 1);
-                return `${dobYear}-${month}-${day}`;
-            }
-        }
-
-        // --- Auth & Page Load ---
-
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                currentUser = user;
-                try {
-                    const userDoc = await getDoc(doc(db, 'users', user.uid));
-                    const userData = userDoc.exists() ? userDoc.data() : {};
-                    currentUserRole = userData.role;
-                    const userStatus = userData.status;
-
-                    if (userStatus === 'pending') {
-                        window.location.href = 'pending.html';
-                        return;
-                    } else if (userStatus === 'denied' || userStatus === 'suspended') {
-                        window.location.href = 'denied.html';
-                        return;
-                    } else if (currentUserRole !== 'admin' && currentUserRole !== 'employee') {
-                         alert('Your account is not approved or has an invalid role. Redirecting to login.');
-                         await signOut(auth);
-                         window.location.href = 'index.html';
-                         return;
-                    }
-                } catch (error) {
-                    console.error("Error fetching user role/status:", error);
-                    alert('Error verifying user role. Redirecting to login.');
-                    await signOut(auth);
-                    window.location.href = 'index.html';
-                    return;
-                }
-
-                if (sidebarUserName) sidebarUserName.textContent = user.email;
-                if (sidebarUserRole) sidebarUserRole.textContent = currentUserRole ? currentUserRole.charAt(0).toUpperCase() + currentUserRole.slice(1) : 'User';
-                if (popupUserEmail) popupUserEmail.textContent = user.email;
-                if (popupUserRole) popupUserRole.textContent = currentUserRole ? currentUserRole.charAt(0).toUpperCase() + currentUserRole.slice(1) : 'User';
-                const avatarUrl = user.photoURL || 'https://via.placeholder.com/40';
-                if (sidebarUserAvatar) sidebarUserAvatar.src = avatarUrl;
-                if (popupUserAvatar) popupUserAvatar.src = avatarUrl;
-                if (logoutBtn) logoutBtn.classList.remove('hidden');
-                
-                if (navDashboardLink) {
-                    navDashboardLink.href = (currentUserRole === 'admin') ? 'admin-dashboard.html' : 'employee-dashboard.html';
-                }
-                if (navManageUsersItem) navManageUsersItem.classList.toggle('hidden', currentUserRole !== 'admin');
-                if (navManageProfilesItem) navManageProfilesItem.classList.toggle('hidden', currentUserRole !== 'admin');
-                if (navGlobalHistoryItem) navGlobalHistoryItem.classList.toggle('hidden', currentUserRole !== 'admin');
-
-
-                populateMatrimonyGroupSelects();
-                searchProfiles();
-            } else {
-                window.location.href = 'index.html';
-            }
-        });
-
-        // --- NEW: Scoring Function ---
-        /**
-         * Scores and sorts profiles based on soft filters.
-         * @param {Array} profiles - The array of profiles from Firestore.
-         * @param {Object} filters - The "soft" filters to score against.
-         * @returns {Array} A new, sorted array of profiles with score data.
-         */
+        // --- UPDATED: Scoring Function ---
         function scoreAndSortProfiles(profiles, filters) {
             const filterKeys = Object.keys(filters);
-            
-            // If no soft filters are specified, all are 100% matches
-            if (filterKeys.length === 0) {
-                return profiles.map(p => ({
-                    ...p,
-                    matchPercentage: 100,
-                    unmatchedFields: []
-                }));
-            }
+            if (filterKeys.length === 0) { return profiles.map(p => ({ ...p, matchPercentage: 100, unmatchedFields: [] })); }
 
             const scoredProfiles = profiles.map(profile => {
                 let matchedCount = 0;
                 let unmatchedFields = [];
                 
                 filterKeys.forEach(key => {
-                    // Normalize values for comparison (lowercase, trim)
-                    const profileValue = (profile[key] || '').toString().toLowerCase().trim();
-                    const filterValue = (filters[key] || '').toString().toLowerCase().trim();
-                    
-                    if (profileValue === filterValue) {
-                        matchedCount++;
-                    } else {
-                        unmatchedFields.push(key);
+                    const filterValueLower = (filters[key] || '').toString().toLowerCase().trim();
+                    let profileValueLower = (profile[key] || '').toString().toLowerCase().trim();
+
+                    // Special handling for height range
+                    if (key === 'heightMin' || key === 'heightMax') {
+                         const profileHeight = parseInt(profile['height']);
+                         if (!isNaN(profileHeight)) {
+                              const minHeight = filters.heightMin ? parseInt(filters.heightMin) : 0;
+                              const maxHeight = filters.heightMax ? parseInt(filters.heightMax) : Infinity;
+                              if (profileHeight >= minHeight && profileHeight <= maxHeight) {
+                                  // Consider height matched only if *both* min/max checks pass (or are not set)
+                                  // This logic is tricky for scoring. Let's count it once if within range.
+                                  // We'll handle individual min/max display later.
+                              } else {
+                                   if (filters.heightMin && profileHeight < minHeight) unmatchedFields.push('heightMin');
+                                   if (filters.heightMax && profileHeight > maxHeight) unmatchedFields.push('heightMax');
+                              }
+                         } else { // Profile has no height data, counts as mismatch if filter applied
+                              if(filters.heightMin) unmatchedFields.push('heightMin');
+                              if(filters.heightMax) unmatchedFields.push('heightMax');
+                         }
+                    } 
+                    // Normal comparison for other fields
+                    else {
+                        if (profileValueLower === filterValueLower) {
+                            matchedCount++;
+                        } else {
+                            unmatchedFields.push(key);
+                        }
                     }
                 });
+
+                // Adjust matched count for height (count as 1 match if within range)
+                 let heightMatched = true;
+                 if (filters.heightMin || filters.heightMax) {
+                      const profileHeight = parseInt(profile['height']);
+                      const minHeight = filters.heightMin ? parseInt(filters.heightMin) : 0;
+                      const maxHeight = filters.heightMax ? parseInt(filters.heightMax) : Infinity;
+                      if (isNaN(profileHeight) || profileHeight < minHeight || profileHeight > maxHeight) {
+                           heightMatched = false;
+                      }
+                 }
+                 if ((filters.heightMin || filters.heightMax) && heightMatched) {
+                      matchedCount++; // Add one count if height range was specified and matched
+                 }
+
+
+                // Adjust total filter count for height range (counts as 1 filter conceptually)
+                 let totalFilters = filterKeys.length;
+                 if (filters.heightMin && filters.heightMax) {
+                     totalFilters--; // If both min/max used, treat as one filter criteria for percentage
+                 }
                 
-                const matchPercentage = Math.round((matchedCount / filterKeys.length) * 100);
+                const matchPercentage = totalFilters > 0 ? Math.round((matchedCount / totalFilters) * 100) : 100;
                 
-                return {
-                    ...profile,
-                    matchPercentage,
-                    unmatchedFields
-                };
+                return { ...profile, matchPercentage, unmatchedFields };
             });
 
-            // Sort by match percentage (highest first)
             scoredProfiles.sort((a, b) => b.matchPercentage - a.matchPercentage);
-            
             return scoredProfiles;
         }
 
 
         // --- UPDATED: Search & Render Logic ---
-
         async function searchProfiles(isSmartSearch = false) {
             if (!searchResultsDiv) return;
             searchResultsDiv.innerHTML = '<p class="no-profiles">Searching profiles...</p>';
             
-            // hardConditions are for the Firestore query
             let hardConditions = [where('profileStatus', '==', 'active')];
-            // softFilters are for client-side scoring
             let softFilters = {};
 
             if (isSmartSearch) {
                 const paragraph = smartSearchParagraphInput.value;
-                if (!paragraph) {
-                    showMessage(searchMessage, 'Please enter a paragraph for smart search.', false);
-                    searchResultsDiv.innerHTML = '<p class="no-profiles">Enter a paragraph for smart search.</p>';
-                    return;
-                }
+                if (!paragraph) { showMessage(searchMessage, 'Please enter a paragraph for smart search.', false); searchResultsDiv.innerHTML = '<p class="no-profiles">Enter a paragraph for smart search.</p>'; return; }
                 showSpinner(smartSearchSpinner, smartSearchBtn, true);
 
-                const smartPrompt = `Analyze the following paragraph to extract search criteria for a matrimonial profile. Focus on age range (min/max), location, education, religion, cast, and annual income range (min/max). Provide the output as a JSON object. If a criterion is not found, use a null value. For age range, convert to YYYY-MM-DD date range format. Date format should be strict YYYY-MM-DD. Annual income should be a number. \n\nParagraph: "${paragraph}"\n\nExpected JSON format: {"minDOB": null, "maxDOB": null, "location": null, "religion": null, "education": null, "cast": null, "incomeMin": null, "incomeMax": null}`;
+                 // --- UPDATED: Smart Prompt with ALL new fields ---
+                const smartPrompt = `Analyze the following paragraph to extract search criteria for a matrimonial profile. Use the specified field names and expected values/types. If not found, use null.
+                - Hard Filters: gender ('Male', 'Female', 'Other'), minDOB (YYYY-MM-DD), maxDOB (YYYY-MM-DD), incomeMin (number), incomeMax (number).
+                - Soft Filters: maritalStatus ('Single', 'Divorced', 'Widowed', 'Awaiting Divorce'), heightMin (number cm), heightMax (number cm), location (city/area), cast, religion, motherTongue, education, profession, eatingHabits ('Vegetarian', 'Non-Vegetarian', 'Eggetarian', 'Jain', 'Vegan'), smokingHabit ('Yes', 'No', 'Occasionally'), drinkingHabit ('Yes', 'No', 'Occasionally'), dosham ('Yes', 'No', "Don't Know"), matrimonyGroupId ('US', 'BY_OTHERS', etc.).
+                
+                Interpretation Guidelines:
+                - Eating Habits: 'no veg', 'non veg' -> 'Non-Vegetarian'; 'veg' -> 'Vegetarian'; 'eats eggs' -> 'Eggetarian'.
+                - Smoking/Drinking: 'smokes'/'drinks' -> 'Yes'; 'doesn't smoke'/'non-drinker' -> 'No'; 'sometimes'/'socially' -> 'Occasionally'.
+                - Height: Extract numeric value in cm if possible for min/max.
+                
+                Paragraph: "${paragraph}"
+
+                Expected JSON format: {"gender": null, "minDOB": null, "maxDOB": null, "incomeMin": null, "incomeMax": null, "maritalStatus": null, "heightMin": null, "heightMax": null, "location": null, "cast": null, "religion": null, "motherTongue": null, "education": null, "profession": null, "eatingHabits": null, "smokingHabit": null, "drinkingHabit": null, "dosham": null, "matrimonyGroupId": null}`;
                 
                 try {
                     const result = await model.generateContent(smartPrompt);
                     let responseText = result.response.text();
                     const jsonMatch = responseText.match(/```json\n([\s\S]*?)\n```/);
-                    if (jsonMatch && jsonMatch[1]) {
-                        responseText = jsonMatch[1];
-                    }
+                    if (jsonMatch && jsonMatch[1]) { responseText = jsonMatch[1]; }
                     const smartData = JSON.parse(responseText);
 
                     // Add to HARD conditions
+                    if (smartData.gender) hardConditions.push(where('gender', '==', smartData.gender));
                     if (smartData.minDOB) hardConditions.push(where('dateOfBirth', '<=', smartData.minDOB));
                     if (smartData.maxDOB) hardConditions.push(where('dateOfBirth', '>=', smartData.maxDOB));
                     if (smartData.incomeMin) hardConditions.push(where('annualIncome', '>=', Number(smartData.incomeMin)));
                     if (smartData.incomeMax) hardConditions.push(where('annualIncome', '<=', Number(smartData.incomeMax)));
 
-                    // Add to SOFT filters
+                    // Add to SOFT filters (Check if value is not null/empty)
+                    if (smartData.maritalStatus) softFilters.maritalStatus = smartData.maritalStatus;
+                    if (smartData.heightMin) softFilters.heightMin = smartData.heightMin;
+                    if (smartData.heightMax) softFilters.heightMax = smartData.heightMax;
                     if (smartData.location) softFilters.location = smartData.location;
-                    if (smartData.religion) softFilters.religion = smartData.religion;
-                    if (smartData.education) softFilters.education = smartData.education;
                     if (smartData.cast) softFilters.cast = smartData.cast;
+                    if (smartData.religion) softFilters.religion = smartData.religion;
+                    if (smartData.motherTongue) softFilters.motherTongue = smartData.motherTongue;
+                    if (smartData.education) softFilters.education = smartData.education;
+                    if (smartData.profession) softFilters.profession = smartData.profession;
+                    if (smartData.eatingHabits) softFilters.eatingHabits = smartData.eatingHabits;
+                    if (smartData.smokingHabit) softFilters.smokingHabit = smartData.smokingHabit;
+                    if (smartData.drinkingHabit) softFilters.drinkingHabit = smartData.drinkingHabit;
+                    if (smartData.dosham) softFilters.dosham = smartData.dosham;
+                    if (smartData.matrimonyGroupId) softFilters.matrimonyGroupId = smartData.matrimonyGroupId;
                     
                     showMessage(searchMessage, 'Smart search applied!', true);
-                } catch (aiError) {
-                    console.error("AI Smart Search Error:", aiError);
-                    showMessage(searchMessage, `AI smart search failed: ${aiError.message}. Try manual filters.`, false);
-                    searchResultsDiv.innerHTML = '<p class="no-profiles">AI smart search failed. Try manual filters.</p>';
-                    return;
-                } finally {
-                    showSpinner(smartSearchSpinner, smartSearchBtn, false);
-                }
+                } catch (aiError) { console.error("AI Smart Search Error:", aiError); showMessage(searchMessage, `AI smart search failed: ${aiError.message}. Try manual filters.`, false); searchResultsDiv.innerHTML = '<p class="no-profiles">AI smart search failed. Try manual filters.</p>'; return; } 
+                finally { showSpinner(smartSearchSpinner, smartSearchBtn, false); }
 
             } else {
                 // --- Manual Filters ---
-                
                 // Add to HARD conditions
-                const minAge = parseInt(searchAgeMinInput.value);
-                const maxAge = parseInt(searchAgeMaxInput.value);
-                if (!isNaN(minAge)) {
-                    hardConditions.push(where('dateOfBirth', '<=', getDobFromAge(minAge, true)));
-                }
-                if (!isNaN(maxAge)) {
-                    hardConditions.push(where('dateOfBirth', '>=', getDobFromAge(maxAge, false)));
-                }
-                const incomeMin = parseInt(searchIncomeMinInput.value);
-                const incomeMax = parseInt(searchIncomeMaxInput.value);
-                if (!isNaN(incomeMin) && incomeMin > 0) hardConditions.push(where('annualIncome', '>=', incomeMin));
-                if (!isNaN(incomeMax) && incomeMax > 0) hardConditions.push(where('annualIncome', '<=', incomeMax));
+                if (searchGenderSelect.value) hardConditions.push(where('gender', '==', searchGenderSelect.value));
+                const minAge = parseInt(searchAgeMinInput.value); if (!isNaN(minAge)) hardConditions.push(where('dateOfBirth', '<=', getDobFromAge(minAge, true)));
+                const maxAge = parseInt(searchAgeMaxInput.value); if (!isNaN(maxAge)) hardConditions.push(where('dateOfBirth', '>=', getDobFromAge(maxAge, false)));
+                const incomeMin = parseInt(searchIncomeMinInput.value); if (!isNaN(incomeMin) && incomeMin >= 0) hardConditions.push(where('annualIncome', '>=', incomeMin)); // Allow 0
+                const incomeMax = parseInt(searchIncomeMaxInput.value); if (!isNaN(incomeMax) && incomeMax >= 0) hardConditions.push(where('annualIncome', '<=', incomeMax)); // Allow 0
 
-                // Add to SOFT filters
+                // Add to SOFT filters (Check if value is not empty/default)
+                if (searchMaritalStatusSelect.value) softFilters.maritalStatus = searchMaritalStatusSelect.value;
+                if (searchHeightMinInput.value) softFilters.heightMin = parseInt(searchHeightMinInput.value);
+                if (searchHeightMaxInput.value) softFilters.heightMax = parseInt(searchHeightMaxInput.value);
                 if (searchLocationInput.value.trim()) softFilters.location = searchLocationInput.value.trim();
-                if (searchReligionInput.value.trim()) softFilters.religion = searchReligionInput.value.trim();
-                if (searchEducationInput.value.trim()) softFilters.education = searchEducationInput.value.trim();
-                if (searchMatrimonyGroupSelect.value) softFilters.matrimonyGroupId = searchMatrimonyGroupSelect.value;
                 if (searchCastInput.value.trim()) softFilters.cast = searchCastInput.value.trim();
+                if (searchReligionInput.value.trim()) softFilters.religion = searchReligionInput.value.trim();
+                if (searchMotherTongueInput.value.trim()) softFilters.motherTongue = searchMotherTongueInput.value.trim();
+                if (searchEducationInput.value.trim()) softFilters.education = searchEducationInput.value.trim();
+                if (searchProfessionInput.value.trim()) softFilters.profession = searchProfessionInput.value.trim();
+                if (searchEatingHabitsSelect.value) softFilters.eatingHabits = searchEatingHabitsSelect.value;
+                if (searchSmokingHabitSelect.value) softFilters.smokingHabit = searchSmokingHabitSelect.value;
+                if (searchDrinkingHabitSelect.value) softFilters.drinkingHabit = searchDrinkingHabitSelect.value;
+                if (searchDoshamSelect.value) softFilters.dosham = searchDoshamSelect.value;
+                if (searchMatrimonyGroupSelect.value) softFilters.matrimonyGroupId = searchMatrimonyGroupSelect.value;
             }
 
-            // Only one orderBy is needed since the hard filters handle the ranges
-            const finalQuery = query(collection(db, 'profiles'), ...hardConditions, orderBy('dateOfBirth', 'desc'));
+            // Order by a field used in range filter if possible (helps Firestore)
+            let finalQuery;
+            if (hardConditions.some(c => c._field.segments.join('/') === 'dateOfBirth')) {
+                finalQuery = query(collection(db, 'profiles'), ...hardConditions, orderBy('dateOfBirth', 'desc'));
+            } else if (hardConditions.some(c => c._field.segments.join('/') === 'annualIncome')) {
+                 finalQuery = query(collection(db, 'profiles'), ...hardConditions, orderBy('annualIncome', 'desc'));
+            } else {
+                 finalQuery = query(collection(db, 'profiles'), ...hardConditions, orderBy('createdAt', 'desc')); // Fallback order
+            }
+
 
             try {
                 const snapshot = await getDocs(finalQuery);
                 const allProfiles = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
-                // --- NEW STEP: Score and Sort ---
                 const scoredProfiles = scoreAndSortProfiles(allProfiles, softFilters);
-                
-                // --- NEW: Pass softFilters to render function ---
                 renderProfiles(scoredProfiles, searchResultsDiv, softFilters);
-
             } catch (error) {
                 console.error("Error searching profiles:", error);
-                
-                if (error.code === 'failed-precondition') {
-                    showMessage(searchMessage, `Query failed. You may need to create a composite index in your Firebase console. See console for link.`, false);
-                    console.error("Firestore Index Error: The query requires an index. You can create it here: ", error.message.match(/https?:\/\/[^\s]+/g)?.[0]);
-                    searchResultsDiv.innerHTML = `<p class="error-message"><b>Query Error:</b> A Firestore index is required for this combination of filters. Please check the browser console (F12) for a link to create it.</p>`;
-                } else {
-                    showMessage(searchMessage, `Error searching profiles: ${error.message}`, false);
-                    searchResultsDiv.innerHTML = `<p class="error-message">Error searching profiles: ${error.message}</p>`;
-                }
+                if (error.code === 'failed-precondition') { showMessage(searchMessage, `Query failed. You may need to create a composite index in your Firebase console. See console for link.`, false); console.error("Firestore Index Error: The query requires an index. You can create it here: ", error.message.match(/https?:\/\/[^\s]+/g)?.[0]); searchResultsDiv.innerHTML = `<p class="error-message"><b>Query Error:</b> A Firestore index is required for this combination of filters. Please check the browser console (F12) for a link to create it.</p>`; } else { showMessage(searchMessage, `Error searching profiles: ${error.message}`, false); searchResultsDiv.innerHTML = `<p class="error-message">Error searching profiles: ${error.message}</p>`; }
             }
         }
 
         /**
-         * Renders the scored and sorted profiles to the page.
-         * @param {Array} profiles - The scored profiles to render.
-         * @param {HTMLElement} targetDiv - The div to render into.
-         * @param {Object} softFilters - The soft filters used in the search.
+         * Renders the scored and sorted profiles.
+         * @param {Array} profiles - Scored profiles.
+         * @param {HTMLElement} targetDiv - Target element.
+         * @param {Object} softFilters - Applied soft filters.
          */
         function renderProfiles(profiles, targetDiv, softFilters = {}) {
             targetDiv.innerHTML = '';
-            if (profiles.length === 0) {
-                targetDiv.innerHTML = '<p class="no-profiles">No profiles found matching your "Must-Have" criteria.</p>';
-                return;
-            }
+            if (profiles.length === 0) { targetDiv.innerHTML = '<p class="no-profiles">No profiles found matching your "Must-Have" criteria.</p>'; return; }
 
             const softFilterKeys = Object.keys(softFilters);
             
-            // Helper to format field names for display
+            // --- UPDATED: formatFieldName including new fields ---
             const formatFieldName = (key) => {
-                switch (key) {
+                 switch (key) {
                     case 'matrimonyGroupId': return 'Group';
-                    case 'cast': return 'Cast';
-                    case 'location': 'Location';
-                    case 'religion': return 'Religion';
-                    case 'education': return 'Education';
+                    case 'maritalStatus': return 'Marital Status';
+                    case 'heightMin': return 'Min Height';
+                    case 'heightMax': return 'Max Height';
+                    case 'motherTongue': return 'Mother Tongue';
+                    case 'eatingHabits': return 'Eating';
+                    case 'smokingHabit': return 'Smoking';
+                    case 'drinkingHabit': return 'Drinking';
+                    case 'dosham': return 'Dosham';
+                    // Simple capitalization for others
                     default: return key.charAt(0).toUpperCase() + key.slice(1);
                 }
             };
             
             profiles.forEach(profile => {
                 const age = calculateAge(profile.dateOfBirth);
-                
                 let displayPhoto = 'https://via.placeholder.com/300x200?text=No+Photo';
-                if (profile.photoURLs && profile.photoURLs.length > 0) {
-                    displayPhoto = profile.photoURLs[0];
-                } else if (profile.photoURL) { 
-                    displayPhoto = profile.photoURL;
-                }
-                
+                if (profile.photoURLs && profile.photoURLs.length > 0) { displayPhoto = profile.photoURLs[0]; } else if (profile.photoURL) { displayPhoto = profile.photoURL; }
                 const incomeString = profile.annualIncome ? '₹' + profile.annualIncome.toLocaleString('en-IN') : 'N/A';
+                const heightString = profile.height ? `${profile.height} cm` : 'N/A';
 
                 const profileCard = document.createElement('div');
                 profileCard.className = 'profile-card';
                 
-                // --- NEW: Card Content with Match Details ---
-                
                 let matchDetailsHTML = '';
-                let matchClass = 'full-match';
-                
                 if (softFilterKeys.length > 0) {
-                    // Only show match details if soft filters were used
                     if (profile.matchPercentage === 100) {
                         matchDetailsHTML = `<p class="match-percentage full-match">100% Match <i class='bx bx-check-circle'></i></p>`;
                     } else {
-                        matchClass = 'partial-match';
                         profileCard.classList.add('partial-match');
                         matchDetailsHTML = `<p class="match-percentage partial-match">${profile.matchPercentage}% Match</p>`;
                     }
                     
                     matchDetailsHTML += '<div class="match-details">';
                     
-                    // Show details for all applied soft filters
+                    // --- UPDATED: Display logic for ALL soft filters ---
                     softFilterKeys.forEach(key => {
                         const fieldName = formatFieldName(key);
-                        const profileValue = (key === 'matrimonyGroupId') ? getMatrimonyGroupName(profile[key]) : (profile[key] || 'N/A');
+                        let profileValue;
+                        let filterValue = softFilters[key]; // Keep original case for display if needed
                         
-                        if (profile.unmatchedFields.includes(key)) {
-                            // Unmatched: Show profile value with strikethrough
-                            matchDetailsHTML += `<p><strong>${fieldName}:</strong> <del>${profileValue}</del></p>`;
+                        // Special display formatting
+                        if (key === 'matrimonyGroupId') profileValue = getMatrimonyGroupName(profile[key]);
+                        else if (key === 'heightMin' || key === 'heightMax') profileValue = profile.height ? `${profile.height} cm` : 'N/A';
+                        else profileValue = profile[key] || 'N/A';
+                        
+                        // Check if field was unmatched (handle height range separately)
+                        let isUnmatched = profile.unmatchedFields.includes(key);
+                        
+                        // Specific check for height range mismatch display
+                        if (key === 'heightMin' && profile.height && filterValue && profile.height < filterValue) isUnmatched = true;
+                        if (key === 'heightMax' && profile.height && filterValue && profile.height > filterValue) isUnmatched = true;
+
+                        if (isUnmatched) {
+                            // Display filter requirement vs profile value for clarity on mismatch
+                             if (key === 'heightMin') matchDetailsHTML += `<p><strong>${fieldName}:</strong> <del>${profileValue}</del> (Req: >=${filterValue}cm)</p>`;
+                             else if (key === 'heightMax') matchDetailsHTML += `<p><strong>${fieldName}:</strong> <del>${profileValue}</del> (Req: <=${filterValue}cm)</p>`;
+                             else matchDetailsHTML += `<p><strong>${fieldName}:</strong> <del>${profileValue}</del></p>`;
                         } else {
-                            // Matched: Show profile value with a check
-                            matchDetailsHTML += `<p><strong>${fieldName}:</strong> ${profileValue} <i class='bx bx-check-circle'></i></p>`;
+                             // Matched: Show profile value with a check (don't show check for height range display)
+                             if (key !== 'heightMin' && key !== 'heightMax') {
+                                  matchDetailsHTML += `<p><strong>${fieldName}:</strong> ${profileValue} <i class='bx bx-check-circle'></i></p>`;
+                             } else if (key === 'heightMin' && !softFilters.heightMax) { // Only show height once if range used
+                                  matchDetailsHTML += `<p><strong>Height:</strong> ${profileValue} <i class='bx bx-check-circle'></i></p>`;
+                             } else if (key === 'heightMax' && !softFilters.heightMin) {
+                                   matchDetailsHTML += `<p><strong>Height:</strong> ${profileValue} <i class='bx bx-check-circle'></i></p>`;
+                             } else if (key === 'heightMin' && softFilters.heightMax) { // Show height once if both min/max used
+                                    matchDetailsHTML += `<p><strong>Height:</strong> ${profileValue} <i class='bx bx-check-circle'></i></p>`;
+                             }
                         }
                     });
-                    
                     matchDetailsHTML += '</div>';
                 }
 
                 profileCard.innerHTML = `
                     <img src="${displayPhoto}" alt="${profile.name}">
-                    <h3>${profile.name}</h3>
-                    
+                    <h3>${profile.name} (${profile.gender ? profile.gender.charAt(0) : 'N/A'})</h3> 
                     <p><strong>Age:</strong> ${age}</p>
                     <p><strong>Income:</strong> ${incomeString}</p>
-                    
+                    <p><strong>Height:</strong> ${heightString}</p> 
                     ${matchDetailsHTML} 
-
                     <div class="actions">
                         <button class="view-profile-btn" data-id="${profile.id}">View Details</button>
                     </div>
